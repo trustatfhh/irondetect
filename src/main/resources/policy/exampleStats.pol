@@ -1,0 +1,39 @@
+context {
+ 	ctxWorkingHours := DATETIME > "8:00" and DATETIME < "23:00";
+}
+ 
+hint {
+ 	hint1 := "smartphone.communication.sms.SentCount" "de.fhhannover.inform.trust.irondetectprocedures.Mean" "15";
+ 	hint2 := "smartphone.communication.sms.SentCount" "de.fhhannover.inform.trust.irondetectprocedures.Median" "15";
+ 	hint3 := "smartphone.communication.sms.SentCount" "de.fhhannover.inform.trust.irondetectprocedures.Variance" "1";
+ 	hint4 := "smartphone.communication.sms.SentCount" "de.fhhannover.inform.trust.irondetectprocedures.StdDev" "1";
+ }
+ 
+anomaly {
+ 	anom1 := hint1 > 0.1;
+ 	anom2 := hint2 > 0.1;
+ 	anom3 := hint3 > 0.1;
+ 	anom4 := hint4 > 0.1;
+}
+
+signature {
+}
+
+condition {
+	con1 := anom1;
+	con2 := anom2;
+	con3 := anom3;
+	con4 := anom4;
+}
+
+action {
+	ac1 := "alert.Name" "Anom1";
+	ac2 := "alert.Name" "Anom2";
+	ac3 := "alert.Name" "Anom3";
+	ac4 := "alert.Name" "Anom4";
+}
+
+rule {
+	r1 := if con1 do ac1;
+	r2 := if con2 do ac2;
+}

@@ -1,0 +1,25 @@
+context {
+}
+
+#hint block
+hint {
+}
+ 
+anomaly {
+}
+
+signature {
+	sigAppName := "smartphone.android.os.smartphone.android.os.FirmwareVersion" = "4.1.1";	
+}
+
+condition {
+	con1 := sigAppName;
+}
+
+action {
+	ac3 := "Name" "suspiciousApp" "Severity" "100";
+}
+
+rule {
+	r1 := if con1 do ac3;
+}

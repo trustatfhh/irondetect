@@ -1,0 +1,32 @@
+context {
+ 	ctxWorkingHours := DATETIME > "0:00" and DATETIME < "24:00";
+ 	ctxLastMinute := DATETIME > "8:00" and DATETIME < "23:00" and SLIDING = "0:0:1";
+ 	ctxTrust := TRUSTLEVEL < 1;
+}
+
+#hint block
+hint {
+ 	hint1 := "smartphone.communication.wifi.scan.level" "de.fhhannover.inform.trust.irondetectprocedures.Mean" "0";
+ #	hint2 := "smartphone.communication.wifi.scan.level" "de.fhhannover.inform.trust.irondetectprocedures.Median" "0";
+# 	hint3 := "smartphone.communication.wifi.scan.level" "de.fhhannover.inform.trust.irondetectprocedures.Variance" "0";
+ #	hint4 := "smartphone.communication.wifi.scan.level" "de.fhhannover.inform.trust.irondetectprocedures.StdDev" "0";
+}
+ 
+anomaly {
+ 	anom1 := hint1 > 0.5 ctxWorkingHours;
+}
+
+signature {
+}
+
+condition {
+	con1 := anom1;
+}
+
+action {
+	ac1 := "alert.Name" "bad_wifi_signal_strength";
+}
+
+rule {
+	r1 := if con1 do ac1;
+}

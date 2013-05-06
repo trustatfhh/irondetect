@@ -1,0 +1,53 @@
+context {
+ 	ctxWorkingHours := DATETIME > "8:00" and DATETIME < "23:00";
+ 	ctxOneMinuteDuringWorkingHours := DATETIME > "8:00" and DATETIME < "23:00" and SLIDING != "00:01:00";
+ 	ctxTrusted := TRUSTLEVEL > 0;
+ 	ctxSlidingOneDay := SLIDING = "12:00:00";
+}
+
+#hint block
+hint {
+ 	hint1 := "smartphone.communication.sms.outgoingsms" "de.fhhannover.inform.trust.irondetectprocedures.MeanDaily" "15";
+}
+ 
+anomaly {
+ 	anom1 := hint1 > 0.5 ctxWorkingHours;
+}
+
+signature {
+	#check android version (minimum 4.0.1)
+	sigAndroidVersion := "smartphone.android.os.firmwareversion" = "4.1.1" ctxSliding;
+	
+	#check during working hours if MyCoolApp-6 is installed and if it has at least 8 permissions and if there is one internet permission assigned
+	sigInternetPermission :=  "smartphone.android.app.Name 2" = "MyCoolApp-6" and "smartphone.android.app.Rating" < 5 and 
+						count ( "smartphone.android.app.permission.Name" ) >= 4 and "smartphone.android.app.permission.Name" = "INTERNET" ctxWorkingHours;
+								 
+
+	sigMetaDeviceAlert := "smartphone.alert.Severity" >= 100 and count ( "smartphone.alert.Severity" ) >= 2 ctxTrusted ctxSliding;
+
+        sigTest := "smartphone.android.os.firmwareversion" = "@appcrawler.blacklist.firmwareversion";
+	
+}
+
+condition {
+	con1 := anom1;
+	con2 := sigAndroidVersion;
+	con3 := sigInternetPermission;
+	con4 := sigMetaDeviceAlert;
+        con5 := sigTest;
+}
+
+action {
+	ac1 := "Name" "smsCountHigh" "Severity" "100";
+	ac2 := "Name" "androidVersionLow" "Severity" "100";
+	ac3 := "Name" "suspiciousApp" "Severity" "100";
+	ac4 := "Name" "badDevice" "RequestedEnforcement" "isolate";
+}
+
+rule {
+	r1 := if con1 do ac1;
+#	r2 := if con2 do ac2;
+#	r3 := if con3 do ac3;
+#	r4 := if con4 do ac4;
+        r5 := if con5 do ac4;
+}

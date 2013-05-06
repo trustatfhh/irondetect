@@ -1,0 +1,134 @@
+context {
+    ctxTest := SLIDING = "00:01:00";
+
+    #tc1
+    ctxTrustedInfrastructureComponent := TRUSTLEVEL > 0;
+    
+    #tc1a
+    ctxSmartphoneMovesInSliding2h := SLIDING = "02:00:00" and TRUSTLEVEL > 0;
+    ctxServiceAccessedLastMin := SLIDING = "00:01:00" and TRUSTLEVEL > 0;
+    ctxIrondetect := TRUSTLEVEL >= 2;
+
+    #tc2
+    ctxAllowedTimeSlidingLastMin := DATETIME > "8:00" and DATETIME < "23:00" and SLIDING = "00:01:00";
+}
+
+hint {
+    trafficHint := "ids.smartphone.trafficCount" "de.fhhannover.inform.trust.irondetectprocedures.Mean" "1000";
+    trendHint := "trend.measurement.event" "de.fhhannover.inform.trust.irondetectprocedures.Trend" "0";
+}
+ 
+anomaly {
+    anoTrend := trendHint > 0.5 ctxTest;
+
+    #tc3a
+    anoHighTraffic := trafficHint > 0.5 ctxTrustedInfrastructureComponent;
+}
+
+signature {
+
+    sigTest := "smartphone.android.app.name" = "MyCoolApp-1";
+    
+    sigTrafficPlus := "ids.alert.traffic" = "increase";
+    sigTrafficMinus := "ids.alert.traffic" = "decrease";
+
+
+    #tc1
+    sigIsSmartphone := count ("smartphone.android.os.imsi") > "0" or count ("smartphone.android.os.imei") > "0" or "tmaps.spr.name" = "isSmartphone";
+    sigOpenPorts := count ("vulnerability-scan-result.vulnerability.port") > "0" ctxSmartphoneMovesInSliding2h;
+
+    #tc1a
+    sigRequestServiceAccess := count("service.accessRequest") > 0 ctxServiceAccessedLastMin;
+    sigIsInfrastructureComponent := count ("smartphone.android.os.imsi") = "0" and count ("smartphone.android.os.imei") = "0";
+    sigBehavesLikeSmartphone := count ("macmon.connectedTo.name") > "3" ctxSmartphoneMovesInSliding2h;
+    sigServiceAccessed := "notification.serviceAccess" = "allowed" ctxIrondetect;
+    sigSuspiciousDeviceFound := "alert.name" = "suspiciousDevice" ctxIrondetect;
+
+    #tc2
+    sigAllowedLocation := "macmon.connectedTo.name" = "aploc1" or "macmon.ConnectedTo.name" = "aploc2" ctxTrustedInfrastructureComponent;
+    sigRequestTimedServiceAccess := count ("service.accessRequest") > "0" ctxAllowedTimeSlidingLastMin;
+
+    #tc3
+    sigMalappInstalled := "appcrawler.blacklisted.app.name" = "@smartphone.android.app.name" ctxTrustedInfrastructureComponent;
+
+    #tc3a
+    sigIsInRestrictedArea := "macmon.smartphoneConnectedTo" = "aploc1" or "macmon.smartphoneConnectedTo" = "aploc2" ctxTrustedInfrastructureComponent;
+    sigCameraActivated := count ("smartphone.sensor.camera.activated") > "0";
+    sigNoSensorSniffingDetected := "alert.name" = "sensorSniffingSuspected" and count ("alert.name") < "1" ctxIrondetect;
+    sigUntrustedP1 := "notification.name" = "investigateDeviceFurther";
+    sigUntrustedP2 := count ("smartphone.sensor.camera.activated") < "1";
+    sigUntrustedP3 := count ("smartphone.sensor.mic.activated") < "1";
+}
+
+condition {
+    conTest := sigTest;
+    conTrend := anoTrend;
+
+    conTrafficPlus := 
+
+    #tc1
+    smartphoneVisibilityTC1 := sigIsSmartphone and sigOpenPorts;
+
+    #tc1a
+    serviceAccessAllowed := sigRequestServiceAccess and sigIsInfrastructureComponent;
+    suspiciousDevice := sigIsInfrastructureComponent and sigBehavesLikeSmartphone;
+    unauthorizedServiceAccess := sigServiceAccessed and sigSuspiciousDeviceFound;
+    serviceAccessDenied := sigRequestServiceAccess and sigIsSmartphone;
+        
+    #tc2
+    serviceAccessAllowedByTimeAndLoc := sigIsSmartphone and sigAllowedLocation and sigRequestTimedServiceAccess;
+
+    #tc3
+    malAppTC3 := sigIsSmartphone and sigMalappInstalled;
+
+    #tc3a
+    unauthorizedCameraActivation := sigIsInRestrictedArea and sigCameraActivated and anoHighTraffic;
+    requestFurtherInvestigation := sigIsInRestrictedArea and anoHighTraffic and sigNoSensorSniffingDetected;
+    untrustedCameraActivation := sigUntrustedP1 and sigUntrustedP2 and sigUntrustedP3 and anoHighTraffic;    
+}
+
+action {
+    testAction := "Name" "Test";
+    decreaseSprAction := "trust.spr.ps" "-1";
+    increaseSprAction := "trust.spr.ps" "1";
+
+    #tc1
+    actionTC1 := "Name" "SmartphoneVisibility";
+
+    #tc1a
+    serviceAccessible := "notification.serviceAccess" "allowed";
+    changeSPRtoSmartphone := "tmaps.spr.addSP.isSmartphone" "-1" "alert.name" "suspiciousDevice";
+    alertDataExfiltration := "alert.name" "ServiceDataExfiltrated";
+    serviceNotAccessible := "notification.serviceAcess" "denied";
+
+    #tc3
+    malAppAlert := "alert.name" "malAppFound";
+
+    #tc3a
+    sensorSniffingAlert := "alert.name" "sensorSniffingSuspected";
+    triggerFurtherInvestigation := "notification.name" "investigateDeviceFurther";
+    lowerRatingOfSPR := "tmaps.spr.changeSPRating.isSmartphone" "-1";
+
+    #tc4
+    triggerEnforcementIsolate := "alert.name" "isolate";
+}
+
+rule {
+    testRule := if conTest do testAction;
+    trendRule := if conTrend do testAction;
+
+    tc1 := if smartphoneVisibilityTC1 do actionTC1;
+
+    tc1a1 := if serviceAccessAllowed do serviceAccessible;
+    tc1a2 := if suspiciousDevice do changeSPRtoSmartphone;
+    tc1a3 := if unauthorizedServiceAccess do alertDataExfiltration;
+    tc1a4 := if serviceAccessDenied do serviceNotAccessible;
+
+    tc2 := if serviceAccessAllowedByTimeAndLoc do serviceAccessible;
+
+    tc3 := if malAppTC3 do malAppAlert;
+
+    tc3a1 := if unauthorizedCameraActivation do sensorSniffingAlert;
+    tc3a2 := if requestFurtherInvestigation do triggerFurtherInvestigation;
+    tc3a3 := if untrustedCameraActivation do sensorSniffingAlert lowerRatingOfSPR;
+}

@@ -1,0 +1,5 @@
+mvn clean
+mvn javacc:javacc
+mvn eclipse:eclipse
+mvn package
+

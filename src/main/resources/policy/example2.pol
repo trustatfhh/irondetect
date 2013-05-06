@@ -1,0 +1,28 @@
+context {
+ 	ctxWorkingHours := DATETIME > "20:00" and DATETIME < "23:00";
+}
+ 
+hint {
+ 	hint1 := "smartphone.communication.sms.SentCount" "de.fhhannover.inform.trust.irondetectprocedures.Mean" "de.fhhannover.inform.trust.irondetectprocedures.Mean.conf";
+ }
+ 
+anomaly {
+ 	anom1 := hint1 > 0.5 ctx1;
+}
+
+signature {
+	sigAndroidVersion := "smartphone.android.os.Version" < 405 ctxWorkingHours;
+	sigInternetPermission := count ( "smartphone.android.app.Name" ) > 5 and "smartphone.android.app.Name" = "Malice" and "smartphone.android.app.permission.Name" = "INTERNET" ctxWorkingHours;
+}
+
+condition {
+	con2 := anom1;
+}
+
+action {
+	ac2 := "alert.Name" create "Hossa";
+}
+
+rule {
+	r1 := if con2 do ac2;
+}
