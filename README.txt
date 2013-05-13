@@ -1,10 +1,15 @@
 irondetect
 ===============
 
-TODO
+irondetect-0.0.3
 
-This package contains simple examples that demonstrate how to use the ifmapj
-IF-MAP 2.0 [1] library.
+This package contains the IronDetect correlation engine. Based on contexts,
+signatures and anomalies, it detects deviations from normal behavior.
+It presents correlations between IF-MAP metadata of different devices.
+By the definition of rules in a policy by a security expert, the correlated
+results can be used to analyze a network.
+
+If you need help for setting up, please contact the Trust@FHH team.
 
 Development was done by Fachhochschule Hannover (Hannover University of Applied
 Sciences and Arts) [2] within the ESUKOM research project [3].
@@ -13,7 +18,7 @@ Sciences and Arts) [2] within the ESUKOM research project [3].
 Documentation
 =============
 
-Please review the code in order to learn how ifmapj is expected to be used.
+To be submitted later...
 
 Build
 =====
@@ -35,7 +40,8 @@ If you have any questions, problems or comments, please contact
 
 LICENSE
 =======
-ifmapj-examples is licensed under the Apache License, Version 2.0 [4].
+ Licensed under the Apache License, Version 2.0 [4].
+ You may not use this file except in compliance with the License.
 
 
 URLs
