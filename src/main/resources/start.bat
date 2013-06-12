@@ -1,0 +1,2 @@
+java -jar irondetect.jar %*
+
