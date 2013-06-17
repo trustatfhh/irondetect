@@ -31,15 +31,6 @@
                         </excludes>
                 </fileSet>
 		<fileSet>
-                        <directory>${project.build.directory}</directory>
-                        <outputDirectory></outputDirectory>
-                        <includes>
-                                <include>irondetect-bin.jar</include>
-                        </includes>
-		</fileSet>
-		<fileSet>
-			<directory>${basedir}/src/main/templates</directory>
-			<outputDirectory></outputDirectory></fileSet><fileSet>
 			<directory>${basedir}</directory>
 			<outputDirectory></outputDirectory>
 			<includes>
