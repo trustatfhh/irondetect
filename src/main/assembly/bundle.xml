@@ -9,6 +9,12 @@
 
 	<files>
 		<file>
+                        <source>${basedir}/src/main/templates/start.sh</source>
+                        <outputDirectory></outputDirectory>
+                        <fileMode>755</fileMode>
+                        <filtered>true</filtered>
+                </file>
+		<file>
 			<source>${project.build.directory}/irondetect-${version}-bin.jar</source>
 			<outputDirectory></outputDirectory>
 			<destName>irondetect.jar</destName>
@@ -17,9 +23,22 @@
 	</files>
 
 	<fileSets>
-		
 		<fileSet>
-			<directory>${basedir}/src/main/resources</directory>
+                        <directory>${basedir}/src/main/templates</directory>
+                        <outputDirectory></outputDirectory>
+                        <excludes>
+                                <exclude>start.sh</exclude>
+                        </excludes>
+                </fileSet>
+		<fileSet>
+                        <directory>${project.build.directory}</directory>
+                        <outputDirectory></outputDirectory>
+                        <includes>
+                                <include>irondetect-bin.jar</include>
+                        </includes>
+		</fileSet>
+		<fileSet>
+			<directory>${basedir}/src/main/templates</directory>
 			<outputDirectory></outputDirectory></fileSet><fileSet>
 			<directory>${basedir}</directory>
 			<outputDirectory></outputDirectory>
