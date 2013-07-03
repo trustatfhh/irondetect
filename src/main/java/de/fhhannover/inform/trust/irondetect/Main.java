@@ -12,7 +12,7 @@ package de.fhhannover.inform.trust.irondetect;
  * 
  * =====================================================
  * 
- * Hochschule Hannover 
+ * Hochschule Hannover
  * (University of Applied Sciences and Arts, Hannover)
  * Faculty IV, Dept. of Computer Science
  * Ricklinger Stadtweg 118, 30459 Hannover, Germany
@@ -20,7 +20,7 @@ package de.fhhannover.inform.trust.irondetect;
  * Email: trust@f4-i.fh-hannover.de
  * Website: http://trust.inform.fh-hannover.de/
  * 
- * This file is part of irongui, version 0.0.3, implemented by the Trust@FHH 
+ * This file is part of irongui, version 0.0.3, implemented by the Trust@FHH
  * research group at the Hochschule Hannover, a program to visualize the content
  * of a MAP Server (MAPS), a crucial component within the TNC architecture.
  * 
@@ -63,6 +63,7 @@ import de.fhhannover.inform.trust.irondetect.ifmap.IfmapController;
 import de.fhhannover.inform.trust.irondetect.ifmap.IfmapToFeatureMapper;
 import de.fhhannover.inform.trust.irondetect.repository.FeatureBase;
 import de.fhhannover.inform.trust.irondetect.repository.FeatureBaseImpl;
+import de.fhhannover.inform.trust.irondetect.status.StatusPublisher;
 import de.fhhannover.inform.trust.irondetect.util.Configuration;
 import de.fhhannover.inform.trust.irondetect.util.Pair;
 
@@ -77,74 +78,80 @@ import de.fhhannover.inform.trust.irondetect.util.Pair;
 public class Main
 {
 	private static final String VERSION = "0.0.3";
-	
-	private static Logger logger = Logger.getLogger(Main.class);
-	
-    public static void main(String[] args) {        
-        // init log4j
-    	URL resource = Main.class.getResource("/log4j.properties");
-    	if (resource != null) {    		
-    		System.out.println("URL of log4j properties file: " + resource.toString());
-    		PropertyConfigurator.configure(resource);
-    	} else {
-    		System.out.println("Couldn't load log4j properties file.");
-    	}
-    	
-    	logger.info("irondetect " + VERSION + " is running ...");
-        		
-    	// initialize modules
-        initModules();
-        
-        // Create and Start main processing controller
-        Processor processor = Processor.getInstance();
 
-        // Add EventReceivers to FeatureBase
-        FeatureBase fb = FeatureBaseImpl.getInstance();
-        fb.addEventReceiver(processor);
-        
-        // Create the manager for all trigger/sliding context related correlation
-        TriggerManager tm = TriggerManager.getInstance();
-        tm.addEventReceiver(processor);
-        
-        // Create a ResultLogger and connect the ResultVisualizer to it
-        ResultLoggerImpl resultLogger = ResultLoggerImpl.getInstance();
-        Thread resultLoggerThread = new Thread(resultLogger, "result-logger-thread");        
-        
-        if (Configuration.loadGUI()) {
-        	// Create a ResultVisualizer (displays irondetect's result with a GUI)
-        	ResultVisualizer resultVisualizer = new ResultVisualizer();
-        	resultLogger.addEventReceiver(resultVisualizer);
-        }
-        
-        resultLoggerThread.start();
-        
-        // Create processor and thread
-        Thread processingThread = new Thread(processor, "processor-thread");
-        processingThread.start();
-        
-        List<Pair<String, Pair<Feature, Boolean>>> importedTrainingData = Db4oToFeatureMapper.loadTrainingDatabases();
-        if (importedTrainingData != null) {
-        	logger.info("Imported training data was NOT null -> will train now.");
-        	fb.addNewFeatures(importedTrainingData, true);
-        } else {
-        	logger.info("Imported training data was null -> will begin testing now.");
-        	processor.setToTesting();
-        }
-        
-        // Create new IF-MAP-to-Feature Mapper
-        IfmapToFeatureMapper ifmapToFeatureMapper = new IfmapToFeatureMapper();        
-        
-        // Create IF-MAP to Feature mapper
-        Thread mapperThread = new Thread(ifmapToFeatureMapper, "ifmap-to-feature-mapper-thread");
-        mapperThread.start();
-        
-        // Start ifmap subscriber for configured pdp device identifiers
-        IfmapController ifmapController = new IfmapController(ifmapToFeatureMapper);
-        
-        // Create a new Action-To-IF-MAP Mapper and register the IF-MAP controller.
-        ActionToIfmapMapper.getInstance().setIfmapController(ifmapController);
-        
-    }
+	private static Logger logger = Logger.getLogger(Main.class);
+
+	public static void main(String[] args) {
+		// init log4j
+		URL resource = Main.class.getResource("/log4j.properties");
+		if (resource != null) {
+			System.out.println("URL of log4j properties file: " + resource.toString());
+			PropertyConfigurator.configure(resource);
+		} else {
+			System.out.println("Couldn't load log4j properties file.");
+		}
+
+		logger.info("irondetect " + VERSION + " is running ...");
+
+		// initialize modules
+		initModules();
+
+		// Create and Start main processing controller
+		Processor processor = Processor.getInstance();
+
+		// Add EventReceivers to FeatureBase
+		FeatureBase fb = FeatureBaseImpl.getInstance();
+		fb.addEventReceiver(processor);
+
+		// Create the manager for all trigger/sliding context related correlation
+		TriggerManager tm = TriggerManager.getInstance();
+		tm.addEventReceiver(processor);
+
+		// Create a ResultLogger and connect the ResultVisualizer to it
+		ResultLoggerImpl resultLogger = ResultLoggerImpl.getInstance();
+		Thread resultLoggerThread = new Thread(resultLogger, "result-logger-thread");
+
+		if (Configuration.loadGUI()) {
+			// Create a ResultVisualizer (displays irondetect's result with a GUI)
+			ResultVisualizer resultVisualizer = new ResultVisualizer();
+			resultLogger.addEventReceiver(resultVisualizer);
+		}
+
+		if (Configuration.publishStatus()) {
+			// GUI over IF-MAP (publish status informations for subscriber)
+			StatusPublisher statusPublisher = new StatusPublisher();
+			resultLogger.addEventReceiver(statusPublisher);
+		}
+
+		resultLoggerThread.start();
+
+		// Create processor and thread
+		Thread processingThread = new Thread(processor, "processor-thread");
+		processingThread.start();
+
+		List<Pair<String, Pair<Feature, Boolean>>> importedTrainingData = Db4oToFeatureMapper.loadTrainingDatabases();
+		if (importedTrainingData != null) {
+			logger.info("Imported training data was NOT null -> will train now.");
+			fb.addNewFeatures(importedTrainingData, true);
+		} else {
+			logger.info("Imported training data was null -> will begin testing now.");
+			processor.setToTesting();
+		}
+
+		// Create new IF-MAP-to-Feature Mapper
+		IfmapToFeatureMapper ifmapToFeatureMapper = new IfmapToFeatureMapper();
+
+		// Create IF-MAP to Feature mapper
+		Thread mapperThread = new Thread(ifmapToFeatureMapper, "ifmap-to-feature-mapper-thread");
+		mapperThread.start();
+
+		// Start ifmap subscriber for configured pdp device identifiers
+		IfmapController ifmapController = new IfmapController(ifmapToFeatureMapper);
+
+		// Create a new Action-To-IF-MAP Mapper and register the IF-MAP controller.
+		ActionToIfmapMapper.getInstance().setIfmapController(ifmapController);
+
+	}
 
 	private static void initModules() {
 		logger.info( "initializing modules ... " );

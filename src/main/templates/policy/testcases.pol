@@ -64,7 +64,7 @@ condition {
     conTest := sigTest;
     conTrend := anoTrend;
 
-    conTrafficPlus := 
+    #conTrafficPlus := 
 
     #tc1
     smartphoneVisibilityTC1 := sigIsSmartphone and sigOpenPorts;
