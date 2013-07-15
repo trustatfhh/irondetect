@@ -85,6 +85,8 @@ public class Configuration {
 
 	private static final String SUBSCRIBER_PDP = "irondetect.subscriber.pdp";
 
+	private static final String STATUS_IDENTIFIER = "irondetect.publish.status.identifier";
+
 	private static final String POLICY_FILE = "irondetect.policy.filename";
 
 	private static final String PROCEDURE_DIRECTORY = "irondetect.procedure.directory";
@@ -95,7 +97,7 @@ public class Configuration {
 	private static final String PUBLISH_NOTIFY = "irondetect.publisher.notify";
 
 	private static final String IRONDETECT_GUI = "irondetect.gui";
-	private static final String PUBLISH_STATUS = "irondetect.publish.status";
+	private static final String IRONDETECT_PUBLISH_STATUS = "irondetect.publish.status";
 	// end of parameter block
 
 	/**
@@ -203,6 +205,10 @@ public class Configuration {
 		return get(SUBSCRIBER_PDP);
 	}
 
+	public static String getStatusIdentifier() {
+		return get(STATUS_IDENTIFIER);
+	}
+
 	public static String policyFile() {
 		return get(POLICY_FILE);
 	}
@@ -232,6 +238,6 @@ public class Configuration {
 	}
 
 	public static boolean publishStatus() {
-		return Boolean.parseBoolean(get(PUBLISH_STATUS));
+		return Boolean.parseBoolean(get(IRONDETECT_PUBLISH_STATUS));
 	}
 }

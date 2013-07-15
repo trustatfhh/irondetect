@@ -62,10 +62,13 @@ public class StatusPublisher implements EventReceiver {
 
 	private StandardIfmapMetadataFactory mF;
 
+	private String statusIdentifier;
+
 
 	public StatusPublisher(){
 
 		this.mF = IfmapJ.createStandardMetadataFactory();
+		this.statusIdentifier = Configuration.getStatusIdentifier();
 
 		try {
 			initSsrc();
@@ -175,7 +178,7 @@ public class StatusPublisher implements EventReceiver {
 
 	private PublishElement buildPublishStatusElement(String elementName, HashMap<String, String> attributes){
 
-		Identifier target = Identifiers.createDev(Configuration.subscriberPdp());
+		Identifier target = Identifiers.createDev(statusIdentifier);
 
 		Document metadata = mF.create(elementName, STATUS_METADATA_PREFIX, STATUS_METADATA_URI, Cardinality.singleValue, attributes);
 
