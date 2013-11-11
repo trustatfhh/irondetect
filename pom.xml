@@ -10,7 +10,7 @@
 	<!-- general project information -->
 	<groupId>de.fhhannover.inform.trust</groupId>
 	<artifactId>irondetect</artifactId>
-	<version>0.0.3</version>
+	<version>0.0.4</version>
 	<packaging>jar</packaging>
 	<name>irondetect</name>
 	<url>http://trust.f4.hs-hannover.de/</url>
@@ -50,7 +50,11 @@
 	<contributors>
 		<contributor>
 			<name>Thomas Rossow</name>
-			<email>thomas.rossow@stud.fh-hannover.de</email>
+			<email>thomas.rossow@hs-hannover.de</email>
+		</contributor>
+		<contributor>
+			<name>Bastian Hellmann</name>
+			<email>bastian.hellmann@hs-hannover.de</email>
 		</contributor>
 	</contributors>
 

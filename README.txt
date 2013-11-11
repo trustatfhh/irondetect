@@ -1,7 +1,7 @@
 irondetect
 ===============
 
-irondetect-0.0.3
+irondetect-0.0.4
 
 This package contains the IronDetect correlation engine. Based on contexts,
 signatures and anomalies, it detects deviations from normal behavior.
