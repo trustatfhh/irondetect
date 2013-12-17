@@ -8,9 +8,9 @@
 	</properties>
 
 	<!-- general project information -->
-	<groupId>de.fhhannover.inform.trust</groupId>
+	<groupId>de.hshannover.f4.trust</groupId>
 	<artifactId>irondetect</artifactId>
-	<version>0.0.4</version>
+	<version>0.0.5</version>
 	<packaging>jar</packaging>
 	<name>irondetect</name>
 	<url>http://trust.f4.hs-hannover.de/</url>
@@ -18,7 +18,7 @@
 		IF-MAP based detection engine.
 	</description>
 	<organization>
-		<name>Trust@FHH</name>
+		<name>Trust@HsH</name>
 		<url>http://trust.f4.hs-hannover.de/</url>
 	</organization>
 
@@ -35,19 +35,21 @@
 	<!-- the core developers of the project -->
 	<developers>
 		<developer>
-			<id>ib</id>
-			<name>Ingo Bente</name>
-			<email>ingo.bente@fh-hannover.de</email>
-		</developer>
-		<developer>
-			<id>ib</id>
-			<name>Joerg Vieweg</name>
-			<email>joerg.vieweg@fh-hannover.de</email>
+			<name>Trust@HsH</name>
+			<email>trust@f4-i.fh-hannover.de</email>
 		</developer>
 	</developers>
 
 	<!-- the contributors of the project -->
 	<contributors>
+		<contributor>
+			<name>Ingo Bente</name>
+			<email>ingo.bente@fh-hannover.de</email>
+		</contributor>
+		<contributor>
+			<name>Joerg Vieweg</name>
+			<email>joerg.vieweg@fh-hannover.de</email>
+		</contributor>
 		<contributor>
 			<name>Thomas Rossow</name>
 			<email>thomas.rossow@hs-hannover.de</email>
@@ -79,7 +81,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>de.fhhannover.inform.trust.irondetect.Main</mainClass>
+							<mainClass>de.hshannover.f4.trust.irondetect.Main</mainClass>
 							<addClasspath>true</addClasspath>
 						</manifest>
 						<manifestEntries>
@@ -109,6 +111,7 @@
 				<version>1.4</version>
 				<configuration>
 					<licenseName>apache_v2</licenseName>
+					<addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
 					<canUpdateDescription>true</canUpdateDescription>
 					<descriptionTemplate>${basedir}/src/license/description_template.ftl</descriptionTemplate>
 					<roots>
@@ -117,15 +120,6 @@
 						<root>target/generated-sources/javacc</root>
 					</roots>
 				</configuration>
-				<executions>
-					<execution>
-						<id>first</id>
-						<goals>
-							<goal>update-file-header</goal>
-						</goals>
-						<phase>process-sources</phase>
-					</execution>
-				</executions>
 			</plugin>
 
 			<plugin>
@@ -133,7 +127,7 @@
 				<artifactId>javacc-maven-plugin</artifactId>
 				<version>2.6</version>
 				<configuration>
-					<sourceDirectory>${basedir}/src/main/java/de/fhhannover/inform/trust/irondetect/policy/parser</sourceDirectory>
+					<sourceDirectory>${basedir}/src/main/java/de/hshannover/f4/trust/irondetect/policy/parser</sourceDirectory>
 					<lookAhead>2</lookAhead>
 					<isStatic>false</isStatic>
 				</configuration>
@@ -196,9 +190,9 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>de.fhhannover.inform.trust</groupId>
+			<groupId>de.hshannover.f4.trust</groupId>
 			<artifactId>ifmapj</artifactId>
-			<version>0.1.5</version>
+			<version>1.0.0</version>
 		</dependency>
 
 		<dependency>

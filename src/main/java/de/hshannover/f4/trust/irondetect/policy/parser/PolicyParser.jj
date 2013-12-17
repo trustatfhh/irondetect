@@ -1,0 +1,690 @@
+/* PolicyParser.jj */
+
+options {
+	STATIC = false ;
+	DEBUG_PARSER = true; //TODO for development only
+}
+
+//FIXME This is a really quick and dirty parser including a lot of hacks.
+//It needs serious refactoring before being introduced into productive environments.
+//You have been warned.
+
+PARSER_BEGIN(PolicyParser)
+	package de.hshannover.f4.trust.irondetect.policy.parser;
+	import java.util.List;
+	import java.util.LinkedList;
+	import de.hshannover.f4.trust.irondetect.model.*;
+	import de.hshannover.f4.trust.irondetect.util.*;
+	import de.hshannover.f4.trust.*;
+	import java.util.ArrayList;
+	import de.hshannover.f4.trust.irondetect.policy.parser.treeObjects.*;
+	
+	public class PolicyParser {
+	  	 private SymbolTable _symbols = new SymbolTable();
+
+	  	 public Policy parse() throws ParseException, TokenMgrError {
+	  	   		Policy p = new Policy();
+				p.setRuleSet(this.POLICY());
+				p.setSymbolTable(_symbols);
+				return p; 
+		 }
+	}
+PARSER_END(PolicyParser)
+
+SKIP : { < "#"(~["\n"])*"\n" > }
+SKIP : { " " | "\t" }
+SKIP : { "\n" | "\r" | "\r\n" }
+
+//Keywords - MUST be defined on top!!
+TOKEN : { < CONTEXTKEY 		: "context" 	> }
+TOKEN : { < HINTKEY			: "hint" 		> }
+TOKEN : { < ANOMALYKEY		: "anomaly" 	> }
+TOKEN : { < SIGNATUREKEY	: "signature" 	> }
+TOKEN : { < CONDITIONKEY	: "condition" 	> }
+TOKEN : { < ACTIONKEY		: "action" 		> }
+TOKEN : { < RULEKEY			: "rule" 		> }
+TOKEN : { < IFKEY			: "if" 			> }
+TOKEN : { < DOKEY			: "do" 			> }
+TOKEN : { < COUNTKEY		: "count" 		> }
+TOKEN : { < GETKEY		: "get" 		> }
+
+TOKEN : { < DEFINEOP		: ":=" 			> }
+TOKEN : { < BOOLOP : "and" | "or" > }
+TOKEN : { < COMPOP : "<" | ">" | "<=" | ">=" | "=" | "!=" > }
+
+TOKEN : { < FCTXPARAMTYPE : "LOCATION" | "DATETIME" | "OTHERDEVICES" | "SLIDING" | "TRUSTLEVEL" > }
+
+TOKEN : { < #DIGIT : ["0"-"9"] > }
+TOKEN : { < NUMVAL : ( "-" )? (( <DIGIT> )+ | ( <DIGIT> )+ "." ( <DIGIT> )+) > }
+
+TOKEN : { < #LETTER : ["a"-"z","A"-"Z"] > } //TODO siehe ifmap spez
+TOKEN : { < #STRSYMBOL : ["/",":",".","_","!","-","@"," ","$","!"] > }
+TOKEN : { < STRVAL : "\"" ( <LETTER> | <STRSYMBOL> | <DIGIT> )+ "\"" > }
+
+//Identifiers - should go last in the token definition
+TOKEN : { < IDENTIFIER : ( ["a"-"z","A"-"Z"] | ["0"-"9"] )+ > }
+
+  
+
+
+//Top-leve production of the policy file's content
+List<Rule> POLICY() :
+{
+ 	Rule r;
+ 	List<Rule> rules = new LinkedList<Rule>();
+ 	Token t;
+}
+
+{
+  	CONTEXTBLOCK()
+  	HINTBLOCK()
+  	ANOMALYBLOCK()
+  	SIGNATUREBLOCK()
+  	CONDITIONBLOCK()
+  	ACTIONBLOCK()
+
+ 	<RULEKEY>  "{"
+	(
+	  	t=<IDENTIFIER>
+	  	":="
+	  	r=RULE()
+		{
+		  	r.setId(t.image);
+		  	if (!_symbols.containsRule(t.image)) {
+		  	  _symbols.addRule(t.image, r);
+		 	} else {
+				throw new ParseException("Symbol: " + t.image + " has already been defined.");
+		 	}
+		  	rules.add(r);}
+	 	";"
+	 )*
+	"}"
+
+	<EOF>
+	{return rules;}
+
+	  
+}
+
+void CONTEXTBLOCK() :
+{
+    Token t;
+    Context c;
+}
+
+{
+  	<CONTEXTKEY> "{"
+  	(
+  	  	CTX()
+    )*
+  	"}"
+}
+
+void HINTBLOCK() : 
+{
+  	Token t;
+  	Hint h;
+}
+{
+  	<HINTKEY> "{"
+  	(
+  	  	HINT()
+  	)*
+  	"}"
+}
+
+void ANOMALYBLOCK() :
+{
+  	Anomaly a;
+  	Token t;
+}
+{
+  	<ANOMALYKEY> "{"
+  	(
+  	  	ANOMALY()
+  	 )*
+  	"}"
+ 
+}
+
+void SIGNATUREBLOCK() :
+{
+ 	Token t;
+ 	Signature s;
+}
+{
+  	<SIGNATUREKEY> "{"
+  	(
+  		SIGNATURE()
+   	)*		
+  	"}"
+}
+
+
+void CONDITIONBLOCK() :
+{
+  	Token t;
+  	Condition c;
+}
+{
+  	<CONDITIONKEY> "{"
+  	(
+  	 CONDITION()
+  	 )*
+  	"}"
+}
+
+void ACTIONBLOCK() :
+{
+  	Token t;
+  	Action a;
+}
+{
+  	<ACTIONKEY>  "{"
+  	(
+  	  	t=<IDENTIFIER>
+  	  	":="
+  	  	a=ACTION()
+  	  	";"
+  	  	{
+  	  	  	a.setId(t.image);
+  	  	  	_symbols.addAction(t.image, a);
+  	  	}
+  	 )*
+  	"}"
+}
+
+Rule RULE() :
+{
+   Rule r = new Rule();
+   Token t;
+   ArrayList<Action> actions = new ArrayList<Action>();
+}
+
+{
+	<IFKEY>		
+	t=<IDENTIFIER>
+	{
+	  	if (_symbols.containsCondition(t.image)) {
+	  		r.setCondition(_symbols.getCondition(t.image));
+	  		if (_symbols.containsFeaturesForCondition(t.image))
+	  		{
+	  		  r.setFeatureIds(_symbols.getFeaturesForCondition(t.image));
+	  		}
+	  	} else {
+	  	  throw new ParseException("Undefined reference to symbol: " + t.image + ".");
+	  	}
+	}
+	<DOKEY> 		
+	(
+	  	t=<IDENTIFIER>
+	  	{
+	  	  	if (_symbols.containsAction(t.image)) {
+	  	  	  actions.add(_symbols.getAction(t.image));
+	  	  	} else {
+	  	  	  throw new ParseException("Undefined reference to symbol: " + t.image + ".");
+	  	  	}
+	  	}
+	)+
+
+	{
+	  	r.setActions(actions);
+	  	return r;
+	}
+
+	  
+}
+
+
+Action ACTION() :
+{
+	Action a = new Action();
+	String key;
+	String value;
+}
+
+{
+	(
+		key=KEY()			
+		value=VALUE()
+		{
+			a.addkeyValuePair(key, value);
+		}
+	)*
+	{
+	  	
+		return a;
+	}
+}
+
+
+String KEY() :
+{
+	Token t;
+}
+
+{
+	t=<STRVAL>
+	{return t.image.replaceAll("\"", "");}
+
+	  
+}
+
+
+String VALUE() :
+{
+	Token t;
+}
+
+{
+	(t=<STRVAL>
+	 | t=<NUMVAL>)
+	{return t.image.replaceAll("\"", "");}
+
+}
+
+
+void CONDITION() :
+{
+  	ArrayList<Pair<ConditionElement, BooleanOperator>> conditions = new ArrayList<Pair<ConditionElement, BooleanOperator>>();
+	Condition c = new Condition();
+	BooleanOperator bOp;
+	Token t;
+	Token identifier;
+}
+
+{
+	identifier=<IDENTIFIER>
+  	":="
+   	t=<IDENTIFIER>
+  	{
+  	  	if ( _symbols.containsAnomaly(t.image) ) {
+	  		conditions.add(new Pair<ConditionElement, BooleanOperator>(
+	  		  _symbols.getAnomaly(t.image), null));
+	  		   for (Pair<HintExpression, BooleanOperator> pair : _symbols.getAnomaly(t.image).getHintSet())
+	  	     	 {
+	  	     	   for (String s : pair.getFirstElement().getHintValuePair().getFirstElement().getFeatureIds())
+	  	     	   {
+	  	     	 	_symbols.addFeatureForCondition(identifier.image,s);
+	  	     	}
+				}
+	  	} else if ( _symbols.containsSignature(t.image) ) {
+	  	    conditions.add(new Pair<ConditionElement, BooleanOperator>(
+	  	      _symbols.getSignature(t.image), null));
+	  	       for (Pair<FeatureExpression, BooleanOperator> pair : _symbols.getSignature(t.image).getFeatureSet())
+	  	     	 {
+	  	     	 	_symbols.addFeatureForCondition(identifier.image, pair.getFirstElement().getFeatureId());
+				}
+	  	} else {
+	  	  throw new ParseException("Undefined reference to symbol: " + t.image + ".");
+	  	}
+	}
+	(
+	  	bOp=BOOLOP()
+	  	t=<IDENTIFIER>
+	  	{
+	  	 	if ( _symbols.containsAnomaly(t.image) ) {
+	  			conditions.add(new Pair<ConditionElement, BooleanOperator>(
+	  		 	 _symbols.getAnomaly(t.image), bOp));
+	  		 	  for (Pair<HintExpression, BooleanOperator> pair : _symbols.getAnomaly(t.image).getHintSet())
+	  	     	 {
+	  	     	   for (String s : pair.getFirstElement().getHintValuePair().getFirstElement().getFeatureIds())
+	  	     	   {
+	  	     	 	_symbols.addFeatureForCondition(identifier.image,s);
+	  	     	}
+				}
+	  		} else if ( _symbols.containsSignature(t.image) ) {
+	  		    conditions.add(new Pair<ConditionElement, BooleanOperator>(
+	  	     	 _symbols.getSignature(t.image), bOp));
+	  	     	 for (Pair<FeatureExpression, BooleanOperator> pair : _symbols.getSignature(t.image).getFeatureSet())
+	  	     	 {
+	  	     	 	_symbols.addFeatureForCondition(identifier.image, pair.getFirstElement().getFeatureId());
+				}
+	  		} else {
+	  		  throw new ParseException("Undefined reference to symbol: " + t.image + ".");
+	  		} 	
+	 	}
+	)*
+	 ";"
+	{
+		c.setConditionSet(conditions);
+		c.setId(identifier.image);
+  	 	_symbols.addCondition(identifier.image, c);
+	}
+
+	  
+}
+
+
+void ANOMALY()  :
+{
+  	HintExpression h;
+	Anomaly a = new Anomaly();
+	Token t;
+	Token identifier;
+	BooleanOperator bOp;
+	ArrayList<Context> contexts = new ArrayList<Context>();
+	ArrayList<Pair<HintExpression, BooleanOperator>> hintExpressions = new ArrayList<Pair<HintExpression, BooleanOperator>>();
+}
+
+{
+  	identifier=<IDENTIFIER>
+  	 ":="
+  	  	
+  	h=HINTEXP()
+  	{
+  	  	hintExpressions.add(
+  	  	  new Pair<HintExpression, BooleanOperator>(h, null));
+  	}
+	(
+	  	bOp=BOOLOP()		
+		h=HINTEXP()
+		{
+  	  		hintExpressions.add(
+  	  		  new Pair<HintExpression, BooleanOperator>(h, bOp));
+  		}		
+	)*
+	(
+	  	t=<IDENTIFIER>   	
+		{
+		 	if ( _symbols.containsContext(t.image) ) {
+		 	  contexts.add(_symbols.getContext(t.image));
+			} else {
+			  throw new ParseException("Undefined reference to symbol: " + t.image + ".");
+		 	}
+		}		  
+	)*
+	";"
+	{
+	  	a.setHintSet(hintExpressions);
+	  	a.setContextSet(contexts);
+	  	a.setId(identifier.image);
+  	  	_symbols.addAnomaly(identifier.image, a);
+	}
+}
+
+
+HintExpression HINTEXP() :
+{
+  	HintExpression hintExp = new HintExpression();
+  	Pair<ComparisonOperator, String> valPair;
+  	ComparisonOperator cOp;
+  	Token hintval;
+  	Token hintref;
+  	Hint hint = null;
+}
+
+{
+	hintref=<IDENTIFIER>		
+	cOp=COMPOP()			
+	hintval=<NUMVAL>			
+	{
+	  	if (!hintval.image.matches("-?((0\\.([0-9]+))|1)")) {
+	  	  throw new ParseException("Illegal hint value: " + hintval.image);
+	 	} 
+		if (_symbols.containsHint(hintref.image)) {
+			hint = _symbols.getHint(hintref.image);
+		} else {
+		  throw new ParseException("Undefined reference to symbol: " + hintref.image + ".");
+		}
+		valPair = new Pair<ComparisonOperator, String>(cOp, hintval.image);
+		hintExp.setHintValuePair(
+		  new Pair<Hint, Pair<ComparisonOperator, String>>(hint, valPair));
+	  	return hintExp;
+	}
+}
+
+void HINT() :
+{
+  	ArrayList<String> fIds = new ArrayList<String>();
+  	Hint h = new Hint();
+	Procedure p;
+	String fId;
+	Token identifier;
+}
+
+{
+
+  	identifier=<IDENTIFIER>
+  	  	":="
+  		
+  	fId=FEATURE()			{fIds.add(fId);}
+ 
+  	  
+	(
+	  	LOOKAHEAD(FEATURE() PROCEDURE()) fId=FEATURE() {fIds.add(fId);}
+	)*
+	p=PROCEDURE()
+	";"
+	{
+	  	h.setFeatureIds(fIds);
+	  	h.setProcedure(p);
+	  	h.setId(identifier.image);
+  		  	_symbols.addHint(identifier.image, h);
+	}
+}
+  
+
+void SIGNATURE()  :
+{
+  	FeatureExpression fe;
+  	Token t;
+  	Token identifier;
+  	Signature s = new Signature();
+  	ArrayList<Pair<FeatureExpression, BooleanOperator>> features = new ArrayList<Pair<FeatureExpression, BooleanOperator>>();
+	ArrayList<Context> contexts = new ArrayList<Context>();
+	BooleanOperator bOp;
+}
+
+{
+  	identifier=<IDENTIFIER>
+  	":="
+	fe=EXPR()
+	{
+	  	features.add(
+	  	  new Pair<FeatureExpression, BooleanOperator>(fe, null));
+	}
+	(
+	  	bOp=BOOLOP()
+	  	fe=EXPR()
+	  	{
+	  		features.add(
+	  	  	new Pair<FeatureExpression, BooleanOperator>(fe, bOp));
+		}
+	)*
+	(
+	 	t=<IDENTIFIER>
+	 	{
+	 	  	if (_symbols.containsContext(t.image)) {
+	 	  		contexts.add(_symbols.getContext(t.image));
+	 	 	} else {
+	 	 	  throw new ParseException("Undefined reference to symbol: " + t.image + ".");
+	 		}
+		}
+	)*
+	  	
+  	
+  		";"
+  		{
+  			s.setFeatureSet(features);
+	  		s.setContextSet(contexts);
+  		  	s.setId(identifier.image);
+  		  	_symbols.addSignature(identifier.image, s);
+  		}
+	}
+
+Procedure PROCEDURE() :
+{
+  	Procedure p = new Procedure();
+  	Token t;
+}
+
+{
+	t=<STRVAL>	{p.setId(t.image.replaceAll("\"", ""));}
+	t=<STRVAL>	{p.setConfig(t.image.replaceAll("\"", ""));}
+	{return p;}
+}
+//A context consists of a unique identifier followed by := followed by a context definition.
+void CTX() :
+{
+  	ComparisonOperator cOp;
+  	ContextParamType ctxParamType;
+  	BooleanOperator bOp;
+  	Context c = new Context();
+  	ArrayList<Pair<ContextParameterPol, BooleanOperator>> ctxParamSet = new ArrayList<Pair<ContextParameterPol, BooleanOperator>>();
+    String t;
+    Token identifier;
+}
+
+{
+  	identifier=<IDENTIFIER>
+  	":="
+  		 	    
+  	
+	ctxParamType=FCTXPARAMTYPE() 	
+	cOp=COMPOP()		
+	t=VALUE()
+	{
+	    ctxParamSet.add(new Pair<ContextParameterPol, BooleanOperator>(
+	      new ContextParameterPol("", ctxParamType, t, cOp), null));
+	}
+	  (
+	    bOp=BOOLOP()
+	  	ctxParamType=FCTXPARAMTYPE()
+	  	cOp=COMPOP()
+	  	t=VALUE()
+	  	{
+	  		ctxParamSet.add(new Pair<ContextParameterPol, BooleanOperator>(
+	  		  new ContextParameterPol("", ctxParamType, t, cOp), bOp));
+	  	}	
+	  )*
+";" 
+	  {
+	  	c.setCtxParamSet(ctxParamSet);
+	  	c.setId(identifier.image);
+  		_symbols.addContext(identifier.image, c);
+	  }      
+}
+
+
+FeatureExpression EXPR() :
+{
+  	Pair<ComparisonOperator, String> valpair;
+  	ComparisonOperator cOp;
+  	String fId;
+  	String t2;
+  	FeatureExpression fe = new FeatureExpression();
+ }
+
+{
+	fId=FEATURE()		
+	cOp=COMPOP()		
+	t2=VALUE()		
+	{
+	  	valpair = new Pair<ComparisonOperator, String>(cOp, t2);
+	  	fe.setFeatureValuePair(
+	  	  new Pair<String, Pair<ComparisonOperator, String>>(fId, valpair));
+	  	return fe;
+	}
+}
+
+String FEATURE() :
+{	String s;
+  	Token t;
+}
+
+{
+	(
+	  	s=VALUE()
+	|
+	 	<COUNTKEY> "(" t=<STRVAL> ")"
+		{
+			s="#"+t.image;
+			s=s.replaceAll("\"", "");		
+		}
+        |
+	 	<GETKEY> "(" t=<STRVAL> ")"
+		{
+			s="@"+t.image;
+			s=s.replaceAll("\"", "");		
+		}
+	)
+	
+	{return s;}
+}
+    
+ContextParamType FCTXPARAMTYPE() :
+{
+	ContextParamType ctxParamType = null;
+	Token t;
+}
+{
+	t=<FCTXPARAMTYPE>
+	{
+		if (t.image.equals("LOCATION")) {
+			ctxParamType = new ContextParamType(ContextParamType.LOCATION);
+		} else if (t.image.equals("DATETIME")) {
+	 		ctxParamType = new ContextParamType(ContextParamType.DATETIME);
+		} else if (t.image.equals("OTHERDEVICES")) {
+	 		ctxParamType = new ContextParamType(ContextParamType.OTHERDEVICES);
+		} else if (t.image.equals("SLIDING")) {
+			ctxParamType = new ContextParamType(ContextParamType.SLIDING);
+		} else if (t.image.equals("TRUSTLEVEL")) {
+			ctxParamType = new ContextParamType(ContextParamType.TRUSTLEVEL);
+		} else {
+		  throw new ParseException("Unknown context parameter: " + t.image + ".");
+		}
+	 	return ctxParamType;
+	}
+}
+
+ 	
+ComparisonOperator COMPOP() :
+{
+  	ComparisonOperator cOp = null;
+  	Token t;
+}
+
+{
+  	t=<COMPOP>
+  	
+  	{
+	  	if (t.image.equals("<")) {
+			cOp = ComparisonOperator.ST;
+		} else if (t.image.equals(">")) {
+	 	  	cOp = ComparisonOperator.GT;
+ 		} else if (t.image.equals("<=")) {
+	 	  	cOp = ComparisonOperator.SE;
+		} else if (t.image.equals(">=")) {
+	 	  	cOp = ComparisonOperator.GE;
+		} else if (t.image.equals("=")) {
+	 	  	cOp = ComparisonOperator.EQ;
+		} else if (t.image.equals("!=")) {
+	 	  	cOp = ComparisonOperator.NE;
+		} else {
+		  throw new ParseException("Unknown comparison operator: " + t.image + ".");
+		}
+		return cOp;
+	}  	  
+}
+
+BooleanOperator BOOLOP() :
+{
+  	BooleanOperator bOp = null;
+  	Token t;
+}
+
+{
+  	t=<BOOLOP>
+
+  	{
+  		if (t.image.equals("and")) {
+			bOp = BooleanOperator.AND;
+		} else if (t.image.equals("or")) {
+  			bOp = BooleanOperator.OR;
+ 		} else {
+  			throw new ParseException("Unknown boolean operator: " + t.image + ".");
+  		}
+  		return bOp;
+ 	} 
+}
