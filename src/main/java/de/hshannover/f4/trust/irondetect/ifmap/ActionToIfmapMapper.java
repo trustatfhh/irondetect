@@ -43,6 +43,7 @@ package de.hshannover.f4.trust.irondetect.ifmap;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -190,7 +191,17 @@ public class ActionToIfmapMapper {
 		
 		String name = ifmapKeyValues.get(Constants.IFMAP_EVENT_NAME);
 		if (name == null) {
-			name = "name";
+			Iterator<Pair<String, String>> iterator = keyValuePairs.iterator();
+			while (iterator.hasNext()) {
+				Pair<String, String> next = iterator.next();
+				if (next.getFirstElement().toLowerCase().contains("name")) {
+					name = next.getSecondElement();
+				}
+			}
+			
+			if (name == null) {
+				name = "none";
+			}
 		}
 		
 		String discoveredTime = Helper.getCalendarAsXsdDateTime(new GregorianCalendar());
@@ -258,9 +269,7 @@ public class ActionToIfmapMapper {
 			key = keyValue.getFirstElement();
 			value = keyValue.getSecondElement();
 			
-			if (key.equalsIgnoreCase(Constants.IFMAP_EVENT_NAME)) {
-				result.put(key, value);
-			}
+			result.put(key, value);
 		}
 		
 		return result;
