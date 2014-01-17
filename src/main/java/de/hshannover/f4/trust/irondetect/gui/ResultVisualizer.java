@@ -41,23 +41,22 @@ package de.hshannover.f4.trust.irondetect.gui;
 
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.util.Vector;
 
-import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableCellRenderer;
 
 import org.apache.log4j.Logger;
 
+import de.hshannover.f4.trust.irondetect.Main;
 import de.hshannover.f4.trust.irondetect.util.event.Event;
 import de.hshannover.f4.trust.irondetect.util.event.EventReceiver;
 import de.hshannover.f4.trust.irondetect.util.event.EventType;
@@ -138,42 +137,6 @@ public class ResultVisualizer implements EventReceiver {
 		}
 	}
 
-	public class BooleanRenderer extends JLabel implements TableCellRenderer {
-
-		private static final long serialVersionUID = -8630665605182392700L;
-		private boolean isBordered;
-
-		public BooleanRenderer(boolean isBordered) {
-			this.isBordered = isBordered;
-			setOpaque(true); // MUST do this for background to show up.
-		}
-
-		public Component getTableCellRendererComponent(JTable table,
-				Object value, boolean isSelected, boolean hasFocus, int row,
-				int column) {
-
-			if (value instanceof Boolean) {
-				boolean b = (Boolean) value;
-				if (b) {
-					setBackground(Color.RED);	// true is red
-				} else {
-					setBackground(Color.GREEN);	// false is green
-					
-				}
-				
-				if (isBordered) {
-					setBorder(BorderFactory.createMatteBorder(2,5,2,5,
-							table.getBackground()));
-				}
-			} else if (value instanceof String) {
-				setText((String) value);
-			}
-			
-			return this;
-		}
-
-	}
-	
 	private static final int RULE = 0;
 	private static final int SIGNATURE = 1;
 	private static final int ANOMALY = 2;
@@ -190,12 +153,14 @@ public class ResultVisualizer implements EventReceiver {
 
 	private JPanel[] panels;
 	private Dimension screenSize;
+	private JLabel[] labels;
 
 	public ResultVisualizer() {
 		this.tables = new JTable[4];
 		this.scrollPanes = new JScrollPane[4];
 		this.tableModels = new ResultTableModel[4];
 		this.panels = new JPanel[4];
+		this.labels = new JLabel[4];
 		
 		this.screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		
@@ -203,65 +168,45 @@ public class ResultVisualizer implements EventReceiver {
 		initComponentsForType(SIGNATURE);
 		initComponentsForType(ANOMALY);
 		initComponentsForType(CONDITION);
+		
+		initFrame();
 
 		logger.info(ResultVisualizer.class.getSimpleName() + " has started.");
 	}
 
-	private void createAndShowGUI(int type) {
+	private void initFrame() {
 		// Create and set up the window.
-		JFrame frame = new JFrame("irondetect - " + TYPES[type]);
+		JFrame frame = new JFrame("irondetect (v" + Main.VERSION + ")");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setMinimumSize(new Dimension((this.screenSize.width / 2) - (this.screenSize.width * 2 / 100), (this.screenSize.height / 2) - (this.screenSize.height * 2 / 100)));
-		
-		switch (type) {
-		case RULE:
-			frame.setLocation(0, 0);
-			break;
-		case SIGNATURE:
-			frame.setLocation(this.screenSize.width / 2, 0);
-			break;
-		case ANOMALY:
-			frame.setLocation(0, this.screenSize.height / 2);
-			break;
-		case CONDITION:
-			frame.setLocation(this.screenSize.width / 2, this.screenSize.height / 2);
-			break;
-		default:
-			break;
-		}
+		frame.setPreferredSize(new Dimension((int) (this.screenSize.width * 0.5), (int) (this.screenSize.height * 0.5)));
 
+		Container contentPane = frame.getContentPane();
+		contentPane.setLayout(new GridLayout(4, 1));	// TODO variabel?
+		
 		// Create and set up the content pane.
-		this.panels[type].setOpaque(true); // content panes must be opaque
-		frame.setContentPane(this.panels[type]);
+		for (JPanel panel : this.panels) {
+			panel.setOpaque(true); // content panes must be opaque
+			contentPane.add(panel);
+		}
 
 		// Display the window.
 		frame.pack();
 		frame.setVisible(true);
+		
 	}
-
+	
 	private void initComponentsForType(final int type) {
 		this.panels[type] = new JPanel();
 		this.tableModels[type] = new ResultTableModel();
 		this.tables[type] = new JTable(this.tableModels[type]);
 		this.tables[type].setEnabled(false);
-//		this.tables[type].setDefaultRenderer(Boolean.class, new BooleanRenderer(true));
 		this.scrollPanes[type] = new JScrollPane(this.tables[type]);
 		this.tables[type].setFillsViewportHeight(true);
-		this.tables[type].setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		int tableSize = this.screenSize.width / 2;
-		this.tables[type].getColumnModel().getColumn(0).setPreferredWidth(tableSize * 10 / 100);
-		this.tables[type].getColumnModel().getColumn(1).setPreferredWidth(tableSize * 15 / 100);
-		this.tables[type].getColumnModel().getColumn(2).setPreferredWidth(tableSize * 25 / 100);
-		this.tables[type].getColumnModel().getColumn(3).setPreferredWidth(tableSize * 20 / 100);
-		this.tables[type].getColumnModel().getColumn(4).setPreferredWidth(tableSize * 30 / 100);
+		this.tables[type].setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		this.panels[type].setLayout(new BorderLayout());
 		this.panels[type].add(this.scrollPanes[type], BorderLayout.CENTER);
-
-		javax.swing.SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				createAndShowGUI(type);
-			}
-		});
+		this.labels[type] = new JLabel(TYPES[type]);
+		this.panels[type].add(this.labels[type], BorderLayout.NORTH);
 	}
 
 	private int typeToInt(String type) {

@@ -70,7 +70,7 @@ import de.hshannover.f4.trust.irondetect.util.Pair;
  */
 public class Main
 {
-	private static final String VERSION = "0.0.5";
+	public static final String VERSION = "0.0.5";
 	
 	private static Logger logger = Logger.getLogger(Main.class);
 	
