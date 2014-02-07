@@ -48,7 +48,7 @@ public class Constants {
 
 	public static final String ALERT_IDENTIFIER_NAME = "smartphone.alert";
 
-	public static final String MATCH_LINKS_ACCESS_REQUEST = "meta:access-request-device";
+	public static final String MATCH_LINKS_ACCESS_REQUEST = "meta:device-characteristic or meta:access-request-ip";
 
 	/**
 	 * The match-links filter for each Smartphone TODO Namespace?
@@ -59,12 +59,12 @@ public class Constants {
 	/**
 	 * The match-links filter for each Pdp
 	 */
-	public static final String MATCH_LINKS_PDP = "meta:authenticated-by or meta:access-request-device";
+	public static final String MATCH_LINKS_PDP = "meta:authenticated-by or meta:access-request-ip or meta:device-characteristic";
 
 	/**
 	 * The result filter for each Pdp
 	 */
-	public static final String RESULT_FILTER_PDP = "meta:authenticated-by or meta:access-request-device";
+	public static final String RESULT_FILTER_PDP = "meta:authenticated-by or meta:access-request-ip or meta:device-characteristic";
 	
 	/**
 	 * Exit-codes

@@ -218,7 +218,7 @@ public class DeviceSearcher implements Runnable {
 					for (Document doc : item.getMetadata()) {
 						
 						// search for access-request-device link
-						if (doc.getDocumentElement().getLocalName().equals("access-request-device")) {
+						if (doc.getDocumentElement().getLocalName().equals("device-characteristic")) {
 							
 							// extract the device identifier
 							if (item.getIdentifier1() instanceof Device) {
@@ -247,7 +247,7 @@ public class DeviceSearcher implements Runnable {
 		subscribeUpdate.setStartIdentifier(Identifiers.createDev(Configuration
 				.subscriberPdp()));
 		subscribeUpdate.setMatchLinksFilter(Constants.MATCH_LINKS_PDP);
-		subscribeUpdate.setMaxDepth(2);
+		subscribeUpdate.setMaxDepth(3);
 		subscribeUpdate.setMaxSize(16384);
 		subscribeUpdate.setResultFilter(Constants.RESULT_FILTER_PDP);
 
