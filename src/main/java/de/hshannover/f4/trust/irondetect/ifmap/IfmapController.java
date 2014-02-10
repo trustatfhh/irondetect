@@ -408,7 +408,7 @@ public class IfmapController {
 	private Identifier searchAccessRequestDeviceIdentifier(String device) {
 		Identifier startIdentifier = Identifiers.createDev(device);
 		
-		SearchRequest searchRequest = Requests.createSearchReq(Constants.MATCH_LINKS_ACCESS_REQUEST, 1, null, Configuration.ifmapMaxResultSize(), null, startIdentifier);
+		SearchRequest searchRequest = Requests.createSearchReq(Constants.MATCH_LINKS_ACCESS_REQUEST, 2, null, Configuration.ifmapMaxResultSize(), null, startIdentifier);
 		searchRequest.addNamespaceDeclaration(IfmapStrings.BASE_PREFIX, IfmapStrings.BASE_NS_URI);
 		searchRequest.addNamespaceDeclaration(IfmapStrings.STD_METADATA_PREFIX, IfmapStrings.STD_METADATA_NS_URI);
 		try {
