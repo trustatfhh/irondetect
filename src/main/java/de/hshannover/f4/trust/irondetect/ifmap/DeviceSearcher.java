@@ -41,21 +41,20 @@ package de.hshannover.f4.trust.irondetect.ifmap;
 
 
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 
 import de.hshannover.f4.trust.ifmapj.IfmapJ;
-import de.hshannover.f4.trust.ifmapj.IfmapJHelper;
 import de.hshannover.f4.trust.ifmapj.binding.IfmapStrings;
 import de.hshannover.f4.trust.ifmapj.channel.ARC;
 import de.hshannover.f4.trust.ifmapj.channel.SSRC;
+import de.hshannover.f4.trust.ifmapj.config.BasicAuthConfig;
+import de.hshannover.f4.trust.ifmapj.config.CertAuthConfig;
 import de.hshannover.f4.trust.ifmapj.exception.EndSessionException;
 import de.hshannover.f4.trust.ifmapj.exception.IfmapErrorResult;
 import de.hshannover.f4.trust.ifmapj.exception.IfmapException;
@@ -69,7 +68,6 @@ import de.hshannover.f4.trust.ifmapj.messages.SearchResult;
 import de.hshannover.f4.trust.ifmapj.messages.SubscribeUpdate;
 import de.hshannover.f4.trust.irondetect.util.Configuration;
 import de.hshannover.f4.trust.irondetect.util.Constants;
-import de.hshannover.f4.trust.irondetect.util.Helper;
 
 /**
  * 
@@ -115,32 +113,25 @@ public class DeviceSearcher implements Runnable {
 	 */
 	private void initSsrc() throws FileNotFoundException,
 			InitializationException {
-		InputStream isTrustManager = Helper.prepareTruststoreIs(Configuration
-				.keyStorePath());
-		InputStream isKeyManager = Helper.prepareTruststoreIs(Configuration
-				.keyStorePath());
-		
-		TrustManager[] tms = null;
-		KeyManager[] km = null;
-		
-		try {
-			tms = IfmapJHelper.getTrustManagers(isTrustManager, Configuration.keyStorePassword());
-			km = IfmapJHelper.getKeyManagers(isKeyManager, Configuration.keyStorePassword());
-		} catch (InitializationException e1) {
-			logger.error("Initialization of keystore failed: " + e1.getMessage() + ", " + e1.getCause());
-			System.exit(Constants.RETURN_CODE_ERROR_IFMAPJ_INITIALIZATION_FAILED);
-		}
-
 		String authMethod = Configuration.ifmapAuthMethod();
+		
+		String basicUrl = Configuration.ifmapUrlBasic();
+		String certUrl = Configuration.ifmapUrlCert();
+		String username = Configuration.irondetectPdpSubscriberUser();
+		String password = Configuration.irondetectPdpSubscriberPassword();
+		String trustStorePath = Configuration.keyStorePath();
+		String trustStorePassword = Configuration.keyStorePassword();
+		
 		try {
 			if (authMethod.equalsIgnoreCase("basic")) {
 				logger.info("Creating SSRC using basic authentication.");
-				this.mSsrc = IfmapJ.createSSRC(Configuration.ifmapUrlBasic(), Configuration.irondetectPdpSubscriberUser(),
-						Configuration.irondetectPdpSubscriberPassword(), tms);
+				BasicAuthConfig basicConfig = new BasicAuthConfig(basicUrl, username, password, trustStorePath, trustStorePassword);
+				this.mSsrc = IfmapJ.createSsrc(basicConfig);
 			}
 			else if (authMethod.equalsIgnoreCase("cert")) {
 				logger.info("Creating SSRC using certificate-based authentication.");
-				this.mSsrc= IfmapJ.createSSRC(Configuration.ifmapUrlCert(), km, tms);
+				CertAuthConfig certConfig = new CertAuthConfig(certUrl, trustStorePath, trustStorePassword, trustStorePath, trustStorePassword);
+				this.mSsrc= IfmapJ.createSsrc(certConfig);
 			}
 			else {
 				throw new IllegalArgumentException("unknown authentication method '" + authMethod + "'");
