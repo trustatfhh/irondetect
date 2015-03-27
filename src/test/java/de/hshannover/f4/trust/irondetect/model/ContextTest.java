@@ -52,11 +52,6 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.hshannover.f4.trust.Category;
-import de.hshannover.f4.trust.ContextParamType;
-import de.hshannover.f4.trust.ContextParameter;
-import de.hshannover.f4.trust.Feature;
-import de.hshannover.f4.trust.FeatureType;
 import de.hshannover.f4.trust.irondetect.model.Context;
 import de.hshannover.f4.trust.irondetect.model.ContextParameterPol;
 import de.hshannover.f4.trust.irondetect.util.BooleanOperator;

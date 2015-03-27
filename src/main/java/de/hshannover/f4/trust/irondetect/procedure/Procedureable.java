@@ -42,9 +42,10 @@ package de.hshannover.f4.trust.irondetect.procedure;
 
 import java.util.List;
 
-import de.hshannover.f4.trust.Feature;
 import de.hshannover.f4.trust.irondetect.model.Context;
+import de.hshannover.f4.trust.irondetect.model.Feature;
 import de.hshannover.f4.trust.irondetect.model.ProcedureResult;
+
 import java.util.Calendar;
 
 /**

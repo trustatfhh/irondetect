@@ -43,7 +43,6 @@ package de.hshannover.f4.trust.irondetect.model;
 
 
 
-import de.hshannover.f4.trust.Feature;
 import java.util.ArrayList;
 import java.util.List;
 

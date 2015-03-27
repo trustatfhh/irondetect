@@ -47,7 +47,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import de.hshannover.f4.trust.Feature;
 import de.hshannover.f4.trust.irondetect.engine.TriggerManager;
 import de.hshannover.f4.trust.irondetect.repository.FeatureBaseImpl;
 

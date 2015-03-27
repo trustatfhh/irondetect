@@ -46,7 +46,6 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import de.hshannover.f4.trust.Feature;
 import de.hshannover.f4.trust.irondetect.database.Db4oToFeatureMapper;
 import de.hshannover.f4.trust.irondetect.engine.Processor;
 import de.hshannover.f4.trust.irondetect.engine.TriggerManager;
@@ -55,6 +54,7 @@ import de.hshannover.f4.trust.irondetect.gui.ResultVisualizer;
 import de.hshannover.f4.trust.irondetect.ifmap.ActionToIfmapMapper;
 import de.hshannover.f4.trust.irondetect.ifmap.IfmapController;
 import de.hshannover.f4.trust.irondetect.ifmap.IfmapToFeatureMapper;
+import de.hshannover.f4.trust.irondetect.model.Feature;
 import de.hshannover.f4.trust.irondetect.repository.FeatureBase;
 import de.hshannover.f4.trust.irondetect.repository.FeatureBaseImpl;
 import de.hshannover.f4.trust.irondetect.util.Configuration;

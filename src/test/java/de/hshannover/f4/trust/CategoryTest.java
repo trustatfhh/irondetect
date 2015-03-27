@@ -46,7 +46,10 @@ package de.hshannover.f4.trust;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.junit.Test;
+
+import de.hshannover.f4.trust.irondetect.model.Category;
 import static org.junit.Assert.*;
 
 /**

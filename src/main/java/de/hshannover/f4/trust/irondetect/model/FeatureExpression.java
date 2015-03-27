@@ -42,8 +42,6 @@ package de.hshannover.f4.trust.irondetect.model;
 
 import org.apache.log4j.Logger;
 
-import de.hshannover.f4.trust.Feature;
-import de.hshannover.f4.trust.FeatureType;
 import de.hshannover.f4.trust.irondetect.util.ComparisonOperator;
 import de.hshannover.f4.trust.irondetect.util.Pair;
 

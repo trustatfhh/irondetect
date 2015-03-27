@@ -55,11 +55,11 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.hshannover.f4.trust.Category;
-import de.hshannover.f4.trust.ContextParamType;
-import de.hshannover.f4.trust.ContextParameter;
-import de.hshannover.f4.trust.Feature;
-import de.hshannover.f4.trust.FeatureType;
+import de.hshannover.f4.trust.irondetect.model.Category;
+import de.hshannover.f4.trust.irondetect.model.ContextParamType;
+import de.hshannover.f4.trust.irondetect.model.ContextParameter;
+import de.hshannover.f4.trust.irondetect.model.Feature;
+import de.hshannover.f4.trust.irondetect.model.FeatureType;
 import de.hshannover.f4.trust.irondetect.util.Helper;
 import de.hshannover.f4.trust.irondetect.util.Pair;
 

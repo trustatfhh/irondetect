@@ -42,9 +42,9 @@ package de.hshannover.f4.trust.irondetect.repository;
 
 import java.util.List;
 
-import de.hshannover.f4.trust.Category;
-import de.hshannover.f4.trust.Feature;
+import de.hshannover.f4.trust.irondetect.model.Category;
 import de.hshannover.f4.trust.irondetect.model.Context;
+import de.hshannover.f4.trust.irondetect.model.Feature;
 import de.hshannover.f4.trust.irondetect.util.Pair;
 import de.hshannover.f4.trust.irondetect.util.event.EventSender;
 

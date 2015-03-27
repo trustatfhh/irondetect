@@ -46,9 +46,9 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import de.hshannover.f4.trust.ContextParamType;
-import de.hshannover.f4.trust.ContextParameter;
-import de.hshannover.f4.trust.Feature;
+import de.hshannover.f4.trust.irondetect.model.ContextParamType;
+import de.hshannover.f4.trust.irondetect.model.ContextParameter;
+import de.hshannover.f4.trust.irondetect.model.Feature;
 import de.hshannover.f4.trust.irondetect.util.Helper;
 import de.hshannover.f4.trust.irondetect.util.Pair;
 

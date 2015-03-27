@@ -52,11 +52,11 @@ import org.apache.log4j.Logger;
 import com.db4o.Db4oEmbedded;
 import com.db4o.ObjectContainer;
 
-import de.hshannover.f4.trust.Category;
-import de.hshannover.f4.trust.ContextParamType;
-import de.hshannover.f4.trust.ContextParameter;
-import de.hshannover.f4.trust.Feature;
-import de.hshannover.f4.trust.FeatureType;
+import de.hshannover.f4.trust.irondetect.model.Category;
+import de.hshannover.f4.trust.irondetect.model.ContextParamType;
+import de.hshannover.f4.trust.irondetect.model.ContextParameter;
+import de.hshannover.f4.trust.irondetect.model.Feature;
+import de.hshannover.f4.trust.irondetect.model.FeatureType;
 
 /**
  * @author bahellma

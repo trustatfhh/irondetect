@@ -48,10 +48,6 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.hshannover.f4.trust.Category;
-import de.hshannover.f4.trust.Feature;
-import de.hshannover.f4.trust.FeatureType;
-
 /**
  * @author bahellma
  *

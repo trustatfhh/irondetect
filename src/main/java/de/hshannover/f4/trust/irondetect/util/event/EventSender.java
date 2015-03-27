@@ -40,7 +40,7 @@ package de.hshannover.f4.trust.irondetect.util.event;
 
 
 
-import de.hshannover.f4.trust.Feature;
+import de.hshannover.f4.trust.irondetect.model.Feature;
 import de.hshannover.f4.trust.irondetect.repository.FeatureBase;
 
 public interface EventSender {

@@ -48,9 +48,6 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import de.hshannover.f4.trust.ContextParamType;
-import de.hshannover.f4.trust.ContextParameter;
-import de.hshannover.f4.trust.Feature;
 import de.hshannover.f4.trust.irondetect.util.BooleanOperator;
 import de.hshannover.f4.trust.irondetect.util.Pair;
 

@@ -45,7 +45,10 @@ package de.hshannover.f4.trust;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+
 import org.junit.Test;
+
+import de.hshannover.f4.trust.irondetect.model.Feature;
 
 /**
  * @author bahellma
@@ -54,7 +57,7 @@ import org.junit.Test;
 public class FeatureTest {
 	
 	/**
-	 * Test method for {@link de.hshannover.f4.trust.Feature#getId()}.
+	 * Test method for {@link de.hshannover.f4.trust.irondetect.model.Feature#getId()}.
 	 */
 	@Test
 	public void testGetId() {

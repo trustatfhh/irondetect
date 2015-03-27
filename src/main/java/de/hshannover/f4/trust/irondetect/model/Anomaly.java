@@ -47,12 +47,12 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import de.hshannover.f4.trust.Feature;
 import de.hshannover.f4.trust.irondetect.engine.Processor;
 import de.hshannover.f4.trust.irondetect.gui.ResultLogger;
 import de.hshannover.f4.trust.irondetect.gui.ResultLoggerImpl;
 import de.hshannover.f4.trust.irondetect.util.BooleanOperator;
 import de.hshannover.f4.trust.irondetect.util.Pair;
+
 import java.util.ArrayList;
 
 /**

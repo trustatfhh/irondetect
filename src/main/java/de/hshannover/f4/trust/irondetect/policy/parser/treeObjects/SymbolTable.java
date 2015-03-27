@@ -45,11 +45,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import de.hshannover.f4.trust.Feature;
 import de.hshannover.f4.trust.irondetect.model.Action;
 import de.hshannover.f4.trust.irondetect.model.Anomaly;
 import de.hshannover.f4.trust.irondetect.model.Condition;
 import de.hshannover.f4.trust.irondetect.model.Context;
+import de.hshannover.f4.trust.irondetect.model.Feature;
 import de.hshannover.f4.trust.irondetect.model.Hint;
 import de.hshannover.f4.trust.irondetect.model.Rule;
 import de.hshannover.f4.trust.irondetect.model.Signature;

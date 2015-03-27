@@ -36,7 +36,7 @@
  * limitations under the License.
  * #L%
  */
-package de.hshannover.f4.trust;
+package de.hshannover.f4.trust.irondetect.model;
 
 
 

@@ -48,7 +48,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import de.hshannover.f4.trust.Feature;
 import de.hshannover.f4.trust.irondetect.engine.Processor;
 import de.hshannover.f4.trust.irondetect.procedure.ProcedureRepository;
 import de.hshannover.f4.trust.irondetect.procedure.Procedureable;

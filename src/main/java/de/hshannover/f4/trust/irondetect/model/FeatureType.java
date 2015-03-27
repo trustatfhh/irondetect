@@ -36,87 +36,52 @@
  * limitations under the License.
  * #L%
  */
-/**
- * 
- */
-package de.hshannover.f4.trust;
+package de.hshannover.f4.trust.irondetect.model;
 
 
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-
-/**
- * @author jvieweg
- *
- */
-public class Category {
+public class FeatureType {
 	
-
-	//private int cardinality;
-	private List<Category> subCategories;
-	private String id;
-	private Category parent;
+	private int typeId;
+	private String name;
 	
-	public Category(String id) {
-		this.id = id;
-		this.parent = null;
-		//this.cardinality = cardinality;
-		this.subCategories = new ArrayList<Category>();
+	public static final Map<Integer, String> MAP = new HashMap<Integer, String>(10);
+	
+	static {
+		MAP.put(new Integer(0), "QUALIFIED");
+		MAP.put(new Integer(1), "QUANTITIVE");
+		MAP.put(new Integer(2), "ARBITRARY");
 	}
 	
-	public Category(Category source) {
-		this.id = source.getId();
-		this.subCategories = source.getSubCategories();
-		setParent(source.getParent());
+	public static final int QUALIFIED = 0;
+	public static final int QUANTITIVE = 1;
+	public static final int ARBITRARY = 2;
+	
+	public int getTypeId() {
+		return typeId;
+	}
+	public void setTypeId(int typeId) {
+		this.typeId = typeId;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
 	}
 	
-	public void setParent(Category parent) {
-		this.parent = parent;
-	}
-	
-	public Category getParent() {
-		return this.parent;
-	}
-
-	/**
-	 * @return the subCategories
-	 */
-	public List<Category> getSubCategories() {
-		return subCategories;
-	}
-
-	/**
-	 * @param sub Subcategory to add
-	 */
-	public void addSubCategory(Category sub) {
-		this.subCategories.add(sub);
-	}
-
-
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder subCatStr = new StringBuilder("");
-		if (this.subCategories != null) {
-			subCatStr.append("subcategories=");
-			for (Category c : subCategories) {
-				subCatStr.append(c.toString());
-			}
+	public FeatureType(int typeId) {
+		// check type
+		if(typeId < FeatureType.QUALIFIED || typeId > FeatureType.ARBITRARY){
+			throw new RuntimeException("Invalid Feature Type: " + typeId);
 		}
-		return "Category (id= " + this.id + ", " + subCatStr.toString() + ")";
+		
+		// set type and name
+		setTypeId(typeId);
+		setName(MAP.get(typeId));
 	}
-
-	public String getId() {
-		return this.id;
-	}
-
-	public void setId(String id) {
-		this.id = id;		
-	}
-
+	
 }
