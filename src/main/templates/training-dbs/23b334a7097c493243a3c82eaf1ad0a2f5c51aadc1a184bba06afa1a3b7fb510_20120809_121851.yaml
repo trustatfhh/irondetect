@@ -1,0 +1,21 @@
+feature1:
+  id: featureId1
+  type: 1
+  value: 1.0
+  category: category1.subCategory1
+  contextparameters:
+    param1:
+      type: 1
+      value: 2015-03-27T12:54:00+0100
+feature2:
+  id: featureId2
+  type: 0
+  value: foo
+  category: category1.subCategory1
+  contextparameters:
+#    param1:
+#      type: 1
+#      value: 2015-03-27T12:54:00+0100
+    param2:
+      type: 5
+      value: bar

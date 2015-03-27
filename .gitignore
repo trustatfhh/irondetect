@@ -3,3 +3,6 @@
 /.classpath
 /.settings
 .DS_Store
+bin/
+src/test/resources/training-dbs/
+
