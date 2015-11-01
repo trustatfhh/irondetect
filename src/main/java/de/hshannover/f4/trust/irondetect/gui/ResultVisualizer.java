@@ -45,10 +45,16 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.Vector;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -57,6 +63,7 @@ import javax.swing.table.AbstractTableModel;
 import org.apache.log4j.Logger;
 
 import de.hshannover.f4.trust.irondetect.Main;
+import de.hshannover.f4.trust.irondetect.engine.Processor;
 import de.hshannover.f4.trust.irondetect.util.event.Event;
 import de.hshannover.f4.trust.irondetect.util.event.EventReceiver;
 import de.hshannover.f4.trust.irondetect.util.event.EventType;
@@ -156,6 +163,10 @@ public class ResultVisualizer implements EventReceiver {
 	private JPanel[] panels;
 	private Dimension screenSize;
 	private JLabel[] labels;
+	private JMenuBar mjmRootBar;
+	private JMenu mjmPolicy;
+	private JMenuItem mjmiReloadFromFile;
+	private JMenu mjmSwitchPolicy;
 
 	public ResultVisualizer() {
 		this.tables = new JTable[4];
@@ -191,12 +202,88 @@ public class ResultVisualizer implements EventReceiver {
 			contentPane.add(panel);
 		}
 
+		setMenuBar(frame);
+
 		// Display the window.
 		frame.pack();
 		frame.setVisible(true);
 		
 	}
 	
+	private void setMenuBar(JFrame frame) {
+		mjmRootBar = new JMenuBar();
+		mjmPolicy = new JMenu();
+		mjmSwitchPolicy = new JMenu();
+		mjmiReloadFromFile = new JMenuItem();
+
+		mjmPolicy.setText("Policy");
+
+		mjmiReloadFromFile.setText("reload");
+		mjmiReloadFromFile.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent evt) {
+				new Thread(new Runnable() {
+
+					@Override
+					public void run() {
+						Processor.getInstance().reloadPolicy();
+					}
+				}).start();
+			}
+		});
+
+		mjmSwitchPolicy.setText("Switch to..");
+
+		File[] policyFiles = searchPolicyFiles();
+		if (policyFiles != null) {
+			loadPolicyFiles(mjmSwitchPolicy, policyFiles);
+		} else {
+			JMenuItem jmiBlank = new JMenuItem();
+			jmiBlank.setText("No Policy found!");
+			mjmSwitchPolicy.add(jmiBlank);
+		}
+
+		mjmPolicy.add(mjmSwitchPolicy);
+		mjmPolicy.add(mjmiReloadFromFile);
+
+		mjmRootBar.add(mjmPolicy);
+
+		frame.setJMenuBar(mjmRootBar);
+	}
+
+	private void loadPolicyFiles(JMenu policyFileMenu, File[] files) {
+		for (final File f : files) {
+			JMenuItem jmiPolicyFile = new JMenuItem();
+			jmiPolicyFile.setText(f.getName());
+			jmiPolicyFile.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent evt) {
+					new Thread(new Runnable() {
+
+						@Override
+						public void run() {
+							Processor.getInstance().readNewPolicy(f.getAbsolutePath());
+							logger.info("Switched to policy '" + f.getName() + "'");
+						}
+					}).start();
+				}
+			});
+
+			policyFileMenu.add(jmiPolicyFile);
+		}
+	}
+
+	private File[] searchPolicyFiles() {
+		String policyPath = Processor.class.getResource("/policy").getPath();
+		File policyDirectory = new File(policyPath);
+		if (policyDirectory.exists()) {
+			if (policyDirectory.isDirectory()) {
+				return policyDirectory.listFiles();
+			}
+		}
+		return null;
+	}
+
 	private void initComponentsForType(final int type) {
 		this.panels[type] = new JPanel();
 		this.tableModels[type] = new ResultTableModel();

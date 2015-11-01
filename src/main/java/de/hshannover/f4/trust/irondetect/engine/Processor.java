@@ -46,6 +46,7 @@ package de.hshannover.f4.trust.irondetect.engine;
 import static de.hshannover.f4.trust.irondetect.gui.ResultObjectType.POLICY;
 
 import java.io.FileNotFoundException;
+import java.lang.Thread.State;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -59,7 +60,6 @@ import de.hshannover.f4.trust.irondetect.policy.parser.ParseException;
 import de.hshannover.f4.trust.irondetect.policy.parser.PolicyFactory;
 import de.hshannover.f4.trust.irondetect.policy.parser.TokenMgrError;
 import de.hshannover.f4.trust.irondetect.util.Configuration;
-import de.hshannover.f4.trust.irondetect.util.Constants;
 import de.hshannover.f4.trust.irondetect.util.event.Event;
 import de.hshannover.f4.trust.irondetect.util.event.EventReceiver;
 import de.hshannover.f4.trust.irondetect.util.event.EventType;
@@ -80,15 +80,21 @@ public class Processor implements EventReceiver, Runnable {
 
     private Logger logger = Logger.getLogger(Processor.class);
     private LinkedBlockingQueue<Event> incomingEvents;
-    private Policy policy;
-//	private HashMap<String, Policy> profiles; // FIXME is this needed?
-    private boolean isTraining; // TODO state machine
+	private Policy mPolicy;
+
+	private boolean isTraining; // TODO state machine
     private Map<String, TrainingData> trainingDataMap;
 
 	private ResultLogger rlogger = ResultLoggerImpl.getInstance();
 
+	private Thread mProcessorThread;
+
+	private boolean mReadNewPolicy;
+
+	private String mCurrentPolicyPath;
+
 	public Policy getPolicy() {
-		return policy;
+		return mPolicy;
 	}
             
     /**
@@ -97,25 +103,19 @@ public class Processor implements EventReceiver, Runnable {
     private static Processor instance = new Processor();
 
     private Processor() {
-        try {
-            this.incomingEvents = new LinkedBlockingQueue<Event>();
-            this.trainingDataMap = null;
-//			this.profiles = new HashMap<String, Policy>();
+
+		this.incomingEvents = new LinkedBlockingQueue<Event>();
+		this.trainingDataMap = null;
+		mReadNewPolicy = false;
+		mCurrentPolicyPath = Configuration.policyFile();
+
             // default state is testing
-//			setToTesting();
+		// setToTesting();
             setTotraining();
+
             // Parse policy
-            this.policy = PolicyFactory.readPolicy(Configuration.policyFile());
-        } catch (FileNotFoundException e) {
-            logger.error("Policy file could not be loaded: " + e.getMessage() + ", " + e.getCause());
-            System.exit(Constants.RETURN_CODE_ERROR_POLICY_NOT_FOUND);
-        } catch (ParseException e) {
-            logger.error("Policy could not be parsed: " + e.getMessage() + ", " + e.getCause());
-            System.exit(Constants.RETURN_CODE_ERROR_POLICY_PARSER_FAILED);
-        } catch (TokenMgrError e) {
-            logger.error("Policy could not be parsed: " + e.getMessage() + ", " + e.getCause());
-            System.exit(Constants.RETURN_CODE_ERROR_POLICY_PARSER_FAILED);
-        }
+		readPolicyFromFile(mCurrentPolicyPath);
+
     }
     
     public Map<String, TrainingData> getTrainingDataMap(){
@@ -161,13 +161,76 @@ public class Processor implements EventReceiver, Runnable {
         this.isTraining = false;
     }
 
+	private void readPolicyFromFile(String policyFile) {
+		try {
+
+			Policy newPolicy = PolicyFactory.readPolicy(policyFile);
+
+			mPolicy = null;
+			mPolicy = newPolicy;
+
+		} catch (FileNotFoundException e) {
+			logger.error("Policy file could not be loaded: " + e.getMessage() + ", " + e.getCause());
+			logger.info("Old policy is still active!");
+		} catch (ParseException e) {
+			logger.error("Policy could not be parsed: " + e.getMessage() + ", " + e.getCause());
+			logger.info("Old policy is still active!");
+		} catch (TokenMgrError e) {
+			logger.error("Policy could not be parsed: " + e.getMessage() + ", " + e.getCause());
+			logger.info("Old policy is still active!");
+		}
+	}
+
+	public void reloadPolicy() {
+		readNewPolicy(mCurrentPolicyPath);
+		logger.info("Reload policy finished");
+	}
+
+	public void readNewPolicy(String policyPath) {
+		mReadNewPolicy = true;
+		boolean newPolicyFinished = false;
+
+		while (!newPolicyFinished) {
+			if (mProcessorThread.getState() != State.RUNNABLE) {
+				readPolicyFromFile(policyPath);
+				newPolicyFinished = true;
+			}
+
+			if (!newPolicyFinished) {
+				try {
+					synchronized (Thread.currentThread()) {
+						Thread.currentThread().wait(500);
+					}
+				} catch (InterruptedException e) {
+					logger.info("Got interrupt signal while waiting for new work ...");
+					break;
+				}
+			}
+		}
+		mReadNewPolicy = false;
+		mCurrentPolicyPath = policyPath;
+
+		synchronized (mProcessorThread) {
+			mProcessorThread.notify();
+		}
+	}
+
     @Override
     public void run() {
+		mProcessorThread = Thread.currentThread();
         logger.info(Processor.class.getSimpleName() + " has started.");
+		System.out.println("mProcessorThread = " + mProcessorThread.getState());
 
         try {
-            while (!Thread.currentThread().isInterrupted()) {
-                Event e = incomingEvents.take();
+			while (!mProcessorThread.isInterrupted()) {
+				System.out.println("mProcessorThread vor take = " + mProcessorThread.getState());
+				Event e = incomingEvents.take();
+				System.out.println("mProcessorThread nach take = " + mProcessorThread.getState());
+
+				if (mReadNewPolicy) {
+					mProcessorThread.wait();
+				}
+
                 onNewPollResult(e);
             }
         } catch (InterruptedException e) {
@@ -192,7 +255,7 @@ public class Processor implements EventReceiver, Runnable {
 
                 for (String singleDevice : this.trainingDataMap.keySet()) {
                     logger.trace("Payload size for device '" + singleDevice + "' is: " + trainingDataMap.get(singleDevice).getFeatureIDs().size());
-                    policy.train(singleDevice);
+					mPolicy.train(singleDevice);
                 }
             } // trigger updates are ignored
 
@@ -212,9 +275,9 @@ public class Processor implements EventReceiver, Runnable {
 
                 for (String s : payload.keySet()) {
                     logger.trace("Payload size for device '" + s + "' is: " + payload.get(s).size());
-                    policy.check(s, payload.get(s));
+					mPolicy.check(s, payload.get(s));
                 }
-				rlogger.reportResultsToLogger("BLANK", policy.getId(), POLICY, true);
+				rlogger.reportResultsToLogger("BLANK", mPolicy.getId(), POLICY, true);
 
             } else if (e.getType() == EventType.TRIGGER) {
                 TriggerUpdateEvent triggerEvent = (TriggerUpdateEvent) e;
