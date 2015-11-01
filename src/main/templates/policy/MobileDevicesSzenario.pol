@@ -1,0 +1,64 @@
+context {
+
+}
+
+hint {
+     hintSMSSentCountMean := "smartphone.communication.sms.SentCount" "de.hshannover.f4.trust.irondetectprocedures.Mean" "10";
+     hintNetworkTrafficMean := "smartphone.communication.ip.TrafficCount" "de.hshannover.f4.trust.irondetectprocedures.Mean" "8000";
+}
+ 
+anomaly {
+     anomSMSSentCountMean  := hintSMSSentCountMean > 0.5;
+     anomNetworkTrafficMean  := hintNetworkTrafficMean > 0.5;
+}
+
+signature {
+     sigPermissionINTERNET := "smartphone.android.app.permission.Name" = "INTERNET";
+     sigPermissionSENDSMS := "smartphone.android.app.permission.Name" = "SEND_SMS";
+     sigPermissionACCESSNETWORKSTATE := "smartphone.android.app.permission.Name" = "ACCESS_NETWORK_STATE";
+     sigPermissionACCESSCOARSELOCATION := "smartphone.android.app.permission.Name" = "ACCESS_COARSE_LOCATION";
+     
+     sigPermissionINTERNETIsRunningTRUE := "smartphone.android.app.IsRunning" = "true" and "smartphone.android.app.permission.Name" = "INTERNET";
+     sigPermissionSENDSMSIsRunningTRUE := "smartphone.android.app.IsRunning" = "true" and "smartphone.android.app.permission.Name" = "SEND_SMS";
+     sigPermissionACCESSNETWORKSTATEIsRunningTRUE := "smartphone.android.app.IsRunning" = "true" and "smartphone.android.app.permission.Name" = "ACCESS_NETWORK_STATE";
+     sigPermissionACCESSCOARSELOCATIONIsRunningTRUE := "smartphone.android.app.IsRunning" = "true" and "smartphone.android.app.permission.Name" = "ACCESS_COARSE_LOCATION";
+
+     sigFacebookAPPAn := "smartphone.android.app.Name" = "Facebook" and "smartphone.android.app.IsRunning" = "true";
+     sigWhatsAppAPPAn := "smartphone.android.app.Name" = "WhatsApp" and "smartphone.android.app.IsRunning" = "true";
+     
+}
+
+condition {
+     conUnknownAPP := sigPermissionACCESSNETWORKSTATE or sigPermissionINTERNET or sigPermissionSENDSMS or sigPermissionACCESSCOARSELOCATION;
+     conUnknownAPPAn := sigPermissionINTERNETIsRunningTRUE or sigPermissionSENDSMSIsRunningTRUE or sigPermissionACCESSNETWORKSTATEIsRunningTRUE or sigPermissionACCESSCOARSELOCATIONIsRunningTRUE;
+     
+     conFacebookAPPAn := sigFacebookAPPAn;
+     conWhatsAppAPPAn := sigWhatsAppAPPAn;
+
+	 conSMSMean := anomSMSSentCountMean;
+	 conNetworkTraffic := anomNetworkTrafficMean;
+}
+
+action {
+     actionUnknownAPP := "Warnung" "Unbekannt APP gefunden";
+
+     actionUnknownAPPAn := "Warnung" "Unbekannt APP wurde gestartet";
+     actionFacebookAPPAn := "Hinweis" "Facebook APP wurde gestartet";
+     actionWhatsAppAPPAn := "Hinweis" "WhatsApp APP wurde gestartet";
+
+	 actionSMSMean := "Warnung-SMS" "SMS SentCount Durchschnitt sehr hoch";
+	 actionNetworkTraffic := "Warnung-NetworkTraffic" "Netzwerk Traffic Durchschnitt sehr hoch";
+
+	 actionAnomalyDetected := "Achtung" "Es wurde eine Anomaly festgestellt";
+}
+
+rule {
+     unknownAPP := if conUnknownAPP do actionUnknownAPP;
+
+     unknownAPPAn := if conUnknownAPPAn do actionUnknownAPPAn;
+     FacebookAPPAn := if conFacebookAPPAn do actionFacebookAPPAn;
+     WhatsAppAPPAn := if conWhatsAppAPPAn do actionWhatsAppAPPAn;
+
+	 SMSMean := if conSMSMean do actionSMSMean actionAnomalyDetected;
+	 NetworkTrafficMean := if conNetworkTraffic do actionNetworkTraffic actionAnomalyDetected;
+}

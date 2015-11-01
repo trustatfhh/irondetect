@@ -18,7 +18,7 @@
  * Email: trust@f4-i.fh-hannover.de
  * Website: http://trust.f4.hs-hannover.de/
  * 
- * This file is part of irondetect, version 0.0.8, 
+ * This file is part of irondetect, version 0.0.8,
  * implemented by the Trust@HsH research group at the Hochschule Hannover.
  * %%
  * Copyright (C) 2010 - 2015 Trust@HsH
@@ -69,6 +69,8 @@ public class Configuration {
 	private static final String IRONDETECT_PDPSUBSCRIBER_PASSWORD = "irondetect.pdpsubscriber.password";
 	private static final String IRONDETECT_DEVICESUBSCRIBER_USER = "irondetect.devicesubscriber.user";
 	private static final String IRONDETECT_DEVICESUBSCRIBER_PASSWORD = "irondetect.devicesubscriber.password";
+	private static final String IRONDETECT_POLICYPUBLISHER_USER = "irondetect.PolicyPublisher.user";
+	private static final String IRONDETECT_POLICYPUBLISHER_PASSWORD = "irondetect.PolicyPublisher.password";
 
 	private static final String KEYSTORE_PATH = "keystore.path";
 	private static final String KEYSTORE_PASSWORD = "keystore.password";
@@ -85,6 +87,9 @@ public class Configuration {
 	private static final String PUBLISH_NOTIFY = "irondetect.publisher.notify";
 
 	private static final String IRONDETECT_GUI = "irondetect.gui";
+
+	private static final String SEND_POLICY_ACTION_FOR_NO_FIRED_RULES = "irondetect.PolicyPublisher.policyAction.noFiredRules";
+	private static final String POLICY_PUBLISHER_IDENTIFIER = "irondetect.PolicyPublisher.identifier";
 
 	// end of parameter block
 
@@ -213,5 +218,21 @@ public class Configuration {
 
 	public static boolean loadGUI() {
 		return Boolean.parseBoolean(get(IRONDETECT_GUI));
+	}
+
+	public static String irondetectPolicyPublisherUser() {
+		return get(IRONDETECT_POLICYPUBLISHER_USER);
+	}
+
+	public static String irondetectPolicyPublisherPassword() {
+		return get(IRONDETECT_POLICYPUBLISHER_PASSWORD);
+	}
+
+	public static boolean sendPolicyActionForNoFiredRules() {
+		return Boolean.parseBoolean(get(SEND_POLICY_ACTION_FOR_NO_FIRED_RULES));
+	}
+
+	public static String getPolicyPublisherIdentifier() {
+		return get(POLICY_PUBLISHER_IDENTIFIER);
 	}
 }

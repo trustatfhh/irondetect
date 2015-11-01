@@ -18,7 +18,7 @@
  * Email: trust@f4-i.fh-hannover.de
  * Website: http://trust.f4.hs-hannover.de/
  * 
- * This file is part of irondetect, version 0.0.8, 
+ * This file is part of irondetect, version 0.0.8,
  * implemented by the Trust@HsH research group at the Hochschule Hannover.
  * %%
  * Copyright (C) 2010 - 2015 Trust@HsH
@@ -141,6 +141,7 @@ public class ActionToIfmapMapper {
 			documentBuilder = factory.newDocumentBuilder();
 			
 			Element idElement;
+			Element typeElement;
 			Element valElement;
 			Element alertFeature;
 			for (Pair<String, String> p : keyValuePairs) {
@@ -158,10 +159,14 @@ public class ActionToIfmapMapper {
 				idElement = doc.createElement("id");
 				idElement.setTextContent(p.getFirstElement());
 				
+				typeElement = doc.createElement("type");
+				typeElement.setTextContent("arbitrary");
+
 				valElement = doc.createElement("value");
 				valElement.setTextContent(p.getSecondElement());
 
 				alertFeature.appendChild(idElement);
+				alertFeature.appendChild(typeElement);
 				alertFeature.appendChild(valElement);
 
 				doc.appendChild(alertFeature);
@@ -187,7 +192,7 @@ public class ActionToIfmapMapper {
 	private List<Document> createIfmapEvent(List<Pair<String, String>> keyValuePairs) {
 		List<Document> result = new ArrayList<Document>();
 
-		Map<String, String> ifmapKeyValues = converKeyValuesToIfmapEventData(keyValuePairs); 
+		Map<String, String> ifmapKeyValues = converKeyValuesToIfmapEventData(keyValuePairs);
 		
 		String name = ifmapKeyValues.get(Constants.IFMAP_EVENT_NAME);
 		if (name == null) {

@@ -18,7 +18,7 @@
  * Email: trust@f4-i.fh-hannover.de
  * Website: http://trust.f4.hs-hannover.de/
  * 
- * This file is part of irondetect, version 0.0.8, 
+ * This file is part of irondetect, version 0.0.8,
  * implemented by the Trust@HsH research group at the Hochschule Hannover.
  * %%
  * Copyright (C) 2010 - 2015 Trust@HsH
@@ -43,6 +43,8 @@ package de.hshannover.f4.trust.irondetect.engine;
 
 
 
+import static de.hshannover.f4.trust.irondetect.gui.ResultObjectType.POLICY;
+
 import java.io.FileNotFoundException;
 import java.util.Map;
 import java.util.Set;
@@ -50,6 +52,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.log4j.Logger;
 
+import de.hshannover.f4.trust.irondetect.gui.ResultLogger;
+import de.hshannover.f4.trust.irondetect.gui.ResultLoggerImpl;
 import de.hshannover.f4.trust.irondetect.model.Policy;
 import de.hshannover.f4.trust.irondetect.policy.parser.ParseException;
 import de.hshannover.f4.trust.irondetect.policy.parser.PolicyFactory;
@@ -63,7 +67,6 @@ import de.hshannover.f4.trust.irondetect.util.event.FeatureBaseUpdateEvent;
 import de.hshannover.f4.trust.irondetect.util.event.TrainingData;
 import de.hshannover.f4.trust.irondetect.util.event.TrainingDataLoadedEvent;
 import de.hshannover.f4.trust.irondetect.util.event.TriggerUpdateEvent;
-import java.util.HashMap;
 
 /**
  *
@@ -81,6 +84,12 @@ public class Processor implements EventReceiver, Runnable {
 //	private HashMap<String, Policy> profiles; // FIXME is this needed?
     private boolean isTraining; // TODO state machine
     private Map<String, TrainingData> trainingDataMap;
+
+	private ResultLogger rlogger = ResultLoggerImpl.getInstance();
+
+	public Policy getPolicy() {
+		return policy;
+	}
             
     /**
      * Thread-safe and performant Singleton
@@ -205,6 +214,7 @@ public class Processor implements EventReceiver, Runnable {
                     logger.trace("Payload size for device '" + s + "' is: " + payload.get(s).size());
                     policy.check(s, payload.get(s));
                 }
+				rlogger.reportResultsToLogger("BLANK", policy.getId(), POLICY, true);
 
             } else if (e.getType() == EventType.TRIGGER) {
                 TriggerUpdateEvent triggerEvent = (TriggerUpdateEvent) e;
