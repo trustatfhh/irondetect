@@ -219,13 +219,10 @@ public class Processor implements EventReceiver, Runnable {
     public void run() {
 		mProcessorThread = Thread.currentThread();
         logger.info(Processor.class.getSimpleName() + " has started.");
-		System.out.println("mProcessorThread = " + mProcessorThread.getState());
 
         try {
 			while (!mProcessorThread.isInterrupted()) {
-				System.out.println("mProcessorThread vor take = " + mProcessorThread.getState());
 				Event e = incomingEvents.take();
-				System.out.println("mProcessorThread nach take = " + mProcessorThread.getState());
 
 				if (mReadNewPolicy) {
 					mProcessorThread.wait();

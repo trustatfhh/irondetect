@@ -90,7 +90,7 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 
 	private static PolicyMetadataFactory mMetadataFactory;
 
-	private boolean policyActionForNoFiredRules = true;
+	private boolean policyActionForNoFiredRules = false;
 
 	public PolicyActionUpdater(Policy policy, SSRC ssrc) throws IfmapErrorResult, IfmapException {
 		init(policy, ssrc, new PolicyActionSearcher(this, policy));
