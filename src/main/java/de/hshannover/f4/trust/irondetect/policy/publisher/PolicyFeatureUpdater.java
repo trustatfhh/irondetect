@@ -89,9 +89,9 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 				req.addPublishElement(updateElement);
 			}
 			mSsrc.publish(req);
-			LOGGER.info("sended publish request for " + mPublishUpdates.size() + " policy-rev-metadata");
+			LOGGER.debug("sended publish request for " + mPublishUpdates.size() + " policy-rev-metadata");
 		} else {
-			LOGGER.info("Nothig was sended. Wait for new poll results...");
+			LOGGER.trace("Nothig was sended. Wait for new poll results...");
 		}
 	}
 	
@@ -140,7 +140,7 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 								.getSecondElement();
 
 						for (String featureId : hint.getFeatureIds()) {
-							LOGGER.debug("check feature-id: " + featureId);
+							LOGGER.trace("check feature-id: " + featureId);
 
 							if (featureId.equalsIgnoreCase(metadataFeatureId)
 									&& featureValue.equalsIgnoreCase(metadataFeatureValue)) {
@@ -149,7 +149,7 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 										PolicyStrings.POLICY_FEATURE_EL_NAME, featureMetadata, categoryIdentity);
 								addPublishUpdate(identfierHint, revFeatureMetadata);
 							} else {
-								LOGGER.debug("not equals (ID from Policy: '" + featureId + "' |ID from PollResult: '"
+								LOGGER.trace("not equals (ID from Policy: '" + featureId + "' |ID from PollResult: '"
 										+ metadataFeatureId + "' )");
 							}
 						}
@@ -162,7 +162,7 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 						String featureValue = featurePair.getFirstElement().getFeatureValuePair().getSecondElement()
 								.getSecondElement();
 
-						LOGGER.debug("check feature-id: " + featureId);
+						LOGGER.trace("check feature-id: " + featureId);
 
 						if (featureId.equalsIgnoreCase(metadataFeatureId)
 								&& featureValue.equalsIgnoreCase(metadataFeatureValue)) {
@@ -172,7 +172,7 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 									categoryIdentity);
 							addPublishUpdate(identfierSignature, revFeatureMetadata);
 						} else {
-							LOGGER.debug("not equals (ID from Policy: '" + featureId + "' |ID from PollResult: '"
+							LOGGER.trace("not equals (ID from Policy: '" + featureId + "' |ID from PollResult: '"
 									+ metadataFeatureId + "' )");
 						}
 					}
@@ -225,19 +225,19 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 		LOGGER.trace("check of esukom category identity");
 
 		if (!checkIdentityIdentifier(identifier)) {
-			LOGGER.debug("identifier is not a identity");
+			LOGGER.trace("identifier is not a identity");
 			return false;
 		}
 
 		Identity identity = (Identity) identifier;
 
 		if (!checkIdentityType(identity)) {
-			LOGGER.debug("identity type is no " + IdentityType.other);
+			LOGGER.trace("identity type is no " + IdentityType.other);
 			return false;
 		}
 
 		if (!checkIdentityOtherTypeDefinition(identity)) {
-			LOGGER.debug("identity have a wrong esukom category");
+			LOGGER.trace("identity have a wrong esukom category");
 			return false;
 		}
 
@@ -251,12 +251,12 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 		String url = document.getDocumentElement().getAttribute(XMLNS_FEATURE_URL_PREFIX);
 
 		if (!FEATURE_TYPE_NAME.equals(typename)) {
-			LOGGER.debug("is not a feature metadata");
+			LOGGER.trace("is not a feature metadata");
 			return false;
 		}
 
 		if (!ESUKOM_URL.equals(url)) {
-			LOGGER.debug("wrong esukom feature metadata url");
+			LOGGER.trace("wrong esukom feature metadata url");
 			return false;
 		}
 
@@ -266,7 +266,7 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 	protected void newPollResult() throws InterruptedException {
 		LOGGER.debug("wait for new pollResult ...");
 		PollResult pollResult = mNewPollResults.take();
-		LOGGER.debug("... take() pollResult");
+		LOGGER.trace("... take() pollResult");
 
 		for (SearchResult searchResult : pollResult.getResults()) {
 			LOGGER.trace("New Search-Result: " + searchResult.getName());
@@ -283,11 +283,11 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 						continue;
 					} else {
 						identifier = resultItem.getIdentifier2();
-						LOGGER.debug("One of the two identifiers is null(Identifier1), greate");
+						LOGGER.trace("One of the two identifiers is null(Identifier1), greate");
 					}
 				} else {
 					identifier = resultItem.getIdentifier1();
-					LOGGER.debug("One of the two identifiers is null(Identifier2), greate");
+					LOGGER.trace("One of the two identifiers is null(Identifier2), greate");
 				}
 
 				if (checkOfEsukomCategoryIdentity(identifier)) {

@@ -91,7 +91,7 @@ public class PolicyActionSearcher implements Runnable, PollResultReceiver {
 	 */
 	@Override
 	public void submitNewPollResult(PollResult pollResult) {
-		LOGGER.info("new Poll-Result...");
+		LOGGER.debug("new Poll-Result...");
 		if (checkPollResultHasEsukomAlertFeatures(pollResult)) {
 			Map<Identity, List<Document>> alertResults = preparePollResult(pollResult);
 			synchronized (mAlertResults) {
@@ -104,9 +104,9 @@ public class PolicyActionSearcher implements Runnable, PollResultReceiver {
 				}
 			}
 		} else {
-			LOGGER.info("poll-result has no EsukomFeatures");
+			LOGGER.trace("poll-result has no EsukomFeatures");
 		}
-		LOGGER.info("... new Poll-Result submitted");
+		LOGGER.trace("... new Poll-Result submitted");
 	}
 
 	private Map<Identity, List<Document>> preparePollResult(PollResult pollResult) {
@@ -121,15 +121,15 @@ public class PolicyActionSearcher implements Runnable, PollResultReceiver {
 				// A feature can not stand between two identifier. One of them must be null.
 				if (!(identifier1 != null && identifier2 == null)) {
 					if (!(identifier1 == null && identifier2 != null)) {
-						LOGGER.debug("A feature can not stand between two identifier. One of them must be null. Next result item ...");
+						LOGGER.trace("A feature can not stand between two identifier. One of them must be null. Next result item ...");
 						continue;
 					} else {
 						identifier = resultItem.getIdentifier2();
-						LOGGER.debug("One of the two identifiers is null(Identifier1), greate");
+						LOGGER.trace("One of the two identifiers is null(Identifier1), greate");
 					}
 				} else {
 					identifier = resultItem.getIdentifier1();
-					LOGGER.debug("One of the two identifiers is null(Identifier2), greate");
+					LOGGER.trace("One of the two identifiers is null(Identifier2), greate");
 				}
 
 				if (checkOfEsukomAlertIdentity(identifier)) {
@@ -159,15 +159,15 @@ public class PolicyActionSearcher implements Runnable, PollResultReceiver {
 				// A feature can not stand between two identifier. One of them must be null.
 				if (!(identifier1 != null && identifier2 == null)) {
 					if (!(identifier1 == null && identifier2 != null)) {
-						LOGGER.debug("A feature can not stand between two identifier. One of them must be null. Next result item ...");
+						LOGGER.trace("A feature can not stand between two identifier. One of them must be null. Next result item ...");
 						continue;
 					} else {
 						identifier = resultItem.getIdentifier2();
-						LOGGER.debug("One of the two identifiers is null(Identifier1), greate");
+						LOGGER.trace("One of the two identifiers is null(Identifier1), greate");
 					}
 				} else {
 					identifier = resultItem.getIdentifier1();
-					LOGGER.debug("One of the two identifiers is null(Identifier2), greate");
+					LOGGER.trace("One of the two identifiers is null(Identifier2), greate");
 				}
 
 				if (checkOfEsukomAlertIdentity(identifier)) {
@@ -210,19 +210,19 @@ public class PolicyActionSearcher implements Runnable, PollResultReceiver {
 		LOGGER.trace("check of esukom category identity");
 
 		if (!checkIdentityIdentifier(identifier)) {
-			LOGGER.debug("identifier is not a identity");
+			LOGGER.trace("identifier is not a identity");
 			return false;
 		}
 
 		Identity identity = (Identity) identifier;
 
 		if (!checkIdentityType(identity)) {
-			LOGGER.debug("identity type is no " + IdentityType.other);
+			LOGGER.trace("identity type is no " + IdentityType.other);
 			return false;
 		}
 
 		if (!checkIdentityOtherTypeDefinition(identity)) {
-			LOGGER.debug("identity have a wrong esukom category");
+			LOGGER.trace("identity have a wrong esukom category");
 			return false;
 		}
 
@@ -256,12 +256,12 @@ public class PolicyActionSearcher implements Runnable, PollResultReceiver {
 		String url = document.getDocumentElement().getAttribute(XMLNS_FEATURE_URL_PREFIX);
 
 		if (!FEATURE_TYPE_NAME.equals(typename)) {
-			LOGGER.debug("is not a feature metadata");
+			LOGGER.trace("is not a feature metadata");
 			return false;
 		}
 
 		if (!ESUKOM_URL.equals(url)) {
-			LOGGER.debug("wrong esukom feature metadata url");
+			LOGGER.trace("wrong esukom feature metadata url");
 			return false;
 		}
 
@@ -287,7 +287,7 @@ public class PolicyActionSearcher implements Runnable, PollResultReceiver {
 
 				LOGGER.debug("wait for new policy-action metadata ...");
 				Pair<ResultObject, Document> policyAction = mNewPolicyAction.take();
-				LOGGER.debug("... take() new policy-action metadata");
+				LOGGER.trace("... take() new policy-action metadata");
 
 				ResultObject ruleResult = policyAction.getFirstElement();
 				Document policyActionMetadata = policyAction.getSecondElement();
@@ -312,7 +312,7 @@ public class PolicyActionSearcher implements Runnable, PollResultReceiver {
 							synchronized (Thread.currentThread()) {
 								LOGGER.debug("wait() for new PollResult...");
 								Thread.currentThread().wait();
-								LOGGER.debug("... new PollResult");
+								LOGGER.trace("... new PollResult");
 							}
 							alertFeatures = mAlertResults.get(identity);
 						} while (alertFeatures == null);
@@ -376,7 +376,7 @@ public class PolicyActionSearcher implements Runnable, PollResultReceiver {
 	}
 
 	public void submitNewPolicyAction(Pair<ResultObject, Document> policyAction) {
-		LOGGER.info("new NewPolicyAction...");
+		LOGGER.debug("new NewPolicyAction...");
 		try {
 			mNewPolicyAction.put(policyAction);
 		} catch (InterruptedException e) {

@@ -123,9 +123,9 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 				req.addPublishElement(updateElement);
 			}
 			mSsrc.publish(req);
-			LOGGER.info("sended publish request for " + publishUpdates.size() + " policy-rev-metadata");
+			LOGGER.debug("sended publish request for " + publishUpdates.size() + " policy-rev-metadata");
 		} else {
-			LOGGER.info("Nothig was sended. Wait for new poll results...");
+			LOGGER.trace("Nothig was sended. Wait for new poll results...");
 		}
 	}
 	
@@ -203,17 +203,17 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 	 */
 	@Override
 	public void submitNewPollResult(PollResult pollResult) {
-		LOGGER.info("new Poll-Result...");
+		LOGGER.debug("new Poll-Result...");
 		try {
 			if (checkPollResultHasEsukomFeatures(pollResult)) {
 				mNewPollResults.put(pollResult);
 			} else {
-				LOGGER.info("poll-result has no EsukomFeatures");
+				LOGGER.trace("poll-result has no EsukomFeatures");
 			}
 		} catch (InterruptedException e) {
 			LOGGER.error("InterruptedException when submit new Poll-Result: " + e.getMessage());
 		}
-		LOGGER.info("... new Poll-Result submitted");
+		LOGGER.trace("... new Poll-Result submitted");
 	}
 
 	private boolean checkPollResultHasEsukomFeatures(PollResult pollResult) {
@@ -226,15 +226,15 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 				// A feature can not stand between two identifier. One of them must be null.
 				if (!(identifier1 != null && identifier2 == null)) {
 					if (!(identifier1 == null && identifier2 != null)) {
-						LOGGER.debug("A feature can not stand between two identifier. One of them must be null. Next result item ...");
+						LOGGER.trace("A feature can not stand between two identifier. One of them must be null. Next result item ...");
 						continue;
 					} else {
 						identifier = resultItem.getIdentifier2();
-						LOGGER.debug("One of the two identifiers is null(Identifier1), greate");
+						LOGGER.trace("One of the two identifiers is null(Identifier1), greate");
 					}
 				} else {
 					identifier = resultItem.getIdentifier1();
-					LOGGER.debug("One of the two identifiers is null(Identifier2), greate");
+					LOGGER.trace("One of the two identifiers is null(Identifier2), greate");
 				}
 
 				if (checkOfEsukomCategoryIdentity(identifier)) {
@@ -277,19 +277,19 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 		LOGGER.trace("check of esukom category identity");
 
 		if (!checkIdentityIdentifier(identifier)) {
-			LOGGER.debug("identifier is not a identity");
+			LOGGER.trace("identifier is not a identity");
 			return false;
 		}
 
 		Identity identity = (Identity) identifier;
 
 		if (!checkIdentityType(identity)) {
-			LOGGER.debug("identity type is no " + IdentityType.other);
+			LOGGER.trace("identity type is no " + IdentityType.other);
 			return false;
 		}
 
 		if (!checkIdentityOtherTypeDefinition(identity)) {
-			LOGGER.debug("identity have a wrong esukom category");
+			LOGGER.trace("identity have a wrong esukom category");
 			return false;
 		}
 
@@ -302,12 +302,12 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 		String url = document.getDocumentElement().getAttribute(XMLNS_FEATURE_URL_PREFIX);
 
 		if (!FEATURE_TYPE_NAME.equals(typename)) {
-			LOGGER.debug("is not a feature metadata");
+			LOGGER.trace("is not a feature metadata");
 			return false;
 		}
 
 		if (!ESUKOM_URL.equals(url)) {
-			LOGGER.debug("wrong esukom feature metadata url");
+			LOGGER.trace("wrong esukom feature metadata url");
 			return false;
 		}
 
@@ -317,7 +317,7 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 	protected void newPollResult() throws InterruptedException {
 		LOGGER.debug("wait for new pollResult ...");
 		PollResult pollResult = mNewPollResults.take();
-		LOGGER.debug("... take() pollResult");
+		LOGGER.trace("... take() pollResult");
 		ResultUpdateEvent updateEvent;
 		Set<String> ruleFeatures = new HashSet<String>();
 		Map<ResultObject, List<String>> signatureFeatureMap = new HashMap<ResultObject, List<String>>();
@@ -326,8 +326,7 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 		do {
 			LOGGER.debug("wait for new result-update-event ...");
 			updateEvent = mNewResultUpdateEvent.take();
-			LOGGER.debug("... take() mNewResultUpdateEvent");
-			LOGGER.debug("NewResultUpdateEvent = " + updateEvent.getPayload().getType());
+			LOGGER.trace("... take() mNewResultUpdateEvent");
 
 			ResultObject result = updateEvent.getPayload();
 			if (checkResultType(result, SIGNATURE)) {
@@ -415,15 +414,15 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 				// A feature can not stand between two identifier. One of them must be null.
 				if (!(identifier1 != null && identifier2 == null)) {
 					if (!(identifier1 == null && identifier2 != null)) {
-						LOGGER.debug("A feature can not stand between two identifier. One of them must be null. Next result item ...");
+						LOGGER.trace("A feature can not stand between two identifier. One of them must be null. Next result item ...");
 						continue;
 					} else {
 						identifier = resultItem.getIdentifier2();
-						LOGGER.debug("One of the two identifiers is null(Identifier1), greate");
+						LOGGER.trace("One of the two identifiers is null(Identifier1), greate");
 					}
 				} else {
 					identifier = resultItem.getIdentifier1();
-					LOGGER.debug("One of the two identifiers is null(Identifier2), greate");
+					LOGGER.trace("One of the two identifiers is null(Identifier2), greate");
 				}
 
 				if (checkOfEsukomCategoryIdentity(identifier)) {
@@ -478,13 +477,14 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 							String featureId = featurePair.getFirstElement().getFeatureId().toLowerCase();
 							foundFeatures.add(featureId);
 						}
-						LOGGER.info("found " + foundFeatures.size() + " features for signature-id " + signature.getId());
+						LOGGER.trace("found " + foundFeatures.size() + " features for signature-id "
+								+ signature.getId());
 						return foundFeatures;
 					}
 				}
 			}
 		}
-		LOGGER.info("found " + foundFeatures.size() + " features for signature-id " + policySignatureId);
+		LOGGER.debug("trace " + foundFeatures.size() + " features for signature-id " + policySignatureId);
 		return foundFeatures;
 	}
 
@@ -502,14 +502,14 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 							for (String featureId : hint.getFeatureIds()) {
 								foundFeatures.add(featureId.toLowerCase());
 							}
-							LOGGER.info("found " + foundFeatures.size() + " features for hint-id " + hint.getId());
+							LOGGER.trace("found " + foundFeatures.size() + " features for hint-id " + hint.getId());
 							return foundFeatures;
 						}
 					}
 				}
 			}
 		}
-		LOGGER.info("found " + foundFeatures.size() + " features for hint-id " + policyHintId);
+		LOGGER.trace("found " + foundFeatures.size() + " features for hint-id " + policyHintId);
 		return foundFeatures;
 	}
 
@@ -525,7 +525,7 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 				break;
 			}
 		}
-		LOGGER.info("found " + foundFeatures.size() + " features for hint-id " + policyRuleId);
+		LOGGER.trace("found " + foundFeatures.size() + " features for hint-id " + policyRuleId);
 		return foundFeatures;
 	}
 
@@ -546,7 +546,7 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 
 	@Override
 	public void submitNewEvent(Event event) {
-		LOGGER.info("new Event...");
+		LOGGER.debug("new Event...");
 		if (event.getType() == EventType.RESULT_UPDATE) {
 			ResultObject result = ((ResultUpdateEvent) event).getPayload();
 
