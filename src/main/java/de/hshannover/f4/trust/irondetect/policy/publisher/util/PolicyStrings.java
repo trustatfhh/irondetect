@@ -31,6 +31,7 @@ public class PolicyStrings {
 	public static final String PARAMETER_EXPRESSION_EL_NAME = "parameterExpression";
 
 	public static final String HINT_EXPRESSION_EL_NAME = "hintExpression";
+	public static final String PROCEDURE_EXPRESSION_EL_NAME = "procedureExpression";
 	public static final String CONDITION_EXPRESSION_EL_NAME = "conditionExpression";
 	public static final String OPERATION_EL_NAME = "operation";
 

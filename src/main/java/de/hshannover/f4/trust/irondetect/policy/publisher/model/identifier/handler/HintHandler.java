@@ -42,7 +42,7 @@ public class HintHandler extends ExtendedIdentifierHandler<Hint> {
 				PolicyStrings.HINT_EL_NAME);
 		Element idElement = doc.createElementNS(null, PolicyStrings.ID_EL_NAME);
 
-		List<Element> expressionElements = buildHintExpressionElements(expressions, doc);
+		List<Element> expressionElements = buildProcedureExpressionElements(expressions, doc);
 
 		idElement.setTextContent(id);
 
@@ -54,18 +54,18 @@ public class HintHandler extends ExtendedIdentifierHandler<Hint> {
 		return hintElement;
 	}
 
-	private List<Element> buildHintExpressionElements(List<String> expressions, Document doc) {
+	private List<Element> buildProcedureExpressionElements(List<String> expressions, Document doc) {
 		List<Element> expressionElements = new ArrayList<Element>();
 
 		for (String s : expressions) {
-			expressionElements.add(buildHintExpressionElement(s, doc));
+			expressionElements.add(buildProcedureExpressionElement(s, doc));
 		}
 
 		return expressionElements;
 	}
 
-	private Element buildHintExpressionElement(String expression, Document doc) {
-		return super.buildElement(PolicyStrings.HINT_EXPRESSION_EL_NAME, super.escapeXml(expression), doc);
+	private Element buildProcedureExpressionElement(String expression, Document doc) {
+		return super.buildElement(PolicyStrings.PROCEDURE_EXPRESSION_EL_NAME, super.escapeXml(expression), doc);
 	}
 
 	@Override
