@@ -7,6 +7,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import de.hshannover.f4.trust.ifmapj.exception.MarshalException;
+import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifier;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifiers.Helpers;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.Action;
@@ -66,6 +67,12 @@ public class ActionHandler extends ExtendedIdentifierHandler<Action> {
 
 	private Element buildOperationElement(String expression, Document doc) {
 		return super.buildElement(PolicyStrings.OPERATION_EL_NAME, super.escapeXml(expression), doc);
+	}
+
+	@Override
+	public Action fromExtendedElement(Element element) throws UnmarshalException {
+
+		return null;
 	}
 
 	@Override

@@ -4,6 +4,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import de.hshannover.f4.trust.ifmapj.exception.MarshalException;
+import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifier;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifiers.Helpers;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
@@ -40,6 +41,12 @@ public class RuleHandler extends ExtendedIdentifierHandler<Rule> {
 		Helpers.addAdministrativeDomain(policyElement, rule);
 
 		return policyElement;
+	}
+
+	@Override
+	public Rule fromExtendedElement(Element element) throws UnmarshalException {
+
+		return null;
 	}
 
 	@Override

@@ -8,6 +8,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import de.hshannover.f4.trust.ifmapj.exception.MarshalException;
+import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifier;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifiers.Helpers;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
@@ -74,6 +75,12 @@ public class SignatureHandler extends ExtendedIdentifierHandler<Signature> {
 		}
 
 		return expressionElements;
+	}
+
+	@Override
+	public Signature fromExtendedElement(Element element) throws UnmarshalException {
+
+		return null;
 	}
 
 	@Override

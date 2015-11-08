@@ -12,7 +12,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import util.DomHelpers;
+import de.hshannover.f4.trust.ifmapj.binding.IfmapStrings;
 import de.hshannover.f4.trust.ifmapj.exception.MarshalException;
+import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifier;
 import de.hshannover.f4.trust.ifmapj.identifier.IdentifierHandler;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifiers;
@@ -20,6 +23,7 @@ import de.hshannover.f4.trust.ifmapj.identifier.Identifiers.Helpers;
 import de.hshannover.f4.trust.ifmapj.identifier.Identity;
 import de.hshannover.f4.trust.ifmapj.log.IfmapJLog;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
+import de.hshannover.f4.trust.irondetect.policy.publisher.util.DocumentUtils;
 import de.hshannover.f4.trust.irondetect.policy.publisher.util.PolicyStrings;
 
 /**
@@ -61,10 +65,41 @@ public abstract class ExtendedIdentifierHandler<T extends ExtendedIdentifier> im
 	}
 
 	@Override
-	public T fromElement(Element el) {
-		// TODO fromElement (Element el) not implemented
+	public T fromElement(Element element) throws UnmarshalException {
+		String administrativeDomain = element.getAttribute(IfmapStrings.IDENTIFIER_ATTR_ADMIN_DOMAIN);
 
-		// return null is necessary for ifmapJ
+		System.out.println("administrativeDomain " + administrativeDomain);
+
+		// Are we responsible? return null if not.
+		if (!DomHelpers.elementMatches(element, IfmapStrings.IDENTITY_EL_NAME)) {
+			return null;
+		}
+
+		IdentifierHandler<?> ih = Identifiers.getHandlerFor(Identity.class);
+
+		Identifier identifier = ih.fromElement(element);
+		
+		if(identifier instanceof Identity){
+			Identity identity = (Identity) identifier;
+			Element rootElement = getExtendedRootElement(identity.getName());
+			
+			if (rootElement != null) {
+				return fromExtendedElement(rootElement);
+			}
+		}
+		return null;
+	}
+
+	public abstract T fromExtendedElement(Element e) throws UnmarshalException;
+
+	public Element getExtendedRootElement(String xmlExtendedElement) {
+
+		Document extendetIdentifier = DocumentUtils.parseEscapedXmlString(xmlExtendedElement);
+
+		if (extendetIdentifier != null) {
+			Element rootElement = extendetIdentifier.getDocumentElement();
+			return rootElement;
+		}
 		return null;
 	}
 
