@@ -1,12 +1,15 @@
 package de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.handler;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import util.DomHelpers;
+import de.hshannover.f4.trust.ifmapj.binding.IfmapStrings;
 import de.hshannover.f4.trust.ifmapj.exception.MarshalException;
 import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifier;
@@ -80,7 +83,45 @@ public class AnomalyHandler extends ExtendedIdentifierHandler<Anomaly> {
 	@Override
 	public Anomaly fromExtendedElement(Element element) throws UnmarshalException {
 
-		return null;
+		String ruleId = null;
+		List<String> expressionList = new ArrayList<String>();
+		Map<String, List<String>> contextList = new HashMap<String, List<String>>();
+
+		String administrativeDomain = element.getAttribute(IfmapStrings.IDENTIFIER_ATTR_ADMIN_DOMAIN);
+		List<Element> children = DomHelpers.getChildElements(element);
+
+		for (Element childElement : children) {
+			if (DomHelpers.elementMatches(childElement, PolicyStrings.ID_EL_NAME)) {
+				ruleId = childElement.getTextContent();
+			} else if (DomHelpers.elementMatches(childElement, PolicyStrings.HINT_EXPRESSION_EL_NAME)) {
+				expressionList.add(childElement.getTextContent());
+			} else if (DomHelpers.elementMatches(childElement, PolicyStrings.CONTEXT_EL_NAME)) {
+				// context elements
+				String contextId = null;
+				List<String> parameterExpressionList = new ArrayList<String>();
+
+				List<Element> contextChildren = DomHelpers.getChildElements(childElement);
+
+				for (Element contextChildElement : contextChildren) {
+					if (DomHelpers.elementMatches(contextChildElement, PolicyStrings.ID_EL_NAME)) {
+						contextId = contextChildElement.getTextContent();
+					} else if (DomHelpers.elementMatches(contextChildElement,
+							PolicyStrings.PARAMETER_EXPRESSION_EL_NAME)) {
+						parameterExpressionList.add(contextChildElement.getTextContent());
+					}
+				}
+
+				contextList.put(contextId, parameterExpressionList);
+			}
+		}
+
+		if (ruleId == null || ruleId.length() == 0) {
+			throw new UnmarshalException("No text content for ruleId found");
+		}
+
+		Anomaly anomaly = new Anomaly(ruleId, expressionList, administrativeDomain, contextList);
+
+		return anomaly;
 	}
 
 	@Override

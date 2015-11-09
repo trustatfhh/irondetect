@@ -1,8 +1,12 @@
 package de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.handler;
 
+import java.util.List;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import util.DomHelpers;
+import de.hshannover.f4.trust.ifmapj.binding.IfmapStrings;
 import de.hshannover.f4.trust.ifmapj.exception.MarshalException;
 import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifier;
@@ -46,7 +50,32 @@ public class RuleHandler extends ExtendedIdentifierHandler<Rule> {
 	@Override
 	public Rule fromExtendedElement(Element element) throws UnmarshalException {
 
-		return null;
+		Element child = null;
+
+		String administrativeDomain = element.getAttribute(IfmapStrings.IDENTIFIER_ATTR_ADMIN_DOMAIN);
+		List<Element> children = DomHelpers.getChildElements(element);
+
+		if (children.size() != 1) {
+			throw new UnmarshalException("Bad " + PolicyStrings.RULE_EL_NAME + " element? Has " + children.size()
+					+ " child elements.");
+		}
+
+		child = children.get(0);
+
+		if (!DomHelpers.elementMatches(child, PolicyStrings.ID_EL_NAME)) {
+			throw new UnmarshalException("Unknown child element in " + PolicyStrings.RULE_EL_NAME + " element: "
+					+ child.getLocalName());
+		}
+
+		String ruleId = child.getTextContent();
+
+		if (ruleId == null || ruleId.length() == 0) {
+			throw new UnmarshalException("No text content for ruleId found");
+		}
+
+		Rule rule = new Rule(ruleId, administrativeDomain);
+
+		return rule;
 	}
 
 	@Override

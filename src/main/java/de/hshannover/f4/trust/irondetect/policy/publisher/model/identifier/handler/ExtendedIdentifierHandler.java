@@ -66,10 +66,6 @@ public abstract class ExtendedIdentifierHandler<T extends ExtendedIdentifier> im
 
 	@Override
 	public T fromElement(Element element) throws UnmarshalException {
-		String administrativeDomain = element.getAttribute(IfmapStrings.IDENTIFIER_ATTR_ADMIN_DOMAIN);
-
-		System.out.println("administrativeDomain " + administrativeDomain);
-
 		// Are we responsible? return null if not.
 		if (!DomHelpers.elementMatches(element, IfmapStrings.IDENTITY_EL_NAME)) {
 			return null;

@@ -6,6 +6,8 @@ import java.util.List;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import util.DomHelpers;
+import de.hshannover.f4.trust.ifmapj.binding.IfmapStrings;
 import de.hshannover.f4.trust.ifmapj.exception.MarshalException;
 import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifier;
@@ -72,7 +74,28 @@ public class HintHandler extends ExtendedIdentifierHandler<Hint> {
 	@Override
 	public Hint fromExtendedElement(Element element) throws UnmarshalException {
 
-		return null;
+		String ruleId = null;
+		List<String> expressionsList = new ArrayList<String>();
+
+		String administrativeDomain = element.getAttribute(IfmapStrings.IDENTIFIER_ATTR_ADMIN_DOMAIN);
+		List<Element> children = DomHelpers.getChildElements(element);
+
+		for (Element childElement : children) {
+			if (DomHelpers.elementMatches(childElement, PolicyStrings.ID_EL_NAME)) {
+				ruleId = childElement.getTextContent();
+
+			} else if (DomHelpers.elementMatches(childElement, PolicyStrings.PROCEDURE_EXPRESSION_EL_NAME)) {
+				expressionsList.add(childElement.getTextContent());
+			}
+		}
+
+		if (ruleId == null || ruleId.length() == 0) {
+			throw new UnmarshalException("No text content for ruleId found");
+		}
+
+		Hint hint = new Hint(ruleId, expressionsList, administrativeDomain);
+
+		return hint;
 	}
 
 	@Override
