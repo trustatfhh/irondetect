@@ -2,9 +2,7 @@ package de.hshannover.f4.trust.irondetect.policy.publisher.identifier.handler;
 
 import static org.junit.Assert.assertEquals;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
+import java.io.FileNotFoundException;
 
 import org.junit.After;
 import org.junit.Before;
@@ -15,18 +13,13 @@ import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifier;
 import de.hshannover.f4.trust.ifmapj.identifier.IdentifierHandler;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifiers;
-import de.hshannover.f4.trust.ifmapj.log.IfmapJLog;
-import de.hshannover.f4.trust.irondetect.policy.parser.PolicyFactory;
+import de.hshannover.f4.trust.irondetect.policy.parser.ParseException;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.handler.PolicyDataManager;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.Policy;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.handler.PolicyHandler;
 
-public class PolicyHandlerTest {
-
-	private de.hshannover.f4.trust.irondetect.model.Policy mPolicy;
-
-	private DocumentBuilder mDocumentBuilder;
+public class PolicyHandlerTest extends AbstractHandlerTest {
 
 	private Element mPolicyElement;
 
@@ -35,21 +28,12 @@ public class PolicyHandlerTest {
 		Identifiers.registerIdentifierHandler(new PolicyHandler());
 	}
 
-	public PolicyHandlerTest() {
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		dbf.setNamespaceAware(true);
-		try {
-			mDocumentBuilder = dbf.newDocumentBuilder();
-		} catch (ParserConfigurationException e) {
-			IfmapJLog.error("Could not get DocumentBuilder instance [" + e.getMessage() + "]");
-			throw new RuntimeException(e);
-		}
+	public PolicyHandlerTest() throws FileNotFoundException, ParseException {
+		super();
 	}
 
 	@Before
 	public void setUp() throws Exception {
-		mPolicy = PolicyFactory.readPolicy("src/test/resources/MobileDeviceSzenario.pol");
-
 		ExtendedIdentifier policyIdentifier = PolicyDataManager.transformPolicyData(mPolicy);
 
 		if(policyIdentifier instanceof Policy){
@@ -69,9 +53,9 @@ public class PolicyHandlerTest {
 		IdentifierHandler<?> ih = Identifiers.getHandlerFor(Policy.class);
 
 		Identifier identifier = ih.fromElement(mPolicyElement);
-		
+
 		assertEquals(Policy.class, identifier.getClass());
-		assertEquals("src/test/resources/MobileDeviceSzenario.pol", ((Policy)identifier).getID());
+		assertEquals("src/test/resources/PolicyHandlerTest.pol", ((Policy)identifier).getID());
 
 	}
 }

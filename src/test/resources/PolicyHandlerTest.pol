@@ -1,0 +1,27 @@
+context {
+
+}
+
+hint {
+
+}
+ 
+anomaly {
+
+}
+
+signature {
+     TestSignature1 := "smartphone.android.app.Name" = "Test" and "smartphone.android.app.IsRunning" = "true";
+}
+
+condition {
+     TestCondition1 := TestSignature1;
+}
+
+action {
+     TestAction1 := "Test" "Action1";
+}
+
+rule {
+     TestRule1 := if TestCondition1 do TestAction1;
+}
