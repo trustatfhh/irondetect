@@ -156,4 +156,7 @@ public abstract class ExtendedIdentifierHandler<T extends ExtendedIdentifier> im
 		return contextElements;
 	}
 
+	protected final boolean policyElementMatches(Element e, String elementName ){
+		return elementName.equals(e.getNodeName());
+	}
 }

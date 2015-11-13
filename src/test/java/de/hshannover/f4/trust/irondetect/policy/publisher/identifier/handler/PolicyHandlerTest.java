@@ -1,5 +1,7 @@
 package de.hshannover.f4.trust.irondetect.policy.publisher.identifier.handler;
 
+import static org.junit.Assert.assertEquals;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -11,17 +13,18 @@ import org.w3c.dom.Element;
 
 import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifier;
+import de.hshannover.f4.trust.ifmapj.identifier.IdentifierHandler;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifiers;
 import de.hshannover.f4.trust.ifmapj.log.IfmapJLog;
-import de.hshannover.f4.trust.irondetect.model.Policy;
 import de.hshannover.f4.trust.irondetect.policy.parser.PolicyFactory;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.handler.PolicyDataManager;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
+import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.Policy;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.handler.PolicyHandler;
 
 public class PolicyHandlerTest {
 
-	private Policy mPolicy;
+	private de.hshannover.f4.trust.irondetect.model.Policy mPolicy;
 
 	private DocumentBuilder mDocumentBuilder;
 
@@ -49,8 +52,11 @@ public class PolicyHandlerTest {
 
 		ExtendedIdentifier policyIdentifier = PolicyDataManager.transformPolicyData(mPolicy);
 
-		mPolicyElement = Identifiers.toElement(policyIdentifier, mDocumentBuilder.newDocument());
-
+		if(policyIdentifier instanceof Policy){
+			mPolicyElement = Identifiers.toElement(policyIdentifier, mDocumentBuilder.newDocument());
+		}else{
+			throw new RuntimeException("The transformed PolicyData is not the right ExtendedIdentifier type.");
+		}
 	}
 
 	@After
@@ -60,9 +66,12 @@ public class PolicyHandlerTest {
 
 	@Test
 	public void expected_rightExtendedIdentifier() throws UnmarshalException {
+		IdentifierHandler<?> ih = Identifiers.getHandlerFor(Policy.class);
 
-		@SuppressWarnings("unused")
-		Identifier identifier = Identifiers.fromElement(mPolicyElement);
+		Identifier identifier = ih.fromElement(mPolicyElement);
+		
+		assertEquals(Policy.class, identifier.getClass());
+		assertEquals("src/test/resources/MobileDeviceSzenario.pol", ((Policy)identifier).getID());
 
 	}
 }

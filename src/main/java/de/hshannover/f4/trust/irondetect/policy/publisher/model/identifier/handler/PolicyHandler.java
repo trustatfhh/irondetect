@@ -46,7 +46,7 @@ public class PolicyHandler extends ExtendedIdentifierHandler<Policy> {
 
 		return policyElement;
 	}
-
+	
 	@Override
 	public Policy fromExtendedElement(Element element) throws UnmarshalException {
 
@@ -62,7 +62,7 @@ public class PolicyHandler extends ExtendedIdentifierHandler<Policy> {
 
 		child = children.get(0);
 
-		if (!DomHelpers.elementMatches(child, PolicyStrings.ID_EL_NAME)) {
+		if (!super.policyElementMatches(child, PolicyStrings.ID_EL_NAME)) {
 			throw new UnmarshalException("Unknown child element in " + PolicyStrings.POLICY_EL_NAME + " element: "
 					+ child.getLocalName());
 		}
