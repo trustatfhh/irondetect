@@ -81,10 +81,10 @@ public class HintHandler extends ExtendedIdentifierHandler<Hint> {
 		List<Element> children = DomHelpers.getChildElements(element);
 
 		for (Element childElement : children) {
-			if (DomHelpers.elementMatches(childElement, PolicyStrings.ID_EL_NAME)) {
+			if (super.policyElementMatches(childElement, PolicyStrings.ID_EL_NAME)) {
 				ruleId = childElement.getTextContent();
 
-			} else if (DomHelpers.elementMatches(childElement, PolicyStrings.PROCEDURE_EXPRESSION_EL_NAME)) {
+			} else if (super.policyElementMatches(childElement, PolicyStrings.PROCEDURE_EXPRESSION_EL_NAME)) {
 				expressionsList.add(childElement.getTextContent());
 			}
 		}

@@ -62,7 +62,7 @@ public class RuleHandler extends ExtendedIdentifierHandler<Rule> {
 
 		child = children.get(0);
 
-		if (!DomHelpers.elementMatches(child, PolicyStrings.ID_EL_NAME)) {
+		if (!super.policyElementMatches(child, PolicyStrings.ID_EL_NAME)) {
 			throw new UnmarshalException("Unknown child element in " + PolicyStrings.RULE_EL_NAME + " element: "
 					+ child.getLocalName());
 		}

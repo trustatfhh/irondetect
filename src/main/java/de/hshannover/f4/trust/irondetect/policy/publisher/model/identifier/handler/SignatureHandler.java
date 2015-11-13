@@ -91,11 +91,11 @@ public class SignatureHandler extends ExtendedIdentifierHandler<Signature> {
 		List<Element> children = DomHelpers.getChildElements(element);
 
 		for (Element childElement : children) {
-			if (DomHelpers.elementMatches(childElement, PolicyStrings.ID_EL_NAME)) {
+			if (super.policyElementMatches(childElement, PolicyStrings.ID_EL_NAME)) {
 				ruleId = childElement.getTextContent();
-			} else if (DomHelpers.elementMatches(childElement, PolicyStrings.FEATURE_EXPRESSION_EL_NAME)) {
+			} else if (super.policyElementMatches(childElement, PolicyStrings.FEATURE_EXPRESSION_EL_NAME)) {
 				expressionList.add(childElement.getTextContent());
-			} else if (DomHelpers.elementMatches(childElement, PolicyStrings.CONTEXT_EL_NAME)) {
+			} else if (super.policyElementMatches(childElement, PolicyStrings.CONTEXT_EL_NAME)) {
 				// context elements
 				String contextId = null;
 				List<String> parameterExpressionList = new ArrayList<String>();
@@ -103,9 +103,9 @@ public class SignatureHandler extends ExtendedIdentifierHandler<Signature> {
 				List<Element> contextChildren = DomHelpers.getChildElements(childElement);
 
 				for (Element contextChildElement : contextChildren) {
-					if (DomHelpers.elementMatches(contextChildElement, PolicyStrings.ID_EL_NAME)) {
+					if (super.policyElementMatches(contextChildElement, PolicyStrings.ID_EL_NAME)) {
 						contextId = contextChildElement.getTextContent();
-					} else if (DomHelpers.elementMatches(contextChildElement,
+					} else if (super.policyElementMatches(contextChildElement,
 							PolicyStrings.PARAMETER_EXPRESSION_EL_NAME)) {
 						parameterExpressionList.add(contextChildElement.getTextContent());
 					}

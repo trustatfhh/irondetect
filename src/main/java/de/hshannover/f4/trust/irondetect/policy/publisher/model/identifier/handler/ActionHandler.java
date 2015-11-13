@@ -81,10 +81,10 @@ public class ActionHandler extends ExtendedIdentifierHandler<Action> {
 		List<Element> children = DomHelpers.getChildElements(element);
 
 		for (Element childElement : children) {
-			if (DomHelpers.elementMatches(childElement, PolicyStrings.ID_EL_NAME)) {
+			if (super.policyElementMatches(childElement, PolicyStrings.ID_EL_NAME)) {
 				ruleId = childElement.getTextContent();
 
-			} else if (DomHelpers.elementMatches(childElement, PolicyStrings.OPERATION_EL_NAME)) {
+			} else if (super.policyElementMatches(childElement, PolicyStrings.OPERATION_EL_NAME)) {
 				operationsList.add(childElement.getTextContent());
 			}
 		}
