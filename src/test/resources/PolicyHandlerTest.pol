@@ -1,13 +1,13 @@
 context {
-
+     TestContext1 := DATETIME > "06:00" and DATETIME < "22:00";
 }
 
 hint {
-
+     TestHint1 := "smartphone.communication.sms.SentCount" "de.hshannover.f4.trust.irondetectprocedures.Mean" "10";
 }
  
 anomaly {
-
+     TestAnomaly1 := TestHint1 > 0.5;
 }
 
 signature {
@@ -15,7 +15,7 @@ signature {
 }
 
 condition {
-     TestCondition1 := TestSignature1;
+     TestCondition1 := TestSignature1 and TestAnomaly1 ;
 }
 
 action {

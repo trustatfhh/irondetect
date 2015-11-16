@@ -15,6 +15,7 @@ import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifier;
 import de.hshannover.f4.trust.ifmapj.identifier.IdentifierHandler;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifiers;
+import de.hshannover.f4.trust.ifmapj.identifier.IdentityType;
 import de.hshannover.f4.trust.irondetect.policy.parser.ParseException;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.handler.PolicyDataManager;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
@@ -61,6 +62,36 @@ public class RuleHandlerTest extends AbstractHandlerTest {
 	}
 
 	@Test
+	public void TO_ELEMENT_expected_rightElement() throws MarshalException {
+		Element ruleElement = mHandler.toExtendedElement(mRuleIdentfier, super.mDocumentBuilder.newDocument());
+
+		String administrativeDomain = ruleElement.getAttribute(IfmapStrings.IDENTIFIER_ATTR_ADMIN_DOMAIN);
+		String identityAdministrativeDomain = mRuleElement.getAttribute(IfmapStrings.IDENTIFIER_ATTR_ADMIN_DOMAIN);
+		String identityOtherTypeDefinition = mRuleElement.getAttribute(IfmapStrings.IDENTITY_ATTR_OTHER_TYPE_DEF);
+		String identityType = mRuleElement.getAttribute(IfmapStrings.IDENTITY_ATTR_TYPE);
+		String identityName = mRuleElement.getAttribute(IfmapStrings.IDENTITY_ATTR_NAME);
+
+		List<Element> children = DomHelpers.getChildElements(ruleElement);
+		List<Element> identityChildren = DomHelpers.getChildElements(mRuleElement);
+
+		// assert extended Identity Element
+		assertEquals(IfmapStrings.IDENTITY_EL_NAME, mRuleElement.getLocalName());
+		assertEquals(IfmapStrings.OTHER_TYPE_EXTENDED_IDENTIFIER, identityOtherTypeDefinition);
+		assertEquals(IdentityType.other.toString(), identityType);
+		assertEquals(true, identityName.length() > 0);
+		assertEquals(0, identityChildren.size());
+		assertEquals("", identityAdministrativeDomain);
+
+		// assert extended Element
+		assertEquals(PolicyStrings.RULE_EL_NAME, ruleElement.getLocalName());
+		assertEquals(1, children.size());
+		assertEquals(PolicyStrings.ID_EL_NAME, children.get(0).getLocalName());
+		assertEquals("TestRule1", children.get(0).getTextContent());
+		assertEquals(PolicyStrings.DEFAULT_ADMINISTRATIVE_DOMAIN, administrativeDomain);
+		assertEquals(PolicyStrings.POLICY_IDENTIFIER_NS_URI, ruleElement.getNamespaceURI());
+	}
+
+	@Test
 	public void FROM_ELEMENT_expected_rightExtendedIdentifier() throws UnmarshalException {
 		IdentifierHandler<?> ih = Identifiers.getHandlerFor(Rule.class);
 
@@ -69,20 +100,5 @@ public class RuleHandlerTest extends AbstractHandlerTest {
 		assertEquals(Rule.class, identifier.getClass());
 		assertEquals("TestRule1", ((Rule) identifier).getID());
 		assertEquals(PolicyStrings.DEFAULT_ADMINISTRATIVE_DOMAIN, ((Rule) identifier).getAdministrativeDomain());
-	}
-
-	@Test
-	public void TO_ELEMENT_expected_rightElement() throws MarshalException {
-		Element ruleElement = mHandler.toExtendedElement(mRuleIdentfier, super.mDocumentBuilder.newDocument());
-
-		String administrativeDomain = ruleElement.getAttribute(IfmapStrings.IDENTIFIER_ATTR_ADMIN_DOMAIN);
-
-		List<Element> children = DomHelpers.getChildElements(ruleElement);
-
-		assertEquals(PolicyStrings.RULE_EL_NAME, ruleElement.getLocalName());
-		assertEquals(1, children.size());
-		assertEquals(PolicyStrings.ID_EL_NAME, children.get(0).getLocalName());
-		assertEquals("TestRule1", children.get(0).getTextContent());
-		assertEquals(PolicyStrings.DEFAULT_ADMINISTRATIVE_DOMAIN, administrativeDomain);
 	}
 }
