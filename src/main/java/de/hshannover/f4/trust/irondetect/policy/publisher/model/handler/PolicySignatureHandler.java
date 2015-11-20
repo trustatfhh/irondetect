@@ -5,6 +5,7 @@ import static de.hshannover.f4.trust.irondetect.policy.publisher.util.PolicyStri
 import java.util.List;
 import java.util.Map;
 
+import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.Signature;
 
@@ -28,9 +29,21 @@ public class PolicySignatureHandler implements PolicyHandler<de.hshannover.f4.tr
 	}
 
 	@Override
-	public de.hshannover.f4.trust.irondetect.model.Signature fromIdentifier(ExtendedIdentifier eIdentifier) {
-		// TODO Auto-generated method stub
-		return null;
+	public de.hshannover.f4.trust.irondetect.model.Signature fromIdentifier(ExtendedIdentifier eIdentifier)
+			throws UnmarshalException {
+
+		if (eIdentifier instanceof Signature) {
+			de.hshannover.f4.trust.irondetect.model.Signature policyData =
+					new de.hshannover.f4.trust.irondetect.model.Signature();
+			policyData.setId(((Signature) eIdentifier).getID());
+			policyData.setFeatureSet(null); // TODO
+			policyData.setContextSet(null); // TODO
+
+			return policyData;
+
+		} else {
+			throw new UnmarshalException("False argument this handler is only for Signature ExtendedIdentifier");
+		}
 	}
 
 	@Override

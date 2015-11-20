@@ -5,6 +5,7 @@ import static de.hshannover.f4.trust.irondetect.policy.publisher.util.PolicyStri
 import java.util.ArrayList;
 import java.util.List;
 
+import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.Action;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
 import de.hshannover.f4.trust.irondetect.util.Pair;
@@ -37,9 +38,20 @@ public class PolicyActionHandler implements PolicyHandler<de.hshannover.f4.trust
 	}
 
 	@Override
-	public de.hshannover.f4.trust.irondetect.model.Action fromIdentifier(ExtendedIdentifier eIdentifier) {
-		// TODO Auto-generated method stub
-		return null;
+	public de.hshannover.f4.trust.irondetect.model.Action fromIdentifier(ExtendedIdentifier eIdentifier)
+			throws UnmarshalException {
+
+		if (eIdentifier instanceof Action) {
+			de.hshannover.f4.trust.irondetect.model.Action policyData =
+					new de.hshannover.f4.trust.irondetect.model.Action();
+			policyData.setId(((Action) eIdentifier).getID());
+			policyData.setKeyValuePairs(null); // TODO wie im oben
+
+			return policyData;
+
+		} else {
+			throw new UnmarshalException("False argument this handler is only for Action ExtendedIdentifier");
+		}
 	}
 
 	@Override

@@ -5,6 +5,7 @@ import static de.hshannover.f4.trust.irondetect.policy.publisher.util.PolicyStri
 import java.util.ArrayList;
 import java.util.List;
 
+import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.Hint;
 
@@ -40,9 +41,20 @@ public class PolicyHintHandler implements PolicyHandler<de.hshannover.f4.trust.i
 	}
 
 	@Override
-	public de.hshannover.f4.trust.irondetect.model.Hint fromIdentifier(ExtendedIdentifier eIdentifier) {
-		// TODO Auto-generated method stub
-		return null;
+	public de.hshannover.f4.trust.irondetect.model.Hint fromIdentifier(ExtendedIdentifier eIdentifier)
+			throws UnmarshalException {
+
+		if (eIdentifier instanceof Hint) {
+			de.hshannover.f4.trust.irondetect.model.Hint policyData =
+					new de.hshannover.f4.trust.irondetect.model.Hint();
+			policyData.setId(((Hint) eIdentifier).getID());
+			policyData.setProcedure(null); // TODO
+
+			return policyData;
+
+		} else {
+			throw new UnmarshalException("False argument this handler is only for Hint ExtendedIdentifier");
+		}
 	}
 
 	@Override

@@ -34,11 +34,11 @@ public class PolicyPolicyHandler implements PolicyHandler<de.hshannover.f4.trust
 			policyData.setSymbolTable(new SymbolTable()); // TODO klären ob das nötig ist, siehe OneNode
 			policyData.setId(((Policy) eIdentifier).getID());
 
+			return policyData;
+
 		} else {
 			throw new UnmarshalException("False argument this handler is only for Policy ExtendedIdentifier");
 		}
-
-		return null;
 	}
 
 	@Override

@@ -4,6 +4,7 @@ import static de.hshannover.f4.trust.irondetect.policy.publisher.util.PolicyStri
 
 import java.util.List;
 
+import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.Condition;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
 
@@ -26,9 +27,20 @@ public class PolicyConditionHandler implements PolicyHandler<de.hshannover.f4.tr
 	}
 
 	@Override
-	public de.hshannover.f4.trust.irondetect.model.Condition fromIdentifier(ExtendedIdentifier eIdentifier) {
-		// TODO Auto-generated method stub
-		return null;
+	public de.hshannover.f4.trust.irondetect.model.Condition fromIdentifier(ExtendedIdentifier eIdentifier)
+			throws UnmarshalException {
+
+		if (eIdentifier instanceof Condition) {
+			de.hshannover.f4.trust.irondetect.model.Condition policyData =
+					new de.hshannover.f4.trust.irondetect.model.Condition();
+			policyData.setId(((Condition) eIdentifier).getID());
+			policyData.setConditionSet(null); // TODO wie im HandlerHelper.transformConditionExpression()
+
+			return policyData;
+
+		} else {
+			throw new UnmarshalException("False argument this handler is only for Condition ExtendedIdentifier");
+		}
 	}
 
 	@Override

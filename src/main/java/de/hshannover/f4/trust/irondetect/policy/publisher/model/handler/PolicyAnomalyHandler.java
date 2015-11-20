@@ -5,6 +5,7 @@ import static de.hshannover.f4.trust.irondetect.policy.publisher.util.PolicyStri
 import java.util.List;
 import java.util.Map;
 
+import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.Anomaly;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
 
@@ -28,9 +29,21 @@ public class PolicyAnomalyHandler implements PolicyHandler<de.hshannover.f4.trus
 	}
 
 	@Override
-	public de.hshannover.f4.trust.irondetect.model.Anomaly fromIdentifier(ExtendedIdentifier eIdentifier) {
-		// TODO Auto-generated method stub
-		return null;
+	public de.hshannover.f4.trust.irondetect.model.Anomaly fromIdentifier(ExtendedIdentifier eIdentifier)
+			throws UnmarshalException {
+
+		if (eIdentifier instanceof Anomaly) {
+			de.hshannover.f4.trust.irondetect.model.Anomaly policyData =
+					new de.hshannover.f4.trust.irondetect.model.Anomaly();
+			policyData.setId(((Anomaly) eIdentifier).getID());
+			policyData.setHintSet(null); // TODO wie im HandlerHelper.transformHintExpression()
+			policyData.setContextSet(null); // TODO wie im HandlerHelper.transformContext()
+
+			return policyData;
+
+		} else {
+			throw new UnmarshalException("False argument this handler is only for Anomaly ExtendedIdentifier");
+		}
 	}
 
 	@Override
