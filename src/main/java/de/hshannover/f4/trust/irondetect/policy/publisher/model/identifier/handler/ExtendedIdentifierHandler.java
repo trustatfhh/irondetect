@@ -12,7 +12,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import util.DomHelpers;
 import de.hshannover.f4.trust.ifmapj.binding.IfmapStrings;
 import de.hshannover.f4.trust.ifmapj.exception.MarshalException;
 import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
@@ -25,12 +24,13 @@ import de.hshannover.f4.trust.ifmapj.log.IfmapJLog;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
 import de.hshannover.f4.trust.irondetect.policy.publisher.util.DocumentUtils;
 import de.hshannover.f4.trust.irondetect.policy.publisher.util.PolicyStrings;
+import util.DomHelpers;
 
 /**
  * An {@link ExtendedIdentifierHandler} transforms an {@link ExtendedIdentifier} to a XML {@link Element}. This XML
  * {@link Element} is represented by an {@link Identity} identifier with IdentityType = 'other' and other-type =
  * 'extended'.
- * 
+ *
  * @author Marcel Reichenbach
  */
 public abstract class ExtendedIdentifierHandler<T extends ExtendedIdentifier> implements IdentifierHandler<T> {
@@ -74,11 +74,11 @@ public abstract class ExtendedIdentifierHandler<T extends ExtendedIdentifier> im
 		IdentifierHandler<?> ih = Identifiers.getHandlerFor(Identity.class);
 
 		Identifier identifier = ih.fromElement(element);
-		
+
 		if(identifier instanceof Identity){
 			Identity identity = (Identity) identifier;
 			Element rootElement = getExtendedRootElement(identity.getName());
-			
+
 			if (rootElement != null) {
 				return fromExtendedElement(rootElement);
 			}
@@ -121,6 +121,20 @@ public abstract class ExtendedIdentifierHandler<T extends ExtendedIdentifier> im
 
 		String[] unwanted = { "&", "<", ">", "\"", "'" };
 		String[] replaceBy = { "&amp;", "&lt;", "&gt;", "&quot;", "&apos;" };
+
+		for (int i = 0; i < unwanted.length; i++) {
+			ret = ret.replace(unwanted[i], replaceBy[i]);
+		}
+
+		return ret;
+	}
+
+	protected static String deEscapeXml(String input) {
+
+		String ret = input;
+
+		String[] unwanted = {"&amp;", "&lt;", "&gt;", "&quot;", "&apos;"};
+		String[] replaceBy = {"&", "<", ">", "\"", "'"};
 
 		for (int i = 0; i < unwanted.length; i++) {
 			ret = ret.replace(unwanted[i], replaceBy[i]);

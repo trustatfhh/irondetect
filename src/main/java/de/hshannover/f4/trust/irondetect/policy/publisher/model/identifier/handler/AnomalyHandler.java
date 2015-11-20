@@ -8,7 +8,6 @@ import java.util.Map;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import util.DomHelpers;
 import de.hshannover.f4.trust.ifmapj.binding.IfmapStrings;
 import de.hshannover.f4.trust.ifmapj.exception.MarshalException;
 import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
@@ -17,11 +16,12 @@ import de.hshannover.f4.trust.ifmapj.identifier.Identifiers.Helpers;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.Anomaly;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
 import de.hshannover.f4.trust.irondetect.policy.publisher.util.PolicyStrings;
+import util.DomHelpers;
 
 /**
  * An {@link AnomalyHandler} extends the ExtendedIdentifierHandler. It transforms an {@link Anomaly}-
  * {@link ExtendedIdentifier} to a XML {@link Element}.
- * 
+ *
  * @author Marcel Reichenbach
  */
 public class AnomalyHandler extends ExtendedIdentifierHandler<Anomaly> {
@@ -94,6 +94,7 @@ public class AnomalyHandler extends ExtendedIdentifierHandler<Anomaly> {
 			if (super.policyElementMatches(childElement, PolicyStrings.ID_EL_NAME)) {
 				ruleId = childElement.getTextContent();
 			} else if (super.policyElementMatches(childElement, PolicyStrings.HINT_EXPRESSION_EL_NAME)) {
+				// expressionList.add(super.deEscapeXml(childElement.getTextContent()));
 				expressionList.add(childElement.getTextContent());
 			} else if (super.policyElementMatches(childElement, PolicyStrings.CONTEXT_EL_NAME)) {
 				// context elements
