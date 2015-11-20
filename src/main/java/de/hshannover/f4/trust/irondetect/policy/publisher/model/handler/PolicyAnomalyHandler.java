@@ -11,7 +11,7 @@ import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.Exten
 /**
  * An {@link PolicyAnomalyHandler} is an {@link PolicyHandler}. It transforms an irondetect policy
  * {@link de.hshannover.f4.trust.irondetect.model.Anomaly} to an {@link ExtendedIdentifier}-{@link Anomaly}.
- * 
+ *
  * @author Marcel Reichenbach
  */
 public class PolicyAnomalyHandler implements PolicyHandler<de.hshannover.f4.trust.irondetect.model.Anomaly> {
@@ -25,6 +25,12 @@ public class PolicyAnomalyHandler implements PolicyHandler<de.hshannover.f4.trus
 		Anomaly identifier = new Anomaly(data.getId(), expressions, DEFAULT_ADMINISTRATIVE_DOMAIN, context);
 
 		return identifier;
+	}
+
+	@Override
+	public de.hshannover.f4.trust.irondetect.model.Anomaly fromIdentifier(ExtendedIdentifier eIdentifier) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override

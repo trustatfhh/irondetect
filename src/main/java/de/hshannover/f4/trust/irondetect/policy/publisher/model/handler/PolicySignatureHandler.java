@@ -11,7 +11,7 @@ import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.Signa
 /**
  * An {@link PolicySignatureHandler} is an {@link PolicyHandler}. It transforms an irondetect policy
  * {@link de.hshannover.f4.trust.irondetect.model.Signature} to an {@link ExtendedIdentifier}-{@link Signature}.
- * 
+ *
  * @author Marcel Reichenbach
  */
 public class PolicySignatureHandler implements PolicyHandler<de.hshannover.f4.trust.irondetect.model.Signature> {
@@ -25,6 +25,12 @@ public class PolicySignatureHandler implements PolicyHandler<de.hshannover.f4.tr
 		Signature identifier = new Signature(data.getId(), expressions, DEFAULT_ADMINISTRATIVE_DOMAIN, context);
 
 		return identifier;
+	}
+
+	@Override
+	public de.hshannover.f4.trust.irondetect.model.Signature fromIdentifier(ExtendedIdentifier eIdentifier) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override

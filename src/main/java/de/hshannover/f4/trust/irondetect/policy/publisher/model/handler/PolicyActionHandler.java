@@ -12,7 +12,7 @@ import de.hshannover.f4.trust.irondetect.util.Pair;
 /**
  * An {@link PolicyActionHandler} is an {@link PolicyHandler}. It transforms an irondetect policy
  * {@link de.hshannover.f4.trust.irondetect.model.Action} to an {@link ExtendedIdentifier}-{@link Action}.
- * 
+ *
  * @author Marcel Reichenbach
  */
 public class PolicyActionHandler implements PolicyHandler<de.hshannover.f4.trust.irondetect.model.Action> {
@@ -34,6 +34,12 @@ public class PolicyActionHandler implements PolicyHandler<de.hshannover.f4.trust
 		Action identifier = new Action(actionId, expressions, DEFAULT_ADMINISTRATIVE_DOMAIN);
 
 		return identifier;
+	}
+
+	@Override
+	public de.hshannover.f4.trust.irondetect.model.Action fromIdentifier(ExtendedIdentifier eIdentifier) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
