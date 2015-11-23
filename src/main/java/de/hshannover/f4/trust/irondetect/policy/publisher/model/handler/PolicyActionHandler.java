@@ -45,7 +45,19 @@ public class PolicyActionHandler implements PolicyHandler<de.hshannover.f4.trust
 			de.hshannover.f4.trust.irondetect.model.Action policyData =
 					new de.hshannover.f4.trust.irondetect.model.Action();
 			policyData.setId(((Action) eIdentifier).getID());
-			policyData.setKeyValuePairs(null); // TODO wie im oben
+
+			List<Pair<String, String>> keyValuePairs = new ArrayList<Pair<String, String>>();
+			List<String> expressions = ((Action) eIdentifier).getExpressions();
+
+			for (String expression : expressions) {
+				String firstElement = expression.substring(0, expression.indexOf(" "));
+				String secodElement = expression.substring(expression.indexOf(" ")
+						+ 1, expression.length());
+
+				keyValuePairs.add(new Pair<String, String>(firstElement, secodElement));
+			}
+
+			policyData.setKeyValuePairs(keyValuePairs);
 
 			return policyData;
 

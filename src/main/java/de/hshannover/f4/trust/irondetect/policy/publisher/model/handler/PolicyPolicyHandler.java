@@ -3,7 +3,6 @@ package de.hshannover.f4.trust.irondetect.policy.publisher.model.handler;
 import static de.hshannover.f4.trust.irondetect.policy.publisher.util.PolicyStrings.DEFAULT_ADMINISTRATIVE_DOMAIN;
 
 import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
-import de.hshannover.f4.trust.irondetect.policy.parser.treeObjects.SymbolTable;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.Policy;
 
@@ -31,7 +30,6 @@ public class PolicyPolicyHandler implements PolicyHandler<de.hshannover.f4.trust
 		if (eIdentifier instanceof Policy) {
 			de.hshannover.f4.trust.irondetect.model.Policy policyData =
 					new de.hshannover.f4.trust.irondetect.model.Policy();
-			policyData.setSymbolTable(new SymbolTable()); // TODO klären ob das nötig ist, siehe OneNode
 			policyData.setId(((Policy) eIdentifier).getID());
 
 			return policyData;

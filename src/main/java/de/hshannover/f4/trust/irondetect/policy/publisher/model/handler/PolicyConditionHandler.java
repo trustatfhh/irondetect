@@ -34,7 +34,8 @@ public class PolicyConditionHandler implements PolicyHandler<de.hshannover.f4.tr
 			de.hshannover.f4.trust.irondetect.model.Condition policyData =
 					new de.hshannover.f4.trust.irondetect.model.Condition();
 			policyData.setId(((Condition) eIdentifier).getID());
-			policyData.setConditionSet(null); // TODO wie im HandlerHelper.transformConditionExpression()
+			policyData.setConditionSet(
+					HandlerHelper.retransformConditionExpression(((Condition) eIdentifier).getExpressions()));
 
 			return policyData;
 

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.irondetect.model.ConditionElement;
 import de.hshannover.f4.trust.irondetect.model.Context;
 import de.hshannover.f4.trust.irondetect.model.ContextParameterPol;
@@ -15,7 +16,7 @@ import de.hshannover.f4.trust.irondetect.util.Pair;
 
 /**
  * A simple helper Class
- * 
+ *
  * @author Marcel Reichenbach
  */
 public class HandlerHelper {
@@ -132,6 +133,33 @@ public class HandlerHelper {
 		}
 
 		return stringExpressions;
+	}
+
+	public static List<Pair<ConditionElement, BooleanOperator>> retransformConditionExpression(List<String> expressions)
+			throws UnmarshalException {
+
+		List<Pair<ConditionElement, BooleanOperator>> conditionSet =
+				new ArrayList<Pair<ConditionElement, BooleanOperator>>();
+
+		for (String expression : expressions) {
+
+			String[] expressionArray = expression.split(" ");
+			Pair<ConditionElement, BooleanOperator> condition;
+
+			if (expressionArray.length == 1) {
+				condition = new Pair<ConditionElement, BooleanOperator>(new ConditionElement(expressionArray[0]), null);
+			} else if (expressionArray.length == 2) {
+				condition = new Pair<ConditionElement, BooleanOperator>(new ConditionElement(expressionArray[1]),
+						BooleanOperator.valueOf(expressionArray[0]));
+			} else {
+				throw new UnmarshalException("False expression syntax.("
+						+ expression + ")");
+			}
+
+			conditionSet.add(condition);
+		}
+
+		return conditionSet;
 	}
 
 }
