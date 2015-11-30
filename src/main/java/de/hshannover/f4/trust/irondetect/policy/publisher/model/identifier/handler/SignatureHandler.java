@@ -67,7 +67,7 @@ public class SignatureHandler extends ExtendedIdentifierHandler<Signature> {
 	}
 
 	private Element buildFeatureExpressionElement(String expression, Document doc) {
-		return super.buildElement(PolicyStrings.FEATURE_EXPRESSION_EL_NAME, super.escapeXml(expression), doc);
+		return super.buildElement(PolicyStrings.FEATURE_EXPRESSION_EL_NAME, expression, doc);
 	}
 
 	private List<Element> buildFeatureExpressionElements(List<String> expressions, Document doc) {

@@ -85,7 +85,7 @@ public class AnomalyHandlerTest extends AbstractHandlerTest {
 		assertEquals(PolicyStrings.ID_EL_NAME, children.get(0).getLocalName());
 		assertEquals("TestAnomaly1", children.get(0).getTextContent());
 		assertEquals(PolicyStrings.HINT_EXPRESSION_EL_NAME, children.get(1).getLocalName());
-		assertEquals("TestHint1 &gt; 0.5", children.get(1).getTextContent());
+		assertEquals("TestHint1 > 0.5", children.get(1).getTextContent());
 		assertEquals(PolicyStrings.DEFAULT_ADMINISTRATIVE_DOMAIN, administrativeDomain);
 		assertEquals(PolicyStrings.POLICY_IDENTIFIER_NS_URI, policyElement.getNamespaceURI());
 	}
@@ -99,7 +99,7 @@ public class AnomalyHandlerTest extends AbstractHandlerTest {
 		assertEquals(Anomaly.class, identifier.getClass());
 		assertEquals("TestAnomaly1", ((Anomaly) identifier).getID());
 		assertEquals(1, ((Anomaly) identifier).getExpressions().size());
-		assertEquals("TestHint1 &gt; 0.5", ((Anomaly) identifier).getExpressions().get(0));
+		assertEquals("TestHint1 > 0.5", ((Anomaly) identifier).getExpressions().get(0));
 		assertEquals(PolicyStrings.DEFAULT_ADMINISTRATIVE_DOMAIN, ((Anomaly) identifier).getAdministrativeDomain());
 	}
 }

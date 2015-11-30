@@ -77,7 +77,7 @@ public class AnomalyHandler extends ExtendedIdentifierHandler<Anomaly> {
 	}
 
 	private Element buildHintExpressionElement(String expression, Document doc) {
-		return super.buildElement(PolicyStrings.HINT_EXPRESSION_EL_NAME, super.escapeXml(expression), doc);
+		return super.buildElement(PolicyStrings.HINT_EXPRESSION_EL_NAME, expression, doc);
 	}
 
 	@Override
