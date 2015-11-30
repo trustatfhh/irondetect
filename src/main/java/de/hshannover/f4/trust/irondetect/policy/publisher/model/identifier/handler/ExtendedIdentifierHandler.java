@@ -22,7 +22,6 @@ import de.hshannover.f4.trust.ifmapj.identifier.Identifiers.Helpers;
 import de.hshannover.f4.trust.ifmapj.identifier.Identity;
 import de.hshannover.f4.trust.ifmapj.log.IfmapJLog;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
-import de.hshannover.f4.trust.irondetect.policy.publisher.util.DocumentUtils;
 import de.hshannover.f4.trust.irondetect.policy.publisher.util.PolicyStrings;
 import util.DomHelpers;
 
@@ -71,33 +70,28 @@ public abstract class ExtendedIdentifierHandler<T extends ExtendedIdentifier> im
 			return null;
 		}
 
-		IdentifierHandler<?> ih = Identifiers.getHandlerFor(Identity.class);
-
-		Identifier identifier = ih.fromElement(element);
-
-		if(identifier instanceof Identity){
-			Identity identity = (Identity) identifier;
-			Element rootElement = getExtendedRootElement(identity.getName());
-
-			if (rootElement != null) {
-				return fromExtendedElement(rootElement);
-			}
+		if (!Identifiers.checkExtendedIdentityElement(element)) {
+			return null;
 		}
+
+		String name = element.getAttribute(IfmapStrings.IDENTITY_ATTR_NAME);
+
+		Document extendedDocument;
+		try {
+			extendedDocument = DomHelpers.parseEscapedXmlString(name);
+		} catch (UnmarshalException e) {
+			return null;
+		}
+		Element extendedElement = extendedDocument.getDocumentElement();
+
+		if (extendedElement != null) {
+			return fromExtendedElement(extendedElement);
+		}
+
 		return null;
 	}
 
 	public abstract T fromExtendedElement(Element e) throws UnmarshalException;
-
-	public Element getExtendedRootElement(String xmlExtendedElement) {
-
-		Document extendetIdentifier = DocumentUtils.parseEscapedXmlString(xmlExtendedElement);
-
-		if (extendetIdentifier != null) {
-			Element rootElement = extendetIdentifier.getDocumentElement();
-			return rootElement;
-		}
-		return null;
-	}
 
 	protected void appendListAsChild(Element parent, List<Element> elementList) {
 		for (Element e : elementList) {

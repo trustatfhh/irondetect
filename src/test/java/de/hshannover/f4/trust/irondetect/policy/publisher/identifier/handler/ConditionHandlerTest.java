@@ -94,7 +94,7 @@ public class ConditionHandlerTest extends AbstractHandlerTest {
 
 	@Test
 	public void FROM_ELEMENT_expected_rightExtendedIdentifier() throws UnmarshalException {
-		IdentifierHandler<?> ih = Identifiers.getHandlerFor(Condition.class);
+		IdentifierHandler<?> ih = Identifiers.getHandlerFor(mConditionElement);
 
 		Identifier identifier = ih.fromElement(mConditionElement);
 
