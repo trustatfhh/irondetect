@@ -93,7 +93,7 @@ public class RuleHandlerTest extends AbstractHandlerTest {
 
 	@Test
 	public void FROM_ELEMENT_expected_rightExtendedIdentifier() throws UnmarshalException {
-		IdentifierHandler<?> ih = Identifiers.getHandlerFor(Rule.class);
+		IdentifierHandler<?> ih = Identifiers.getHandlerFor(mRuleElement);
 
 		Identifier identifier = ih.fromElement(mRuleElement);
 

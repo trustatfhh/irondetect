@@ -92,7 +92,7 @@ public class AnomalyHandlerTest extends AbstractHandlerTest {
 
 	@Test
 	public void FROM_ELEMENT_expected_rightExtendedIdentifier() throws UnmarshalException {
-		IdentifierHandler<?> ih = Identifiers.getHandlerFor(Anomaly.class);
+		IdentifierHandler<?> ih = Identifiers.getHandlerFor(mAnomalyElement);
 
 		Identifier identifier = ih.fromElement(mAnomalyElement);
 

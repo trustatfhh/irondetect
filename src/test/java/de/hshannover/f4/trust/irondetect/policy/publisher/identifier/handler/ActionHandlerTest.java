@@ -96,7 +96,7 @@ public class ActionHandlerTest extends AbstractHandlerTest {
 
 	@Test
 	public void FROM_ELEMENT_expected_rightExtendedIdentifier() throws UnmarshalException {
-		IdentifierHandler<?> ih = Identifiers.getHandlerFor(Action.class);
+		IdentifierHandler<?> ih = Identifiers.getHandlerFor(mActionElement);
 
 		Identifier identifier = ih.fromElement(mActionElement);
 

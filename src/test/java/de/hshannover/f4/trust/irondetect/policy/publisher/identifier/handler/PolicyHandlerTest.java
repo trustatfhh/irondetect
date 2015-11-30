@@ -89,7 +89,7 @@ public class PolicyHandlerTest extends AbstractHandlerTest {
 
 	@Test
 	public void FROM_ELEMENT_expected_rightExtendedIdentifier() throws UnmarshalException {
-		IdentifierHandler<?> ih = Identifiers.getHandlerFor(Policy.class);
+		IdentifierHandler<?> ih = Identifiers.getHandlerFor(mPolicyElement);
 
 		Identifier identifier = ih.fromElement(mPolicyElement);
 

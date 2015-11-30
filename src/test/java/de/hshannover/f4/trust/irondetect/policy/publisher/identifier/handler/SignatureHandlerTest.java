@@ -94,7 +94,7 @@ public class SignatureHandlerTest extends AbstractHandlerTest {
 
 	@Test
 	public void FROM_ELEMENT_expected_rightExtendedIdentifier() throws UnmarshalException {
-		IdentifierHandler<?> ih = Identifiers.getHandlerFor(Signature.class);
+		IdentifierHandler<?> ih = Identifiers.getHandlerFor(mSignatureElement);
 
 		Identifier identifier = ih.fromElement(mSignatureElement);
 

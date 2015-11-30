@@ -98,7 +98,7 @@ public class HintHandlerTest extends AbstractHandlerTest {
 
 	@Test
 	public void FROM_ELEMENT_expected_rightExtendedIdentifier() throws UnmarshalException {
-		IdentifierHandler<?> ih = Identifiers.getHandlerFor(Hint.class);
+		IdentifierHandler<?> ih = Identifiers.getHandlerFor(mHintElement);
 
 		Identifier identifier = ih.fromElement(mHintElement);
 
