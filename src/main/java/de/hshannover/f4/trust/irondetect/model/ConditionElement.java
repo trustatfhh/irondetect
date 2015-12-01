@@ -43,6 +43,7 @@ package de.hshannover.f4.trust.irondetect.model;
 
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -63,9 +64,11 @@ public class ConditionElement extends Evaluable implements PolicyData {
 	private Rule parent;
 
 	public ConditionElement() {
+		contextSet = new ArrayList<Context>();
 	}
 
 	public ConditionElement(String id) {
+		this();
 		super.setId(id);
 	}
 

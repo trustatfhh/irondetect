@@ -7,17 +7,17 @@
  *    | | | |  | |_| \__ \ |_| | (_| |  _  |\__ \|  _  |
  *    |_| |_|   \__,_|___/\__|\ \__,_|_| |_||___/|_| |_|
  *                             \____/
- * 
+ *
  * =====================================================
- * 
+ *
  * Hochschule Hannover
  * (University of Applied Sciences and Arts, Hannover)
  * Faculty IV, Dept. of Computer Science
  * Ricklinger Stadtweg 118, 30459 Hannover, Germany
- * 
+ *
  * Email: trust@f4-i.fh-hannover.de
  * Website: http://trust.f4.hs-hannover.de/
- * 
+ *
  * This file is part of irondetect, version 0.0.8,
  * implemented by the Trust@HsH research group at the Hochschule Hannover.
  * %%
@@ -26,9 +26,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -65,125 +65,154 @@ import de.hshannover.f4.trust.irondetect.util.event.TrainingData;
  */
 public class Hint implements PolicyData {
 
-    private Logger logger = Logger.getLogger(this.getClass());
-    private String id;
-    private List<Feature> featureSet;
-    private List<String> featureIds;
-    private Procedure procedureFromPolicy;
-    private Procedureable procedureFromRepository;
-    private boolean initialized;
+	private Logger logger = Logger.getLogger(this.getClass());
+	private String id;
+	private List<Feature> featureSet;
+	private List<String> featureIds;
+	private Procedure procedureFromPolicy;
+	private Procedureable procedureFromRepository;
+	private boolean initialized;
 
-    public Hint() {
-        this.featureIds = new ArrayList<String>();
-        this.featureSet = new ArrayList<Feature>();
-    }
+	public Hint() {
+		this.featureIds = new ArrayList<String>();
+		this.featureSet = new ArrayList<Feature>();
+	}
 
-    /**
-     * @return the featureSet
-     */
-    public List<Feature> getFeatureSet() {
-        return featureSet;
-    }
+	/**
+	 * @return the featureSet
+	 */
+	public List<Feature> getFeatureSet() {
+		return featureSet;
+	}
 
-    /**
-     * @param featureSet the featureSet to set, ignores null
-     */
-    public void setFeatureSet(List<Feature> featureSet) {
-        if (featureSet != null) {
-            this.featureSet = featureSet;
-        }
-    }
+	/**
+	 * @param featureSet the featureSet to set, ignores null
+	 */
+	public void setFeatureSet(List<Feature> featureSet) {
+		if (featureSet != null) {
+			this.featureSet = featureSet;
+		}
+	}
 
-    /**
-     * @return the procedure
-     */
-    public Procedure getProcedure() {
-        return procedureFromPolicy;
-    }
+	/**
+	 * @return the procedure
+	 */
+	public Procedure getProcedure() {
+		return procedureFromPolicy;
+	}
 
-    /**
-     * @param procedure the procedure to set
-     */
-    public void setProcedure(Procedure procedure) {
-        this.procedureFromPolicy = procedure;
-    }
+	/**
+	 * @param procedure the procedure to set
+	 */
+	public void setProcedure(Procedure procedure) {
+		this.procedureFromPolicy = procedure;
+	}
 
-    /**
-     *
-     * @param fIds null is ignored
-     */
-    public void setFeatureIds(List<String> fIds) {
-        if (fIds != null) {
-            this.featureIds = fIds;
-        }
-    }
+	/**
+	 *
+	 * @param fIds null is ignored
+	 */
+	public void setFeatureIds(List<String> fIds) {
+		if (fIds != null) {
+			this.featureIds = fIds;
+		}
+	}
 
-    public List<String> getFeatureIds() {
-        return this.featureIds;
-    }
+	public List<String> getFeatureIds() {
+		return this.featureIds;
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        StringBuilder fSetStr = new StringBuilder("featureSet=");
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder fSetStr = new StringBuilder("featureSet=");
 
-        for (Feature f : featureSet) {
-            fSetStr.append(f.toString());
-        }
-        return "Hint [" + fSetStr.toString() + ", procedure="
-                + procedureFromPolicy + ", " + super.toString() + "]";
-    }
+		for (Feature f : featureSet) {
+			fSetStr.append(f.toString());
+		}
+		return "Hint [" + fSetStr.toString() + ", procedure="
+		+ procedureFromPolicy + ", " + super.toString() + "]";
+	}
 
-    public double evaluate(String device, Anomaly anomaly) {
+	public double evaluate(String device, Anomaly anomaly) {
 
-        logger.debug("evaluating hint <" + getId() + "> as part of anomaly <" + anomaly.getId() + "> with procedure <"
-                + getProcedure().getId() + ">" + " for device <" + device + ">");
-  
+		logger.debug("evaluating hint <" + getId() + "> as part of anomaly <" + anomaly.getId() + "> with procedure <"
+				+ getProcedure().getId() + ">" + " for device <" + device + ">");
 
-        if (this.featureSet == null) {
-            logger.trace("featureSet is null. returning ...");
-            return 0;
-        }
-        
-        logger.debug("size of featureSet in hint = " + featureSet.size());
 
-        if (!initialized) {
-            // load correct Procedure from ProcedureRepository
-            this.procedureFromRepository = ProcedureRepository.getInstance()
-                    .getProcedureById(device, anomaly.getId(), getId(), getProcedure().getId());
-            this.procedureFromRepository.setUp(this.procedureFromPolicy.getConfig());
-            initialized = true;
-        }
+		if (this.featureSet == null) {
+			logger.trace("featureSet is null. returning ...");
+			return 0;
+		}
 
-        // training or testing?
-        if (Processor.getInstance().isTraining()) {
-            logger.trace("training for hint " + this.toString());
-            // get training data from processor
-            TrainingData trainingData = Processor.getInstance().getTrainingDataMap().get(device);
-            this.procedureFromRepository.train(featureSet, anomaly.getContextSet(), trainingData.getStartTime(), trainingData.getEndTime());
-            return 0; // FIXME we simply do return 0. Should be ignored during training anyway.
-        } else {
-            logger.trace("testing for hint " + this.toString());
-            return this.procedureFromRepository.calculate(featureSet, anomaly.getContextSet()).value;
-        }
+		logger.debug("size of featureSet in hint = " + featureSet.size());
 
-    }
+		if (!initialized) {
+			// load correct Procedure from ProcedureRepository
+			this.procedureFromRepository = ProcedureRepository.getInstance()
+					.getProcedureById(device, anomaly.getId(), getId(), getProcedure().getId());
+			this.procedureFromRepository.setUp(this.procedureFromPolicy.getConfig());
+			initialized = true;
+		}
 
-    /**
-     * @return the id
-     */
-    public String getId() {
-        return id;
-    }
+		// training or testing?
+		if (Processor.getInstance().isTraining()) {
+			logger.trace("training for hint " + this.toString());
+			// get training data from processor
+			TrainingData trainingData = Processor.getInstance().getTrainingDataMap().get(device);
+			this.procedureFromRepository.train(featureSet, anomaly.getContextSet(), trainingData.getStartTime(), trainingData.getEndTime());
+			return 0; // FIXME we simply do return 0. Should be ignored during training anyway.
+		} else {
+			logger.trace("testing for hint " + this.toString());
+			return this.procedureFromRepository.calculate(featureSet, anomaly.getContextSet()).value;
+		}
 
-    /**
-     * @param id the id to set
-     */
-    public void setId(String id) {
-        this.id = id;
-    }
+	}
+
+	/**
+	 * @return the id
+	 */
+	public String getId() {
+		return id;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	@Override
+	public int hashCode() {
+		int prime = 31;
+		int result = 1;
+		result = prime * result + getId().hashCode();
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other == null) {
+			return false;
+		}
+		if (other == this) {
+			return true;
+		}
+		if (!(other instanceof Hint)) {
+			return false;
+		}
+
+		Hint otherItem = (Hint) other;
+
+		if (!getId().equals(otherItem.getId())) {
+			return false;
+		}
+
+		return true;
+	}
 }

@@ -61,27 +61,27 @@ public abstract class Evaluable {
 	protected String id;
 
 	public abstract boolean evaluate(String device);
-	
-	protected boolean evaluateCompOpOnNumber(ComparisonOperator operator, String actual, String desired) {		
+
+	protected boolean evaluateCompOpOnNumber(ComparisonOperator operator, String actual, String desired) {
 		return evaluateCompOpOnNumber(operator, Double.parseDouble(actual), Double.parseDouble(desired));
 	}
-	
-	protected boolean evaluateCompOpOnNumber(ComparisonOperator operator, double actual, double desired) {		
+
+	protected boolean evaluateCompOpOnNumber(ComparisonOperator operator, double actual, double desired) {
 		switch (operator) {
-		case EQ:
-			return Math.abs(desired-actual) < precision ;
-		case NE:
-			return Math.abs(desired-actual) >= precision;
-		case ST:
-			return actual < desired;
-		case GT:
-			return actual > desired;
-		case SE:
-			return actual <= desired;
-		case GE:
-			return actual >= desired;
-		default:
-			return false;
+			case EQ:
+				return Math.abs(desired-actual) < precision ;
+			case NE:
+				return Math.abs(desired-actual) >= precision;
+			case ST:
+				return actual < desired;
+			case GT:
+				return actual > desired;
+			case SE:
+				return actual <= desired;
+			case GE:
+				return actual >= desired;
+			default:
+				return false;
 		}
 	}
 	
@@ -99,29 +99,55 @@ public abstract class Evaluable {
 		this.id = id;
 	}
 
-	protected boolean evaluateCompOpOnString(ComparisonOperator operator, String actual, String desired) {		
+	protected boolean evaluateCompOpOnString(ComparisonOperator operator, String actual, String desired) {
 		switch (operator) {
-		case EQ:
-			return actual.equals(desired);
-		case NE:
-			return !(actual.equals(desired));
-		case ST:
-			return actual.length() < desired.length();
-		case GT:
-			return actual.length() > desired.length();
-		case SE:
-			return actual.length() <= desired.length();
-		case GE:
-			return actual.length() >= desired.length();
-		default:
-			return false;
+			case EQ:
+				return actual.equals(desired);
+			case NE:
+				return !(actual.equals(desired));
+			case ST:
+				return actual.length() < desired.length();
+			case GT:
+				return actual.length() > desired.length();
+			case SE:
+				return actual.length() <= desired.length();
+			case GE:
+				return actual.length() >= desired.length();
+			default:
+				return false;
 		}
 	}
-	
-	
-	
+
 	protected void printTimedResult(Class<?> type, boolean result, long time) {
 		logger.debug("finished evaluation of " +  type.getSimpleName() + " " + this.id + " with result " + result + " in " + time + "msecs");
 	}
-	
+
+	@Override
+	public int hashCode() {
+		int prime = 31;
+		int result = 1;
+		result = prime * result + getId().hashCode();
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other == null) {
+			return false;
+		}
+		if (other == this) {
+			return true;
+		}
+		if (!(other instanceof Evaluable)) {
+			return false;
+		}
+
+		Evaluable otherItem = (Evaluable) other;
+
+		if (!getId().equals(otherItem.getId())) {
+			return false;
+		}
+
+		return true;
+	}
 }

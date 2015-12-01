@@ -159,4 +159,32 @@ public class Policy implements PolicyData {
 		this.id = id;
 	}
 
+	@Override
+	public int hashCode() {
+		int prime = 31;
+		int result = 1;
+		result = prime * result + getId().hashCode();
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other == null) {
+			return false;
+		}
+		if (other == this) {
+			return true;
+		}
+		if (!(other instanceof Policy)) {
+			return false;
+		}
+
+		Policy otherItem = (Policy) other;
+
+		if (!getId().equals(otherItem.getId())) {
+			return false;
+		}
+
+		return true;
+	}
 }

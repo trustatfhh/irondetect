@@ -44,6 +44,8 @@ package de.hshannover.f4.trust.irondetect.model;
 
 import static de.hshannover.f4.trust.irondetect.gui.ResultObjectType.RULE;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -60,14 +62,17 @@ import de.hshannover.f4.trust.irondetect.gui.ResultLoggerImpl;
 public class Rule implements PolicyData {
 	
 	private Logger logger = Logger.getLogger(this.getClass());
-        private ResultLogger rlogger = ResultLoggerImpl.getInstance();
-	
+	private ResultLogger rlogger = ResultLoggerImpl.getInstance();
+
 	private Condition condition;
-	private List<Action> actions;
+	private List<Action> actions = new ArrayList<Action>();
 	private String id;
 	private Set<String> featureIds;
 
-	
+	public Rule() {
+		featureIds = new HashSet<String>();
+	}
+
 	/**
 	 * checks the condition, if it is true all actions will be performed
 	 */
@@ -170,4 +175,40 @@ public class Rule implements PolicyData {
 		this.featureIds = featureIds;
 	}
 
+	public void addFeatureId(String featureId) {
+		this.featureIds.add(featureId);
+	}
+
+	@Override
+	public int hashCode() {
+		int prime = 31;
+		int result = 1;
+		result = prime * result + getId().hashCode();
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other == null) {
+			return false;
+		}
+		if (other == this) {
+			return true;
+		}
+		if (!(other instanceof Rule)) {
+			return false;
+		}
+
+		Rule otherItem = (Rule) other;
+
+		if (!getId().equals(otherItem.getId())) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public void addAction(Action newAction) {
+		this.actions.add(newAction);
+	}
 }

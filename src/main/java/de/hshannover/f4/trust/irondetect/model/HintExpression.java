@@ -92,7 +92,17 @@ public class HintExpression extends Evaluable {
 		rlogger.reportResultsToLogger(device, hint.getId(), HINT, result);
 
 		return result;
+	}
 
+	@Override
+	public String toString() {
+		StringBuilder sigStr = new StringBuilder("hintValPair=");
+		sigStr.append(hintValPair.getFirstElement());
+		sigStr.append(' ');
+		sigStr.append(hintValPair.getSecondElement().getFirstElement());
+		sigStr.append(' ');
+		sigStr.append(hintValPair.getSecondElement().getSecondElement());
+		return "HintExpression [" + sigStr.toString() + "]";
 	}
 
 }

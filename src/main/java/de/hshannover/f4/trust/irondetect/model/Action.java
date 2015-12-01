@@ -57,45 +57,45 @@ import de.hshannover.f4.trust.irondetect.util.Pair;
  *
  */
 public class Action implements PolicyData {
-	
+
 	private String id;
-	
+
 	private List<Pair<String, String>> keyValuePairs;
-	
+
 	private Logger logger = Logger.getLogger(this.getClass());
 
 	public Action() {
 		this.keyValuePairs = new ArrayList<Pair<String,String>>();
 	}
 
-	
+
 	public void perform(String device){
 		assert this.keyValuePairs != null : "action shouldn't be null!";
-		
+
 		logger.info("PERFORMING ACTION (" + this.toString() + ")");
-                
-                ArrayList<Pair<String, String>> mappedKeyValuePairs = new ArrayList<Pair<String, String>>();
-                
-                for(Pair<String, String> p : this.keyValuePairs) {
-                    String key = p.getFirstElement();
-                    String value = p.getSecondElement();
-                    if(value.startsWith(Policy.GET_KEY)) {
-                        String valueKey = value.substring(1);
-                        ArrayList<String> tmp = new ArrayList<String>();
-                        tmp.add(valueKey);
-                        List<Feature> features = FeatureBaseImpl.getInstance().getFeaturesByContext(device, tmp, null);
-                        for(Feature f : features) {
-                            Pair<String, String> remapped = new Pair<String, String>(key, f.getValue());
-                            mappedKeyValuePairs.add(remapped);
-                        }
-                    } else {
-                        mappedKeyValuePairs.add(p);
-                    }
-                }
-		
+
+		ArrayList<Pair<String, String>> mappedKeyValuePairs = new ArrayList<Pair<String, String>>();
+
+		for(Pair<String, String> p : this.keyValuePairs) {
+			String key = p.getFirstElement();
+			String value = p.getSecondElement();
+			if(value.startsWith(Policy.GET_KEY)) {
+				String valueKey = value.substring(1);
+				ArrayList<String> tmp = new ArrayList<String>();
+				tmp.add(valueKey);
+				List<Feature> features = FeatureBaseImpl.getInstance().getFeaturesByContext(device, tmp, null);
+				for(Feature f : features) {
+					Pair<String, String> remapped = new Pair<String, String>(key, f.getValue());
+					mappedKeyValuePairs.add(remapped);
+				}
+			} else {
+				mappedKeyValuePairs.add(p);
+			}
+		}
+
 		ActionToIfmapMapper.getInstance().addNewAction(device, mappedKeyValuePairs);
 	}
-	
+
 
 	/**
 	 * @return the id
@@ -124,7 +124,7 @@ public class Action implements PolicyData {
 	public void setKeyValuePairs(List<Pair<String, String>> keyValuePairs) {
 		this.keyValuePairs = keyValuePairs;
 	}
-	
+
 	public void addkeyValuePair(String key, String value) {
 		this.keyValuePairs.add(new Pair<String, String>(key, value));
 	}
@@ -142,7 +142,34 @@ public class Action implements PolicyData {
 		}
 		return "Action " + this.id +  " (" + kvStr + ")";
 	}
-	
-	
+
+	@Override
+	public int hashCode() {
+		int prime = 31;
+		int result = 1;
+		result = prime * result + getId().hashCode();
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other == null) {
+			return false;
+		}
+		if (other == this) {
+			return true;
+		}
+		if (!(other instanceof Action)) {
+			return false;
+		}
+
+		Action otherItem = (Action) other;
+
+		if (!getId().equals(otherItem.getId())) {
+			return false;
+		}
+
+		return true;
+	}
 
 }

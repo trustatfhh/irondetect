@@ -248,4 +248,34 @@ public class Anomaly extends IdentifierWithAd implements ExtendedIdentifier {
 
 		return sb.toString();
 	}
+
+	@Override
+	public int hashCode() {
+		int prime = 31;
+		int result = 1;
+		result = prime * result + getID().hashCode();
+		result = prime * result + getAdministrativeDomain().hashCode();
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other == null) {
+			return false;
+		}
+		if (other == this) {
+			return true;
+		}
+		if (!(other instanceof Anomaly)) {
+			return false;
+		}
+
+		Anomaly otherItem = (Anomaly) other;
+
+		if (!getID().equals(otherItem.getID())) {
+			return false;
+		}
+
+		return super.equals(otherItem);
+	}
 }
