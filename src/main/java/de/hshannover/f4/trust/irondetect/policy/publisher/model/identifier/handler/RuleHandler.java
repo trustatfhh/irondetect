@@ -5,7 +5,6 @@ import java.util.List;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import util.DomHelpers;
 import de.hshannover.f4.trust.ifmapj.binding.IfmapStrings;
 import de.hshannover.f4.trust.ifmapj.exception.MarshalException;
 import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
@@ -14,11 +13,12 @@ import de.hshannover.f4.trust.ifmapj.identifier.Identifiers.Helpers;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.Rule;
 import de.hshannover.f4.trust.irondetect.policy.publisher.util.PolicyStrings;
+import util.DomHelpers;
 
 /**
  * An {@link RuleHandler} extends the ExtendedIdentifierHandler. It transforms an {@link Rule}-
  * {@link ExtendedIdentifier} to a XML {@link Element}.
- * 
+ *
  * @author Marcel Reichenbach
  */
 public class RuleHandler extends ExtendedIdentifierHandler<Rule> {
@@ -49,6 +49,9 @@ public class RuleHandler extends ExtendedIdentifierHandler<Rule> {
 
 	@Override
 	public Rule fromExtendedElement(Element element) throws UnmarshalException {
+		if (!super.policyElementMatches(element, PolicyStrings.RULE_EL_NAME)) {
+			return null;
+		}
 
 		Element child = null;
 
@@ -57,7 +60,7 @@ public class RuleHandler extends ExtendedIdentifierHandler<Rule> {
 
 		if (children.size() != 1) {
 			throw new UnmarshalException("Bad " + PolicyStrings.RULE_EL_NAME + " element? Has " + children.size()
-					+ " child elements.");
+			+ " child elements.");
 		}
 
 		child = children.get(0);

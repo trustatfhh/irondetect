@@ -82,6 +82,9 @@ public class AnomalyHandler extends ExtendedIdentifierHandler<Anomaly> {
 
 	@Override
 	public Anomaly fromExtendedElement(Element element) throws UnmarshalException {
+		if (!super.policyElementMatches(element, PolicyStrings.ANOMALY_EL_NAME)) {
+			return null;
+		}
 
 		String ruleId = null;
 		List<String> expressionList = new ArrayList<String>();
@@ -94,8 +97,7 @@ public class AnomalyHandler extends ExtendedIdentifierHandler<Anomaly> {
 			if (super.policyElementMatches(childElement, PolicyStrings.ID_EL_NAME)) {
 				ruleId = childElement.getTextContent();
 			} else if (super.policyElementMatches(childElement, PolicyStrings.HINT_EXPRESSION_EL_NAME)) {
-				// expressionList.add(super.deEscapeXml(childElement.getTextContent()));
-				expressionList.add(childElement.getTextContent());
+				expressionList.add(super.deEscapeXml(childElement.getTextContent()));
 			} else if (super.policyElementMatches(childElement, PolicyStrings.CONTEXT_EL_NAME)) {
 				// context elements
 				String contextId = null;
@@ -108,7 +110,7 @@ public class AnomalyHandler extends ExtendedIdentifierHandler<Anomaly> {
 						contextId = contextChildElement.getTextContent();
 					} else if (super.policyElementMatches(contextChildElement,
 							PolicyStrings.PARAMETER_EXPRESSION_EL_NAME)) {
-						parameterExpressionList.add(contextChildElement.getTextContent());
+						parameterExpressionList.add(super.deEscapeXml(contextChildElement.getTextContent()));
 					}
 				}
 

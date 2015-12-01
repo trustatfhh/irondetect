@@ -8,7 +8,6 @@ import java.util.Map;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import util.DomHelpers;
 import de.hshannover.f4.trust.ifmapj.binding.IfmapStrings;
 import de.hshannover.f4.trust.ifmapj.exception.MarshalException;
 import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
@@ -17,11 +16,12 @@ import de.hshannover.f4.trust.ifmapj.identifier.Identifiers.Helpers;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.Signature;
 import de.hshannover.f4.trust.irondetect.policy.publisher.util.PolicyStrings;
+import util.DomHelpers;
 
 /**
  * An {@link SignatureHandler} extends the ExtendedIdentifierHandler. It transforms an {@link Signature}-
  * {@link ExtendedIdentifier} to a XML {@link Element}.
- * 
+ *
  * @author Marcel Reichenbach
  */
 public class SignatureHandler extends ExtendedIdentifierHandler<Signature> {
@@ -82,6 +82,9 @@ public class SignatureHandler extends ExtendedIdentifierHandler<Signature> {
 
 	@Override
 	public Signature fromExtendedElement(Element element) throws UnmarshalException {
+		if (!super.policyElementMatches(element, PolicyStrings.SIGNATURE_EL_NAME)) {
+			return null;
+		}
 
 		String ruleId = null;
 		List<String> expressionList = new ArrayList<String>();
@@ -94,7 +97,7 @@ public class SignatureHandler extends ExtendedIdentifierHandler<Signature> {
 			if (super.policyElementMatches(childElement, PolicyStrings.ID_EL_NAME)) {
 				ruleId = childElement.getTextContent();
 			} else if (super.policyElementMatches(childElement, PolicyStrings.FEATURE_EXPRESSION_EL_NAME)) {
-				expressionList.add(childElement.getTextContent());
+				expressionList.add(super.deEscapeXml(childElement.getTextContent()));
 			} else if (super.policyElementMatches(childElement, PolicyStrings.CONTEXT_EL_NAME)) {
 				// context elements
 				String contextId = null;
@@ -107,7 +110,7 @@ public class SignatureHandler extends ExtendedIdentifierHandler<Signature> {
 						contextId = contextChildElement.getTextContent();
 					} else if (super.policyElementMatches(contextChildElement,
 							PolicyStrings.PARAMETER_EXPRESSION_EL_NAME)) {
-						parameterExpressionList.add(contextChildElement.getTextContent());
+						parameterExpressionList.add(super.deEscapeXml(contextChildElement.getTextContent()));
 					}
 				}
 

@@ -6,7 +6,6 @@ import java.util.List;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import util.DomHelpers;
 import de.hshannover.f4.trust.ifmapj.binding.IfmapStrings;
 import de.hshannover.f4.trust.ifmapj.exception.MarshalException;
 import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
@@ -15,6 +14,7 @@ import de.hshannover.f4.trust.ifmapj.identifier.Identifiers.Helpers;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.Condition;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
 import de.hshannover.f4.trust.irondetect.policy.publisher.util.PolicyStrings;
+import util.DomHelpers;
 
 /**
  * An {@link ConditionHandler} extends the ExtendedIdentifierHandler. It transforms an {@link Condition}-
@@ -73,6 +73,9 @@ public class ConditionHandler extends ExtendedIdentifierHandler<Condition> {
 
 	@Override
 	public Condition fromExtendedElement(Element element) throws UnmarshalException {
+		if (!super.policyElementMatches(element, PolicyStrings.CONDITION_EL_NAME)) {
+			return null;
+		}
 
 		String ruleId = null;
 		List<String> expressionsList = new ArrayList<String>();
