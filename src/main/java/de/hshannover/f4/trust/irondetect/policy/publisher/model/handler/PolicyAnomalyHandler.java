@@ -36,8 +36,8 @@ public class PolicyAnomalyHandler implements PolicyHandler<de.hshannover.f4.trus
 			de.hshannover.f4.trust.irondetect.model.Anomaly policyData =
 					new de.hshannover.f4.trust.irondetect.model.Anomaly();
 			policyData.setId(((Anomaly) eIdentifier).getID());
-			policyData.setHintSet(null); // TODO wie im HandlerHelper.transformHintExpression()
-			policyData.setContextSet(null); // TODO wie im HandlerHelper.transformContext()
+			policyData.setHintSet(HandlerHelper.retransformHintExpression(((Anomaly) eIdentifier).getExpressions()));
+			policyData.setContextSet(HandlerHelper.reTransformContext(((Anomaly) eIdentifier).getContext()));
 
 			return policyData;
 

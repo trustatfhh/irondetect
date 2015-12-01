@@ -36,8 +36,8 @@ public class PolicySignatureHandler implements PolicyHandler<de.hshannover.f4.tr
 			de.hshannover.f4.trust.irondetect.model.Signature policyData =
 					new de.hshannover.f4.trust.irondetect.model.Signature();
 			policyData.setId(((Signature) eIdentifier).getID());
-			policyData.setFeatureSet(HandlerHelper.retransformFeatureExpression(
-					((Signature) eIdentifier).getExpressions()));
+			policyData.setFeatureSet(HandlerHelper.retransformFeatureExpression(((Signature) eIdentifier)
+					.getExpressions()));
 			policyData.setContextSet(HandlerHelper.reTransformContext(((Signature) eIdentifier).getContext()));
 
 			return policyData;

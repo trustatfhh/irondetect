@@ -96,6 +96,7 @@ public class Main {
 
 		try {
 			PolicyPublisher policyUpdater = new PolicyPublisher(processor.getPolicy());
+			processor.setPolicyPublisher(policyUpdater);
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
 			logger.error("Error while init PolicyPublisher", e);
 		} catch (IfmapErrorResult e) {

@@ -2,7 +2,10 @@ package de.hshannover.f4.trust.irondetect.policy.publisher.model.handler;
 
 import static de.hshannover.f4.trust.irondetect.policy.publisher.util.PolicyStrings.DEFAULT_ADMINISTRATIVE_DOMAIN;
 
+import java.util.ArrayList;
+
 import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
+import de.hshannover.f4.trust.irondetect.model.Rule;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.Policy;
 
@@ -31,6 +34,7 @@ public class PolicyPolicyHandler implements PolicyHandler<de.hshannover.f4.trust
 			de.hshannover.f4.trust.irondetect.model.Policy policyData =
 					new de.hshannover.f4.trust.irondetect.model.Policy();
 			policyData.setId(((Policy) eIdentifier).getID());
+			policyData.setRuleSet(new ArrayList<Rule>());
 
 			return policyData;
 

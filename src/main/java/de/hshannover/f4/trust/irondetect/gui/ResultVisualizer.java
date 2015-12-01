@@ -7,17 +7,17 @@
  *    | | | |  | |_| \__ \ |_| | (_| |  _  |\__ \|  _  |
  *    |_| |_|   \__,_|___/\__|\ \__,_|_| |_||___/|_| |_|
  *                             \____/
- * 
+ *
  * =====================================================
- * 
+ *
  * Hochschule Hannover
  * (University of Applied Sciences and Arts, Hannover)
  * Faculty IV, Dept. of Computer Science
  * Ricklinger Stadtweg 118, 30459 Hannover, Germany
- * 
+ *
  * Email: trust@f4-i.fh-hannover.de
  * Website: http://trust.f4.hs-hannover.de/
- * 
+ *
  * This file is part of irondetect, version 0.0.8,
  * implemented by the Trust@HsH research group at the Hochschule Hannover.
  * %%
@@ -26,9 +26,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -62,6 +62,7 @@ import javax.swing.table.AbstractTableModel;
 
 import org.apache.log4j.Logger;
 
+import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.irondetect.Main;
 import de.hshannover.f4.trust.irondetect.engine.Processor;
 import de.hshannover.f4.trust.irondetect.util.event.Event;
@@ -76,36 +77,36 @@ public class ResultVisualizer implements EventReceiver {
 		private static final long serialVersionUID = -3297226482363924926L;
 
 		private Vector<ResultObject> resultObjects;
-		
+
 		public ResultTableModel() {
 			this.resultObjects = new Vector<ResultObject>();
-			
+
 		}
-		
+
 		public void addRow(ResultObject ro) {
 			ro.setIndex(this.getRowCount() + 1);
 			this.resultObjects.add(0, ro);	// insert at FIRST index in vector
 			fireTableDataChanged();
 		}
-		
+
 		@Override
 		public String getColumnName(int col) {
 			switch (col) {
-			case 0:
-				return "#";
-			case 1:
-				return "Device";
-			case 2:
-				return "ID";
-			case 3:
-				return "Value";
-			case 4:
-				return "Timestamp";
-			default:
-				return "";
+				case 0:
+					return "#";
+				case 1:
+					return "Device";
+				case 2:
+					return "ID";
+				case 3:
+					return "Value";
+				case 4:
+					return "Timestamp";
+				default:
+					return "";
 			}
-	    }
-		
+		}
+
 		/*
 		 * JTable uses this method to determine the default renderer/ editor for
 		 * each cell. If we didn't implement this method, then the last column
@@ -130,18 +131,18 @@ public class ResultVisualizer implements EventReceiver {
 		public Object getValueAt(int row, int col) {
 			ResultObject tmp = this.resultObjects.get(row);
 			switch (col) {
-			case 0:
-				return tmp.getIndex();
-			case 1:
-				return tmp.getDevice();
-			case 2:
-				return tmp.getId();
-			case 3:
-				return tmp.getValue();
-			case 4:
-				return tmp.getTimeStamp();
-			default:
-				return null;
+				case 0:
+					return tmp.getIndex();
+				case 1:
+					return tmp.getDevice();
+				case 2:
+					return tmp.getId();
+				case 3:
+					return tmp.getValue();
+				case 4:
+					return tmp.getTimeStamp();
+				default:
+					return null;
 			}
 		}
 	}
@@ -167,6 +168,7 @@ public class ResultVisualizer implements EventReceiver {
 	private JMenu mjmPolicy;
 	private JMenuItem mjmiReloadFromFile;
 	private JMenu mjmSwitchPolicy;
+	private JMenuItem mjmiGraphPolicy;
 
 	public ResultVisualizer() {
 		this.tables = new JTable[4];
@@ -174,14 +176,14 @@ public class ResultVisualizer implements EventReceiver {
 		this.tableModels = new ResultTableModel[4];
 		this.panels = new JPanel[4];
 		this.labels = new JLabel[4];
-		
+
 		this.screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		
+
 		initComponentsForType(RULE);
 		initComponentsForType(SIGNATURE);
 		initComponentsForType(ANOMALY);
 		initComponentsForType(CONDITION);
-		
+
 		initFrame();
 
 		logger.info(ResultVisualizer.class.getSimpleName() + " has started.");
@@ -195,7 +197,7 @@ public class ResultVisualizer implements EventReceiver {
 
 		Container contentPane = frame.getContentPane();
 		contentPane.setLayout(new GridLayout(4, 1));	// TODO variabel?
-		
+
 		// Create and set up the content pane.
 		for (JPanel panel : this.panels) {
 			panel.setOpaque(true); // content panes must be opaque
@@ -207,14 +209,15 @@ public class ResultVisualizer implements EventReceiver {
 		// Display the window.
 		frame.pack();
 		frame.setVisible(true);
-		
+
 	}
-	
+
 	private void setMenuBar(JFrame frame) {
 		mjmRootBar = new JMenuBar();
 		mjmPolicy = new JMenu();
 		mjmSwitchPolicy = new JMenu();
 		mjmiReloadFromFile = new JMenuItem();
+		mjmiGraphPolicy = new JMenuItem();
 
 		mjmPolicy.setText("Policy");
 
@@ -226,7 +229,12 @@ public class ResultVisualizer implements EventReceiver {
 
 					@Override
 					public void run() {
-						Processor.getInstance().reloadPolicy();
+						try {
+							Processor.getInstance().reloadPolicy();
+						} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+								| UnmarshalException e) {
+							logger.error("Error while reload Policy.", e);
+						}
 					}
 				}).start();
 			}
@@ -243,7 +251,28 @@ public class ResultVisualizer implements EventReceiver {
 			mjmSwitchPolicy.add(jmiBlank);
 		}
 
+		mjmiGraphPolicy.setText("Load Graph-Policy");
+		mjmiGraphPolicy.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent evt) {
+				new Thread(new Runnable() {
+
+					@Override
+					public void run() {
+						try {
+							Processor.getInstance().readNewPolicy(Processor.getInstance().getGraphPolicy());
+						} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+								| UnmarshalException e) {
+							logger.error("Error while read new Policy from Graph.", e);
+						}
+						logger.info("Switched to Graph Policy.");
+					}
+				}).start();
+			}
+		});
+
 		mjmPolicy.add(mjmSwitchPolicy);
+		mjmPolicy.add(mjmiGraphPolicy);
 		mjmPolicy.add(mjmiReloadFromFile);
 
 		mjmRootBar.add(mjmPolicy);
@@ -262,7 +291,12 @@ public class ResultVisualizer implements EventReceiver {
 
 						@Override
 						public void run() {
-							Processor.getInstance().readNewPolicy(f.getAbsolutePath());
+							try {
+								Processor.getInstance().readNewPolicy(f.getAbsolutePath());
+							} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+									| UnmarshalException e) {
+								logger.error("Error while read new Policy.(" + f.getName() + ")", e);
+							}
 							logger.info("Switched to policy '" + f.getName() + "'");
 						}
 					}).start();
@@ -324,15 +358,15 @@ public class ResultVisualizer implements EventReceiver {
 				return -1;
 		}
 	}
-	
+
 	@Override
 	public void submitNewEvent(Event e) {
 		if (e.getType() == EventType.RESULT_UPDATE) {
 			ResultObject ro = ((ResultUpdateEvent) e).getPayload();
 			if (checkResultObjectType(ro.getType())) {
 				logger.trace("Received result update: device==" + ro.getDevice()
-						+ ", type==" + ro.getType() + ", id==" + ro.getId()
-						+ ", value==" + ro.getValue() + ", timestamp==" + ro.getTimeStamp());
+				+ ", type==" + ro.getType() + ", id==" + ro.getId()
+				+ ", value==" + ro.getValue() + ", timestamp==" + ro.getTimeStamp());
 
 				final int type = typeToInt(ro.getType());
 				this.tableModels[type].addRow(ro);

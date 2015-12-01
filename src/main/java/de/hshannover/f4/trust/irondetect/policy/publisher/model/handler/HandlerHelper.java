@@ -12,6 +12,7 @@ import de.hshannover.f4.trust.irondetect.model.Context;
 import de.hshannover.f4.trust.irondetect.model.ContextParamType;
 import de.hshannover.f4.trust.irondetect.model.ContextParameterPol;
 import de.hshannover.f4.trust.irondetect.model.FeatureExpression;
+import de.hshannover.f4.trust.irondetect.model.Hint;
 import de.hshannover.f4.trust.irondetect.model.HintExpression;
 import de.hshannover.f4.trust.irondetect.util.BooleanOperator;
 import de.hshannover.f4.trust.irondetect.util.ComparisonOperator;
@@ -234,6 +235,67 @@ public class HandlerHelper {
 		}
 
 		return stringExpressions;
+	}
+
+	static List<Pair<HintExpression, BooleanOperator>> retransformHintExpression(List<String> expressions)
+			throws UnmarshalException {
+		List<Pair<HintExpression, BooleanOperator>> hintExpressions =
+				new ArrayList<Pair<HintExpression, BooleanOperator>>();
+
+		for (String expression : expressions) {
+			String[] expressionArray = expression.split(" ");
+
+			if (expressionArray.length == 3) {
+
+				String hintId = expressionArray[0];
+				ComparisonOperator comparisonOperator = ComparisonOperator.valueOf2(expressionArray[1]);
+				String hintValue = expressionArray[2];
+
+				Pair<HintExpression, BooleanOperator> hintExpression =
+						buildHintExpression(hintId, comparisonOperator, hintValue, null);
+
+				hintExpressions.add(hintExpression);
+
+			} else if (expressionArray.length == 4) {
+
+				BooleanOperator booleanOperator = BooleanOperator.valueOf(expressionArray[0]);
+				String hintId = expressionArray[1];
+				ComparisonOperator comparisonOperator = ComparisonOperator.valueOf2(expressionArray[2]);
+				String hintValue = expressionArray[3];
+
+				Pair<HintExpression, BooleanOperator> hintExpression =
+						buildHintExpression(hintId, comparisonOperator, hintValue, booleanOperator);
+
+				hintExpressions.add(hintExpression);
+
+			} else {
+				throw new UnmarshalException("False expression syntax.("
+						+ expression + ") Example: [BOOLEAN_OPERATOR] HINT_ID COMPARISON_OPERATOR HINT_VALUE");
+			}
+		}
+
+		return hintExpressions;
+	}
+
+	private static Pair<HintExpression, BooleanOperator> buildHintExpression(String hintId,
+			ComparisonOperator comparisonOperator, String hintValue, BooleanOperator booleanOperator) {
+
+		Pair<ComparisonOperator, String> comparisonPair =
+				new Pair<ComparisonOperator, String>(comparisonOperator, hintValue);
+
+		Hint hint = new Hint();
+		hint.setId(hintId);
+
+		Pair<Hint, Pair<ComparisonOperator, String>> hintValuePair =
+				new Pair<Hint, Pair<ComparisonOperator, String>>(hint, comparisonPair);
+
+		HintExpression expression = new HintExpression();
+		expression.setHintValuePair(hintValuePair);
+
+		Pair<HintExpression, BooleanOperator> hintExpression =
+				new Pair<HintExpression, BooleanOperator>(expression, booleanOperator);
+
+		return hintExpression;
 	}
 
 	static List<String> transformConditionExpression(List<Pair<ConditionElement, BooleanOperator>> conditionSet) {

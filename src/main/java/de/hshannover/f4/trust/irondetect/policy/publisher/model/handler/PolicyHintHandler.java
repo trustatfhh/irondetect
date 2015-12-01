@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
+import de.hshannover.f4.trust.irondetect.model.Procedure;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.Hint;
 
@@ -48,13 +49,52 @@ public class PolicyHintHandler implements PolicyHandler<de.hshannover.f4.trust.i
 			de.hshannover.f4.trust.irondetect.model.Hint policyData =
 					new de.hshannover.f4.trust.irondetect.model.Hint();
 			policyData.setId(((Hint) eIdentifier).getID());
-			policyData.setProcedure(null); // TODO
+
+			List<String> featureIds = getFeatureIDs(((Hint) eIdentifier).getExpressions());
+
+			Procedure procedure = new Procedure();
+
+			for (String expression : ((Hint) eIdentifier).getExpressions()) {
+				String[] expressionArray = expression.split(" ");
+
+				if (expressionArray.length == 3) {
+					String procedureId = expressionArray[1];
+					String value = expressionArray[2];
+
+					procedure.setId(procedureId);
+					procedure.setConfig(value);
+					break;
+
+				} else {
+					throw new UnmarshalException("False expression syntax.("
+							+ expression + ") Example: FEATURE_ID PROCEDURE PROCEDURE_VALUE");
+				}
+			}
+			policyData.setFeatureIds(featureIds);
+			policyData.setProcedure(procedure);
 
 			return policyData;
 
 		} else {
 			throw new UnmarshalException("False argument this handler is only for Hint ExtendedIdentifier");
 		}
+	}
+
+	private List<String> getFeatureIDs(List<String> expressions) throws UnmarshalException {
+		List<String> featureIds = new ArrayList<String>();
+
+		for (String expression : expressions) {
+			String[] expressionArray = expression.split(" ");
+
+			if (expressionArray.length == 3) {
+				featureIds.add(expressionArray[0]);
+			} else {
+				throw new UnmarshalException("False expression syntax.("
+						+ expression + ") Example: FEATURE_ID PROCEDURE PROCEDURE_VALUE");
+			}
+		}
+
+		return featureIds;
 	}
 
 	@Override

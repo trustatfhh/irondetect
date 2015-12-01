@@ -19,6 +19,8 @@ import de.hshannover.f4.trust.ifmapj.messages.MetadataLifetime;
 import de.hshannover.f4.trust.ifmapj.messages.PublishRequest;
 import de.hshannover.f4.trust.ifmapj.messages.PublishUpdate;
 import de.hshannover.f4.trust.ifmapj.messages.Requests;
+import de.hshannover.f4.trust.ifmapj.messages.SearchRequest;
+import de.hshannover.f4.trust.ifmapj.messages.SearchResult;
 import de.hshannover.f4.trust.irondetect.gui.ResultLoggerImpl;
 import de.hshannover.f4.trust.irondetect.ifmap.EndpointPoller;
 import de.hshannover.f4.trust.irondetect.model.Action;
@@ -214,6 +216,33 @@ public class PolicyPublisher {
 		mSsrc = null;
 
 		LOGGER.trace("... resetConnection() OK");
+	}
+
+	public SearchResult searchPolicyGraph() {
+		Identifier startIdentifier = Identifiers.createDev(policyPublisherIdentifier);
+
+		SearchRequest searchRequest =
+				Requests.createSearchReq(null, 10, null, Configuration.ifmapMaxResultSize(), null, startIdentifier);
+		// searchRequest.addNamespaceDeclaration(IfmapStrings.BASE_PREFIX, IfmapStrings.BASE_NS_URI);
+		// searchRequest.addNamespaceDeclaration(IfmapStrings.STD_METADATA_PREFIX, IfmapStrings.STD_METADATA_NS_URI);
+
+		try {
+			SearchResult search;
+			synchronized (mSsrc) {
+				search = mSsrc.search(searchRequest);
+			}
+
+			return search;
+
+		} catch (IfmapErrorResult e) {
+			LOGGER.error("Got IfmapErrorResult: "
+					+ e.getMessage() + ", " + e.getCause());
+		} catch (IfmapException e) {
+			LOGGER.error("Got IfmapExecption: "
+					+ e.getMessage() + ", " + e.getCause());
+		}
+
+		return null;
 	}
 
 }
