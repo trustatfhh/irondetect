@@ -50,6 +50,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Vector;
 
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -62,6 +63,8 @@ import javax.swing.table.AbstractTableModel;
 
 import org.apache.log4j.Logger;
 
+import de.hshannover.f4.trust.ifmapj.exception.IfmapErrorResult;
+import de.hshannover.f4.trust.ifmapj.exception.IfmapException;
 import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.irondetect.Main;
 import de.hshannover.f4.trust.irondetect.engine.Processor;
@@ -169,6 +172,7 @@ public class ResultVisualizer implements EventReceiver {
 	private JMenuItem mjmiReloadFromFile;
 	private JMenu mjmSwitchPolicy;
 	private JMenuItem mjmiGraphPolicy;
+	private JCheckBoxMenuItem mjcbmiPolicyReload;
 
 	public ResultVisualizer() {
 		this.tables = new JTable[4];
@@ -218,6 +222,7 @@ public class ResultVisualizer implements EventReceiver {
 		mjmSwitchPolicy = new JMenu();
 		mjmiReloadFromFile = new JMenuItem();
 		mjmiGraphPolicy = new JMenuItem();
+		mjcbmiPolicyReload = new JCheckBoxMenuItem();
 
 		mjmPolicy.setText("Policy");
 
@@ -271,8 +276,27 @@ public class ResultVisualizer implements EventReceiver {
 			}
 		});
 
+		mjcbmiPolicyReload.setText("Reload from graph");
+		mjcbmiPolicyReload.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				if (mjcbmiPolicyReload.isSelected()) {
+					System.out.println("jo is an");
+					try {
+						Processor.getInstance().startPolicyAutomaticReload();
+					} catch (IfmapErrorResult | IfmapException e) {
+						logger.error("Error while start automatic read new policy from graph", e);
+					}
+				} else {
+					Processor.getInstance().stopPolicyAutomaticReload();
+				}
+			}
+		});
+
 		mjmPolicy.add(mjmSwitchPolicy);
 		mjmPolicy.add(mjmiGraphPolicy);
+		mjmPolicy.add(mjcbmiPolicyReload);
 		mjmPolicy.add(mjmiReloadFromFile);
 
 		mjmRootBar.add(mjmPolicy);

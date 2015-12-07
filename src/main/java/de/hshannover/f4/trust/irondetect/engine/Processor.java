@@ -55,8 +55,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.log4j.Logger;
 
+import de.hshannover.f4.trust.ifmapj.exception.IfmapErrorResult;
+import de.hshannover.f4.trust.ifmapj.exception.IfmapException;
 import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifier;
+import de.hshannover.f4.trust.ifmapj.messages.PollResult;
 import de.hshannover.f4.trust.ifmapj.messages.ResultItem;
 import de.hshannover.f4.trust.ifmapj.messages.SearchResult;
 import de.hshannover.f4.trust.irondetect.gui.ResultLogger;
@@ -75,12 +78,14 @@ import de.hshannover.f4.trust.irondetect.model.Signature;
 import de.hshannover.f4.trust.irondetect.policy.parser.ParseException;
 import de.hshannover.f4.trust.irondetect.policy.parser.PolicyFactory;
 import de.hshannover.f4.trust.irondetect.policy.parser.TokenMgrError;
+import de.hshannover.f4.trust.irondetect.policy.publisher.PolicyPoller;
 import de.hshannover.f4.trust.irondetect.policy.publisher.PolicyPublisher;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.handler.PolicyDataManager;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
 import de.hshannover.f4.trust.irondetect.util.BooleanOperator;
 import de.hshannover.f4.trust.irondetect.util.Configuration;
 import de.hshannover.f4.trust.irondetect.util.Pair;
+import de.hshannover.f4.trust.irondetect.util.PollResultReceiver;
 import de.hshannover.f4.trust.irondetect.util.event.Event;
 import de.hshannover.f4.trust.irondetect.util.event.EventReceiver;
 import de.hshannover.f4.trust.irondetect.util.event.EventType;
@@ -97,7 +102,7 @@ import de.hshannover.f4.trust.irondetect.util.event.TriggerUpdateEvent;
  * @author ibente
  *
  */
-public class Processor implements EventReceiver, Runnable {
+public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 
 	private Logger logger = Logger.getLogger(Processor.class);
 	private LinkedBlockingQueue<Event> incomingEvents;
@@ -115,6 +120,8 @@ public class Processor implements EventReceiver, Runnable {
 	private String mCurrentPolicyPath;
 
 	private PolicyPublisher mPolicyPublisher;
+
+	private boolean mAutomaticPolicyReload;
 
 	public Policy getPolicy() {
 		return mPolicy;
@@ -543,6 +550,33 @@ public class Processor implements EventReceiver, Runnable {
 			logger.trace("Event was inserted");
 		} catch (InterruptedException e1) {
 			logger.error("Could not add Event to Processor:" + e1.getMessage());
+		}
+	}
+
+	public void startPolicyAutomaticReload() throws IfmapErrorResult, IfmapException {
+		mAutomaticPolicyReload = true;
+		PolicyPoller.getInstance().addPollResultReceiver(this);
+
+		mPolicyPublisher.startPolicyAutomaticReload();
+	}
+
+	public void stopPolicyAutomaticReload() {
+		mAutomaticPolicyReload = false;
+	}
+
+	@Override
+	public void submitNewPollResult(PollResult pr) {
+		if (mAutomaticPolicyReload) {
+			for (SearchResult result : pr.getResults()) {
+				if (result.getName().equals(PolicyPublisher.SUBSCRIPTION_NAME_POLICY_RELOAD)) {
+					try {
+						readNewPolicy(getGraphPolicy());
+					} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+							| UnmarshalException e) {
+						logger.error("Error while automatic read new policy from graph.");
+					}
+				}
+			}
 		}
 	}
 }

@@ -21,6 +21,7 @@ import de.hshannover.f4.trust.ifmapj.messages.PublishUpdate;
 import de.hshannover.f4.trust.ifmapj.messages.Requests;
 import de.hshannover.f4.trust.ifmapj.messages.SearchRequest;
 import de.hshannover.f4.trust.ifmapj.messages.SearchResult;
+import de.hshannover.f4.trust.ifmapj.messages.SubscribeUpdate;
 import de.hshannover.f4.trust.irondetect.gui.ResultLoggerImpl;
 import de.hshannover.f4.trust.irondetect.ifmap.EndpointPoller;
 import de.hshannover.f4.trust.irondetect.model.Action;
@@ -46,12 +47,14 @@ import de.hshannover.f4.trust.irondetect.util.Pair;
 
 /**
  * An {@link PolicyPublisher} publishes all irondetect policies.
- * 
+ *
  * @author Marcel Reichenbach
  */
 public class PolicyPublisher {
 
 	private static final Logger LOGGER = Logger.getLogger(PolicyPublisher.class);
+
+	public static final String SUBSCRIPTION_NAME_POLICY_RELOAD = "AutoPolicyReload";
 
 	protected Policy mPolicy;
 
@@ -62,10 +65,12 @@ public class PolicyPublisher {
 	private PolicyActionUpdater mPolicyActionUpdater;
 
 	protected List<PublishUpdate> mPublishUpdates;
-	
+
 	private PolicyMetadataFactory mMetadataFactory;
 
 	private String policyPublisherIdentifier = "irondetect-policy";
+
+	private Thread mPolicyPollerThread;
 
 	// register all extended identifier handler to ifmapJ
 	static {
@@ -79,7 +84,7 @@ public class PolicyPublisher {
 	}
 
 	public PolicyPublisher(Policy policy) throws IfmapErrorResult, IfmapException, ClassNotFoundException,
-			InstantiationException, IllegalAccessException {
+	InstantiationException, IllegalAccessException {
 		mPolicy = policy;
 		policyPublisherIdentifier = Configuration.getPolicyPublisherIdentifier();
 
@@ -110,7 +115,7 @@ public class PolicyPublisher {
 
 		mSsrc.publish(req);
 	}
-	
+
 	protected void addPublishUpdate(Identifier identifier1, Document metadata, Identifier identifier2) {
 		PublishUpdate update = Requests.createPublishUpdate();
 
@@ -118,7 +123,7 @@ public class PolicyPublisher {
 		update.setIdentifier2(identifier2);
 		update.addMetadata(metadata);
 		update.setLifeTime(MetadataLifetime.session);
-		 
+
 		mPublishUpdates.add(update);
 	}
 
@@ -223,8 +228,6 @@ public class PolicyPublisher {
 
 		SearchRequest searchRequest =
 				Requests.createSearchReq(null, 10, null, Configuration.ifmapMaxResultSize(), null, startIdentifier);
-		// searchRequest.addNamespaceDeclaration(IfmapStrings.BASE_PREFIX, IfmapStrings.BASE_NS_URI);
-		// searchRequest.addNamespaceDeclaration(IfmapStrings.STD_METADATA_PREFIX, IfmapStrings.STD_METADATA_NS_URI);
 
 		try {
 			SearchResult search;
@@ -235,14 +238,45 @@ public class PolicyPublisher {
 			return search;
 
 		} catch (IfmapErrorResult e) {
-			LOGGER.error("Got IfmapErrorResult: "
-					+ e.getMessage() + ", " + e.getCause());
+			LOGGER.error("Got IfmapErrorResult: "+ e.getMessage() + ", " + e.getCause());
 		} catch (IfmapException e) {
-			LOGGER.error("Got IfmapExecption: "
-					+ e.getMessage() + ", " + e.getCause());
+			LOGGER.error("Got IfmapExecption: "	+ e.getMessage() + ", " + e.getCause());
 		}
 
 		return null;
+	}
+
+	public void startPolicyAutomaticReload() throws IfmapErrorResult, IfmapException {
+		if (mPolicyPollerThread == null) {
+			startPolicyPoller();
+		}
+
+		subscribeForAutoPolicyReload();
+	}
+
+	private void startPolicyPoller() throws InitializationException {
+		PolicyPoller.getInstance().setArc(mSsrc.getArc());
+
+		mPolicyPollerThread = new Thread(PolicyPoller.getInstance(), PolicyPoller.class.getSimpleName());
+		mPolicyPollerThread.start();
+	}
+
+	private void subscribeForAutoPolicyReload() throws IfmapErrorResult, IfmapException {
+		LOGGER.debug("Subscribe for automatic policy reload.");
+
+		Identifier startIdentifier = Identifiers.createDev(policyPublisherIdentifier);
+
+		SubscribeUpdate subscribeUpdate = Requests.createSubscribeUpdate();
+
+		subscribeUpdate.setName(SUBSCRIPTION_NAME_POLICY_RELOAD);
+		subscribeUpdate.setStartIdentifier(startIdentifier);
+		subscribeUpdate.setMaxDepth(1000);
+
+		synchronized (mSsrc) {
+			mSsrc.subscribe(Requests.createSubscribeReq(subscribeUpdate));
+		}
+
+		LOGGER.debug("Subscription done!");
 	}
 
 }
