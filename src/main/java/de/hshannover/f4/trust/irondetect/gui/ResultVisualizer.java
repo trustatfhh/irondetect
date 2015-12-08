@@ -282,7 +282,6 @@ public class ResultVisualizer implements EventReceiver {
 			@Override
 			public void actionPerformed(ActionEvent event) {
 				if (mjcbmiPolicyReload.isSelected()) {
-					System.out.println("jo is an");
 					try {
 						Processor.getInstance().startPolicyAutomaticReload();
 					} catch (IfmapErrorResult | IfmapException e) {
