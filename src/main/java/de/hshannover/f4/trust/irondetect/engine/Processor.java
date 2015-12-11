@@ -312,6 +312,102 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 
 	private void readPolicyFromGraph(SearchResult newPolicy) throws ClassNotFoundException, InstantiationException,
 	IllegalAccessException, UnmarshalException {
+
+		// transform and filter SearchResult
+		List<PolicyData> policyDataList = transformToPolicyData(newPolicy);
+
+		// ############################################
+		// ### NOW RECONSTRUCT THE POLICY STRUCTURE ###
+		// ############################################
+
+		Policy policy = getPolicyFrom(policyDataList);
+		List<Rule> ruleSet = getRuleSetFrom(policyDataList);
+
+		// set RuleSet to the Policy
+		policy.setRuleSet(ruleSet);
+
+		// set Signature and Anomaly to Condition
+		setConditionElementsToCondition(policyDataList);
+
+		// set Hints to Anomalys
+		setHintsToAnomalies(policyDataList);
+
+		// add FeatureIds to rules
+		addFeatureIdsToRules(policyDataList);
+
+		// change to the new Policy
+		mPolicy = null;
+		mPolicy = policy;
+	}
+
+	private void addFeatureIdsToRules(List<PolicyData> policyDataList) {
+		for (PolicyData policyData : policyDataList) {
+			if (policyData instanceof Rule) {
+				Rule rule = (Rule) policyData;
+				for (Pair<ConditionElement, BooleanOperator> conditionPair : rule.getCondition().getConditionSet()) {
+					if (conditionPair.getFirstElement() instanceof Signature) {
+						Signature signature = (Signature) conditionPair.getFirstElement();
+						for (Pair<FeatureExpression, BooleanOperator> featurePair : signature.getFeatureSet()) {
+							String featureID = featurePair.getFirstElement().getFeatureValuePair().getFirstElement();
+
+							rule.addFeatureId(featureID);
+						}
+					} else if (conditionPair.getFirstElement() instanceof Anomaly) {
+						Anomaly anomaly = (Anomaly) conditionPair.getFirstElement();
+						for (Pair<HintExpression, BooleanOperator> featurePair : anomaly.getHintSet()) {
+							List<String> featureIDs =
+									featurePair.getFirstElement().getHintValuePair().getFirstElement().getFeatureIds();
+
+							for (String featureID : featureIDs) {
+								rule.addFeatureId(featureID);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private void setHintsToAnomalies(List<PolicyData> policyDataList) {
+		for (PolicyData policyData : policyDataList) {
+			if (policyData instanceof Anomaly) {
+				Anomaly anomaly = (Anomaly) policyData;
+
+				for (Pair<HintExpression, BooleanOperator> hintPair : anomaly.getHintSet()) {
+					for (PolicyData policyData2 : policyDataList) {
+						if (policyData2 instanceof Hint) {
+							if (hintPair.getFirstElement().getHintValuePair().getFirstElement().getId().equals(
+									((Hint) policyData2).getId())) {
+								hintPair.getFirstElement().getHintValuePair().setFirstElement((Hint) policyData2);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private void setConditionElementsToCondition(List<PolicyData> policyDataList) {
+		for (PolicyData policyData : policyDataList) {
+			if (policyData instanceof Condition) {
+				Condition condition = (Condition) policyData;
+
+				for (Pair<ConditionElement, BooleanOperator> conditionPair : condition.getConditionSet()) {
+					for (PolicyData policyData2 : policyDataList) {
+						if (policyData2 instanceof ConditionElement) {
+							if (conditionPair.getFirstElement().getId().equals(((ConditionElement) policyData2)
+									.getId())) {
+								conditionPair.setFirstElement((ConditionElement) policyData2);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private List<PolicyData> transformToPolicyData(SearchResult newPolicy)
+			throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnmarshalException {
 		List<PolicyData> policyDataList = new ArrayList<PolicyData>();
 
 		for(ResultItem ri: newPolicy.getResultItems()){
@@ -371,77 +467,9 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 				}
 
 			}
-
 		}
 
-		Policy policy = getPolicyFrom(policyDataList);
-		List<Rule> ruleSet = getRuleSetFrom(policyDataList);
-
-		policy.setRuleSet(ruleSet);
-
-		for (PolicyData policyData : policyDataList) {
-			if (policyData instanceof Condition) {
-				Condition condition = (Condition) policyData;
-
-				for (Pair<ConditionElement, BooleanOperator> conditionPair : condition.getConditionSet()) {
-					for (PolicyData policyData2 : policyDataList) {
-						if (policyData2 instanceof ConditionElement) {
-							if (conditionPair.getFirstElement().getId().equals(((ConditionElement) policyData2)
-									.getId())) {
-								conditionPair.setFirstElement((ConditionElement) policyData2);
-							}
-						}
-					}
-				}
-			}
-		}
-
-		for (PolicyData policyData : policyDataList) {
-			if (policyData instanceof Anomaly) {
-				Anomaly anomaly = (Anomaly) policyData;
-
-				for (Pair<HintExpression, BooleanOperator> hintPair : anomaly.getHintSet()) {
-					for (PolicyData policyData2 : policyDataList) {
-						if (policyData2 instanceof Hint) {
-							if (hintPair.getFirstElement().getHintValuePair().getFirstElement().getId().equals(
-									((Hint) policyData2).getId())) {
-								hintPair.getFirstElement().getHintValuePair().setFirstElement((Hint) policyData2);
-							}
-						}
-					}
-				}
-			}
-		}
-
-		for (PolicyData policyData : policyDataList) {
-			if (policyData instanceof Rule) {
-				Rule rule = (Rule) policyData;
-				for (Pair<ConditionElement, BooleanOperator> conditionPair : rule.getCondition().getConditionSet()) {
-					if (conditionPair.getFirstElement() instanceof Signature) {
-						Signature signature = (Signature) conditionPair.getFirstElement();
-						for (Pair<FeatureExpression, BooleanOperator> featurePair : signature.getFeatureSet()) {
-							String featureID = featurePair.getFirstElement().getFeatureValuePair().getFirstElement();
-
-							rule.addFeatureId(featureID);
-						}
-					} else if (conditionPair.getFirstElement() instanceof Anomaly) {
-						Anomaly anomaly = (Anomaly) conditionPair.getFirstElement();
-						for (Pair<HintExpression, BooleanOperator> featurePair : anomaly.getHintSet()) {
-							List<String> featureIDs =
-									featurePair.getFirstElement().getHintValuePair().getFirstElement().getFeatureIds();
-
-							for (String featureID : featureIDs) {
-								rule.addFeatureId(featureID);
-							}
-						}
-					}
-				}
-			}
-		}
-
-		mPolicy = null;
-		mPolicy = policy;
-
+		return policyDataList;
 	}
 
 	private Policy getPolicyFrom(List<PolicyData> policyDataList) throws UnmarshalException {
