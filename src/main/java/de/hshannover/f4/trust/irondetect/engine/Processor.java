@@ -502,7 +502,9 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 				Event e = incomingEvents.take();
 
 				if (mReadNewPolicy) {
-					mProcessorThread.wait();
+					synchronized (mProcessorThread) {
+						mProcessorThread.wait();
+					}
 				}
 
 				onNewPollResult(e);
