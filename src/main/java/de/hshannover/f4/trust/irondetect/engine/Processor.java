@@ -213,11 +213,17 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 
 	public void reloadPolicy() throws ClassNotFoundException, InstantiationException, IllegalAccessException,
 	UnmarshalException {
+		Map<String, Boolean> firstRun = mPolicy.getFirstRunMap();
+
 		if (mCurrentPolicyPath != null) {
 			readNewPolicy(mCurrentPolicyPath);
 		} else {
 			readNewPolicy(getGraphPolicy());
+
 		}
+		// Don't check all rules again for a device when reload the same policy
+		mPolicy.setFirstRunMap(firstRun);
+
 		logger.info("Reload policy finished");
 	}
 
@@ -588,6 +594,7 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 		PolicyPoller.getInstance().addPollResultReceiver(this);
 
 		mPolicyPublisher.startPolicyAutomaticReload();
+		mCurrentPolicyPath = null;
 	}
 
 	public void stopPolicyAutomaticReload() {
@@ -600,7 +607,7 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 			for (SearchResult result : pr.getResults()) {
 				if (result.getName().equals(PolicyPublisher.SUBSCRIPTION_NAME_POLICY_RELOAD)) {
 					try {
-						readNewPolicy(getGraphPolicy());
+						reloadPolicy();
 					} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
 							| UnmarshalException e) {
 						logger.error("Error while automatic read new policy from graph.");

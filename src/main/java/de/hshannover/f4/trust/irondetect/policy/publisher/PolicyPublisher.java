@@ -249,9 +249,8 @@ public class PolicyPublisher {
 	public void startPolicyAutomaticReload() throws IfmapErrorResult, IfmapException {
 		if (mPolicyPollerThread == null) {
 			startPolicyPoller();
+			subscribeForAutoPolicyReload();
 		}
-
-		subscribeForAutoPolicyReload();
 	}
 
 	private void startPolicyPoller() throws InitializationException {
