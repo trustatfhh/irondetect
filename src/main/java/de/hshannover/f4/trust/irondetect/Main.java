@@ -7,17 +7,17 @@
  *    | | | |  | |_| \__ \ |_| | (_| |  _  |\__ \|  _  |
  *    |_| |_|   \__,_|___/\__|\ \__,_|_| |_||___/|_| |_|
  *                             \____/
- * 
+ *
  * =====================================================
- * 
+ *
  * Hochschule Hannover
  * (University of Applied Sciences and Arts, Hannover)
  * Faculty IV, Dept. of Computer Science
  * Ricklinger Stadtweg 118, 30459 Hannover, Germany
- * 
+ *
  * Email: trust@f4-i.fh-hannover.de
  * Website: http://trust.f4.hs-hannover.de/
- * 
+ *
  * This file is part of irondetect, version 0.0.8,
  * implemented by the Trust@HsH research group at the Hochschule Hannover.
  * %%
@@ -26,9 +26,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,6 +39,7 @@
 package de.hshannover.f4.trust.irondetect;
 
 import java.net.URL;
+import java.util.HashSet;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -56,6 +57,7 @@ import de.hshannover.f4.trust.irondetect.ifmap.IfmapController;
 import de.hshannover.f4.trust.irondetect.ifmap.IfmapToFeatureMapper;
 import de.hshannover.f4.trust.irondetect.importer.Importer;
 import de.hshannover.f4.trust.irondetect.importer.YamlImporter;
+import de.hshannover.f4.trust.irondetect.livechecker.rest.RestService;
 import de.hshannover.f4.trust.irondetect.model.Feature;
 import de.hshannover.f4.trust.irondetect.policy.publisher.PolicyPublisher;
 import de.hshannover.f4.trust.irondetect.repository.FeatureBase;
@@ -73,6 +75,10 @@ import de.hshannover.f4.trust.irondetect.util.Pair;
  */
 public class Main {
 	public static final String VERSION = "0.0.8";
+
+	private static RestService restService;
+
+	private static Thread restServiceThread;
 
 	private static Logger logger = Logger.getLogger(Main.class);
 
@@ -103,7 +109,7 @@ public class Main {
 			logger.error(e.getClass().getSimpleName() + " when send policy-Graph (" + e.toString() + ")");
 		} catch (IfmapException e) {
 			logger.error(e.getClass().getSimpleName() + " when send policy-Graph (Message= " + e.getMessage()
-					+ " |Description= " + e.getDescription() + ")");
+			+ " |Description= " + e.getDescription() + ")");
 		}
 
 		// Add EventReceivers to FeatureBase
@@ -159,6 +165,22 @@ public class Main {
 		// controller.
 		ActionToIfmapMapper.getInstance().setIfmapController(ifmapController);
 
+		startRestService();
+
+	}
+
+	private static void startRestService() {
+		logger.info("Start RestService");
+
+		String url = "";
+
+		url = "http://127.0.0.1:8001/"; // TODO
+
+
+		restService = new RestService(url, new HashSet<Class<?>>());
+
+		restServiceThread = new Thread(restService, "RestService-Thread");
+		restServiceThread.start();
 	}
 
 	private static void initModules() {
