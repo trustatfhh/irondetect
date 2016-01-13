@@ -24,6 +24,7 @@ import de.hshannover.f4.trust.ifmapj.messages.SearchResult;
 import de.hshannover.f4.trust.ifmapj.messages.SubscribeUpdate;
 import de.hshannover.f4.trust.irondetect.gui.ResultLoggerImpl;
 import de.hshannover.f4.trust.irondetect.ifmap.EndpointPoller;
+import de.hshannover.f4.trust.irondetect.livechecker.policy.publisher.LiveCheckerPolicyActionUpdater;
 import de.hshannover.f4.trust.irondetect.model.Action;
 import de.hshannover.f4.trust.irondetect.model.Anomaly;
 import de.hshannover.f4.trust.irondetect.model.ConditionElement;
@@ -64,6 +65,8 @@ public class PolicyPublisher {
 
 	private PolicyActionUpdater mPolicyActionUpdater;
 
+	private LiveCheckerPolicyActionUpdater mLiveCheckerPolicyActionUpdater;
+
 	protected List<PublishUpdate> mPublishUpdates;
 
 	private PolicyMetadataFactory mMetadataFactory;
@@ -94,16 +97,22 @@ public class PolicyPublisher {
 
 		mPolicyFeatureUpdater = new PolicyFeatureUpdater(mPolicy, mSsrc);
 		mPolicyActionUpdater = new PolicyActionUpdater(mPolicy, mSsrc);
+		mLiveCheckerPolicyActionUpdater = LiveCheckerPolicyActionUpdater.getInstance(mPolicy, mSsrc);
 
 		ResultLoggerImpl.getInstance().addEventReceiver(mPolicyActionUpdater);
+		ResultLoggerImpl.getInstance().addEventReceiver(mLiveCheckerPolicyActionUpdater);
 		EndpointPoller.getInstance().addPollResultReceiver(mPolicyFeatureUpdater);
 		EndpointPoller.getInstance().addPollResultReceiver(mPolicyActionUpdater);
 
 		Thread featureThread = new Thread(mPolicyFeatureUpdater, PolicyFeatureUpdater.class.getSimpleName() + "-Thread");
 		Thread actionThread = new Thread(mPolicyActionUpdater, PolicyActionUpdater.class.getSimpleName() + "-Thread");
+		Thread liveCheckeractionThread =
+				new Thread(mLiveCheckerPolicyActionUpdater, LiveCheckerPolicyActionUpdater.class.getSimpleName()
+						+ "-Thread");
 
 		featureThread.start();
 		actionThread.start();
+		liveCheckeractionThread.start();
 	}
 
 	private void sendPublishUpdate() throws IfmapErrorResult, IfmapException {

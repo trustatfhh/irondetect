@@ -39,6 +39,7 @@
 package de.hshannover.f4.trust.irondetect.livechecker.rest;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -53,13 +54,23 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.DatatypeConverter;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
+import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
+import de.hshannover.f4.trust.ifmapj.identifier.Identifiers;
+import de.hshannover.f4.trust.ifmapj.identifier.Identity;
 import de.hshannover.f4.trust.irondetect.livechecker.ifmap.IdentifierGraphToFeatureMapper;
+import de.hshannover.f4.trust.irondetect.livechecker.policy.publisher.LiveCheckerPolicyActionUpdater;
 import de.hshannover.f4.trust.visitmeta.implementations.IdentifierGraphImpl;
 import de.hshannover.f4.trust.visitmeta.implementations.IdentifierImpl;
 import de.hshannover.f4.trust.visitmeta.implementations.LinkImpl;
@@ -82,7 +93,11 @@ public class LiveCheckerResource {
 
 	private ObjectMapper mObjectMapper = new ObjectMapper();
 
-	private boolean mIncludeRawXML = false;
+	private DocumentBuilder mBuilder;
+
+	private DocumentBuilderFactory mBuilderFactory;
+
+	private boolean mIncludeRawXML = true;
 
 	private static final String TIMESTAMP = "timestamp";
 	private static final String LINKS = "links";
@@ -105,19 +120,78 @@ public class LiveCheckerResource {
 	public Response checkFeatureData(String jsonFeatureData) {
 		// transform
 		JsonNode rootNode = parseJson(jsonFeatureData);
-		List<IdentifierGraph> IdentifierGraphList = extractGraphsFromJson(
+		List<IdentifierGraph> identifierGraphList = extractGraphsFromJson(
 				rootNode);
 
 
-		// update || save connection
+		//
 
 		IdentifierGraphToFeatureMapper test = new IdentifierGraphToFeatureMapper();
-		test.addNewFeaturesToFeatureBase(IdentifierGraphList);
+		test.addNewFeaturesToFeatureBase(identifierGraphList);
 
-		// persist
+		//
+
+		Map<Identity, List<Document>> graphMap = new HashMap<Identity, List<Document>>();
+
+		for (IdentifierGraph identifierGraph : identifierGraphList) {
+			for (Identifier identifiers : identifierGraph.getIdentifiers()) {
+				String identifierRawData = identifiers.getRawData();
+				Document identifierDocument = buildDocument(identifierRawData);
+				de.hshannover.f4.trust.ifmapj.identifier.Identifier identifier;
+				try {
+					identifier = Identifiers.fromElement(identifierDocument.getDocumentElement());
+				} catch (UnmarshalException e) {
+					return responseError("Data transform", e.toString());
+				}
+
+				// only for Identity-Identifier
+				if(!(identifier instanceof Identity)){
+					continue;
+				}
+
+				Identity identity = (Identity) identifier;
+				List<Document> metaDataList = new ArrayList<Document>();
+				if (!graphMap.containsKey(identity)) {
+					graphMap.put(identity, metaDataList);
+				}
+
+				for (Metadata meta : identifiers.getMetadata()) {
+					String metadataRawData = meta.getRawData();
+					Document metadataDocument = buildDocument(metadataRawData);
+
+					metaDataList.add(metadataDocument);
+				}
+			}
+		}
+
+		LiveCheckerPolicyActionUpdater.getInstance().submitNewMapGraph(graphMap);
 
 
 		return Response.ok().entity("New FeatureData was checked").build();
+	}
+
+	private Document buildDocument(String rawData) {
+		if (mBuilderFactory == null) {
+			mBuilderFactory = DocumentBuilderFactory.newInstance();
+			mBuilderFactory.setNamespaceAware(true);
+		}
+		if (mBuilder == null) {
+			try {
+				mBuilder = mBuilderFactory.newDocumentBuilder();
+			} catch (ParserConfigurationException e) {
+				LOGGER.error(e.getMessage());
+			}
+		}
+
+		Document doc = null;
+		try {
+			doc = mBuilder.parse(new InputSource(new StringReader(rawData)));
+		} catch (SAXException | IOException e) {
+			LOGGER.error("could not convert InternalMetada to Document!");
+			LOGGER.error(e.getMessage());
+		}
+
+		return doc;
 	}
 
 	private Response responseError(String errorWhile, String exception) {
