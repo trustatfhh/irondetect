@@ -59,6 +59,8 @@ import de.hshannover.f4.trust.ifmapj.IfmapJ;
 import de.hshannover.f4.trust.ifmapj.metadata.EventType;
 import de.hshannover.f4.trust.ifmapj.metadata.Significance;
 import de.hshannover.f4.trust.ifmapj.metadata.StandardIfmapMetadataFactory;
+import de.hshannover.f4.trust.ironcommon.properties.Properties;
+import de.hshannover.f4.trust.irondetect.Main;
 import de.hshannover.f4.trust.irondetect.util.Configuration;
 import de.hshannover.f4.trust.irondetect.util.Constants;
 import de.hshannover.f4.trust.irondetect.util.Helper;
@@ -71,11 +73,15 @@ import de.hshannover.f4.trust.irondetect.util.Pair;
 public class ActionToIfmapMapper {
 
 	private static ActionToIfmapMapper instance;
+	
+	private Properties mConfig = Main.getConfig();
 
 	private static final StandardIfmapMetadataFactory mf = IfmapJ
 			.createStandardMetadataFactory();
 
 	private IfmapController controller;
+
+	private boolean actionAsIfmapEvent;
 
 	private static Logger logger = Logger.getLogger(ActionToIfmapMapper.class);
 
@@ -84,6 +90,7 @@ public class ActionToIfmapMapper {
 	 */
 	private ActionToIfmapMapper() {
 		this.controller = null;
+		this.actionAsIfmapEvent = mConfig.getBoolean(Configuration.KEY_PUBLISHER_ACTIONASIFMAPEVENT, Configuration.DEFAULT_VALUE_PUBLISHER_ACTIONASIFMAPEVENT);
 	}
 
 	/**
@@ -104,7 +111,7 @@ public class ActionToIfmapMapper {
 			List<Pair<String, String>> keyValuePairs) {
 		if (this.controller != null) {
 			List<Document> result = null;
-			if (Configuration.actionAsIfmapEvent()) {
+			if (this.actionAsIfmapEvent) {
 				logger.info("Creating IF-MAP event metadata for current action.");
 				result = createIfmapEvent(keyValuePairs);
 				if (result != null) {

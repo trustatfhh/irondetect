@@ -62,6 +62,8 @@ import de.hshannover.f4.trust.ifmapj.identifier.Identifier;
 import de.hshannover.f4.trust.ifmapj.messages.PollResult;
 import de.hshannover.f4.trust.ifmapj.messages.ResultItem;
 import de.hshannover.f4.trust.ifmapj.messages.SearchResult;
+import de.hshannover.f4.trust.ironcommon.properties.Properties;
+import de.hshannover.f4.trust.irondetect.Main;
 import de.hshannover.f4.trust.irondetect.gui.ResultLogger;
 import de.hshannover.f4.trust.irondetect.gui.ResultLoggerImpl;
 import de.hshannover.f4.trust.irondetect.model.Action;
@@ -105,6 +107,9 @@ import de.hshannover.f4.trust.irondetect.util.event.TriggerUpdateEvent;
 public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 
 	private Logger logger = Logger.getLogger(Processor.class);
+	
+	private Properties mConfig = Main.getConfig();
+	
 	private LinkedBlockingQueue<Event> incomingEvents;
 	private Policy mPolicy;
 
@@ -137,7 +142,7 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 		this.incomingEvents = new LinkedBlockingQueue<Event>();
 		this.trainingDataMap = null;
 		mReadNewPolicy = false;
-		mCurrentPolicyPath = Configuration.policyFile();
+		mCurrentPolicyPath = mConfig.getString(Configuration.KEY_POLICY_FILENAME, Configuration.DEFAULT_VALUE_POLICY_FILENAME);
 
 		// default state is testing
 		// setToTesting();

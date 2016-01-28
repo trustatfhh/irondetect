@@ -1,15 +1,13 @@
 package de.hshannover.f4.trust.irondetect.policy.publisher;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 
-import de.hshannover.f4.trust.ifmapj.IfmapJ;
 import de.hshannover.f4.trust.ifmapj.channel.SSRC;
-import de.hshannover.f4.trust.ifmapj.channel.ThreadSafeSsrc;
-import de.hshannover.f4.trust.ifmapj.config.BasicAuthConfig;
 import de.hshannover.f4.trust.ifmapj.exception.IfmapErrorResult;
 import de.hshannover.f4.trust.ifmapj.exception.IfmapException;
 import de.hshannover.f4.trust.ifmapj.exception.InitializationException;
@@ -22,9 +20,12 @@ import de.hshannover.f4.trust.ifmapj.messages.Requests;
 import de.hshannover.f4.trust.ifmapj.messages.SearchRequest;
 import de.hshannover.f4.trust.ifmapj.messages.SearchResult;
 import de.hshannover.f4.trust.ifmapj.messages.SubscribeUpdate;
+import de.hshannover.f4.trust.ironcommon.properties.Properties;
+import de.hshannover.f4.trust.irondetect.Main;
 import de.hshannover.f4.trust.irondetect.gui.ResultLoggerImpl;
 import de.hshannover.f4.trust.irondetect.ifmap.EndpointPoller;
 import de.hshannover.f4.trust.irondetect.livechecker.policy.publisher.LiveCheckerPolicyActionUpdater;
+import de.hshannover.f4.trust.irondetect.ifmap.IfmapUtil;
 import de.hshannover.f4.trust.irondetect.model.Action;
 import de.hshannover.f4.trust.irondetect.model.Anomaly;
 import de.hshannover.f4.trust.irondetect.model.ConditionElement;
@@ -44,6 +45,7 @@ import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.handl
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.metadata.PolicyMetadataFactory;
 import de.hshannover.f4.trust.irondetect.util.BooleanOperator;
 import de.hshannover.f4.trust.irondetect.util.Configuration;
+import de.hshannover.f4.trust.irondetect.util.Constants;
 import de.hshannover.f4.trust.irondetect.util.Pair;
 
 /**
@@ -54,6 +56,8 @@ import de.hshannover.f4.trust.irondetect.util.Pair;
 public class PolicyPublisher {
 
 	private static final Logger LOGGER = Logger.getLogger(PolicyPublisher.class);
+	
+	private Properties mConfig = Main.getConfig();
 
 	public static final String SUBSCRIPTION_NAME_POLICY_RELOAD = "AutoPolicyReload";
 
@@ -75,6 +79,8 @@ public class PolicyPublisher {
 
 	private Thread mPolicyPollerThread;
 
+	private Integer ifmapMaxResultSize;
+
 	// register all extended identifier handler to ifmapJ
 	static {
 		Identifiers.registerIdentifierHandler(new PolicyHandler());
@@ -89,9 +95,25 @@ public class PolicyPublisher {
 	public PolicyPublisher(Policy policy) throws IfmapErrorResult, IfmapException, ClassNotFoundException,
 	InstantiationException, IllegalAccessException {
 		mPolicy = policy;
-		policyPublisherIdentifier = Configuration.getPolicyPublisherIdentifier();
+		policyPublisherIdentifier = mConfig.getString(Configuration.KEY_PUBLISHER_POLICY_DEVICENAME, Configuration.DEFAULT_VALUE_PUBLISHER_POLICY_DEVICENAME);
 
-		connect();
+		ifmapMaxResultSize = mConfig.getInt(Configuration.KEY_IFMAP_MAXRESULTSIZE, Configuration.DEFAULT_VALUE_IFMAP_MAXRESULTSIZE);
+		
+		String username = mConfig.getString(Configuration.KEY_IFMAP_BASIC_POLICYPUBLISHER_USERNAME, Configuration.DEFAULT_VALUE_IFMAP_BASIC_POLICYPUBLISHER_USERNAME);
+		String password = mConfig.getString(Configuration.KEY_IFMAP_BASIC_POLICYPUBLISHER_PASSWORD, Configuration.DEFAULT_VALUE_IFMAP_BASIC_POLICYPUBLISHER_PASSWORD);
+		
+		try {
+			mSsrc = IfmapUtil.initSsrc(username, password);
+		} catch (FileNotFoundException e) {
+			LOGGER.error("Could not initialize truststore: " + e.getMessage());
+			System.exit(Constants.RETURN_CODE_ERROR_TRUSTSTORE_LOADING_FAILED);
+		} catch (InitializationException e) {
+			LOGGER.error("Could not initialize ifmapj: " + e.getMessage() + ", " + e.getCause());
+			System.exit(Constants.RETURN_CODE_ERROR_IFMAPJ_INITIALIZATION_FAILED);
+		}
+		
+		initSession(ifmapMaxResultSize);
+		
 		buildPublishUpdate();
 		sendPublishUpdate();
 
@@ -175,30 +197,6 @@ public class PolicyPublisher {
 		}
 	}
 
-	private void connect() throws IfmapErrorResult, IfmapException {
-		String url = Configuration.ifmapUrlBasic();
-		String userName = Configuration.irondetectPolicyPublisherUser();
-		String userPassword = Configuration.irondetectPolicyPublisherPassword();
-		String truststorePath = Configuration.keyStorePath();
-		String truststorePassword = Configuration.keyStorePassword();
-		int maxPollResultSize = Configuration.ifmapMaxResultSize();
-
-		initSsrc(url, userName, userPassword, truststorePath, truststorePassword);
-		initSession(maxPollResultSize);
-
-	}
-
-	private void initSsrc(String url, String user, String userPass, String truststore, String truststorePassword)
-			throws InitializationException {
-		LOGGER.trace("init SSRC ...");
-
-		BasicAuthConfig config = new BasicAuthConfig(url, user, userPass, truststore, truststorePassword, true,
-				120 * 1000);
-		mSsrc = new ThreadSafeSsrc(IfmapJ.createSsrc(config));
-
-		LOGGER.debug("init SSRC OK");
-	}
-
 	private void initSession(int maxPollResultSize) throws IfmapErrorResult, IfmapException {
 		LOGGER.trace("creating new SSRC session ...");
 
@@ -236,7 +234,7 @@ public class PolicyPublisher {
 		Identifier startIdentifier = Identifiers.createDev(policyPublisherIdentifier);
 
 		SearchRequest searchRequest =
-				Requests.createSearchReq(null, 10, null, Configuration.ifmapMaxResultSize(), null, startIdentifier);
+				Requests.createSearchReq(null, 10, null, this.ifmapMaxResultSize, null, startIdentifier);
 
 		try {
 			SearchResult search;

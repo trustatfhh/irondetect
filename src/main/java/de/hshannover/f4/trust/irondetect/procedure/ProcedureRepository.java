@@ -51,6 +51,8 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import de.hshannover.f4.trust.ironcommon.properties.Properties;
+import de.hshannover.f4.trust.irondetect.Main;
 import de.hshannover.f4.trust.irondetect.util.Configuration;
 
 /**
@@ -63,6 +65,8 @@ import de.hshannover.f4.trust.irondetect.util.Configuration;
 public class ProcedureRepository {
 	
 	private static final Logger logger = Logger.getLogger(ProcedureRepository.class);
+	
+	private Properties mConfig = Main.getConfig();
 	
 	private String mProcedureDirectory;
 	private Map<String, Procedureable> mLoadedProcedures;
@@ -80,7 +84,7 @@ public class ProcedureRepository {
 	}
 	
 	private ProcedureRepository() {
-		mProcedureDirectory = Configuration.procedureDirectory();
+		mProcedureDirectory = mConfig.getString(Configuration.KEY_PROCEDURES_DIRECTORY, Configuration.DEFAULT_VALUE_PROCEDURES_DIRECTORY);
 		mLoadedProcedures = new HashMap<String, Procedureable>();
 
 		logger.debug("searching in '" + mProcedureDirectory + "' for jars");
@@ -142,7 +146,7 @@ public class ProcedureRepository {
 	private List<URL> listJarFiles() {
 		List<URL> jarFiles = new ArrayList<URL>();
 		
-		System.out.println(new File(mProcedureDirectory).list());
+		logger.debug(new File(mProcedureDirectory).list());
 		
 		String[] files = new File(mProcedureDirectory).list();
 

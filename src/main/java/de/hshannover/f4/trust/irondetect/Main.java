@@ -43,10 +43,10 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 
 import de.hshannover.f4.trust.ifmapj.exception.IfmapErrorResult;
 import de.hshannover.f4.trust.ifmapj.exception.IfmapException;
+import de.hshannover.f4.trust.ironcommon.properties.Properties;
 import de.hshannover.f4.trust.irondetect.engine.Processor;
 import de.hshannover.f4.trust.irondetect.engine.TriggerManager;
 import de.hshannover.f4.trust.irondetect.gui.ResultLoggerImpl;
@@ -82,16 +82,9 @@ public class Main {
 
 	private static Logger logger = Logger.getLogger(Main.class);
 
-	public static void main(String[] args) {
-		// init log4j
-		URL resource = Main.class.getResource("/log4j.properties");
-		if (resource != null) {
-			System.out.println("URL of log4j properties file: " + resource.toString());
-			PropertyConfigurator.configure(resource);
-		} else {
-			System.out.println("Couldn't load log4j properties file.");
-		}
+	private static Properties CONFIG;
 
+	public static void main(String[] args) {
 		logger.info("irondetect " + VERSION + " is running ...");
 
 		// initialize modules
@@ -126,7 +119,7 @@ public class Main {
 		Thread resultLoggerThread = new Thread(resultLogger,
 				"result-logger-thread");
 
-		if (Configuration.loadGUI()) {
+		if (CONFIG.getBoolean(Configuration.KEY_GUI_ENABLED, Configuration.DEFAULT_VALUE_GUI_ENABLED)) {
 			// Create a ResultVisualizer (displays irondetect's result with a
 			// GUI)
 			ResultVisualizer resultVisualizer = new ResultVisualizer();
@@ -141,7 +134,7 @@ public class Main {
 
 		Importer importer = new YamlImporter();
 		List<Pair<String, Pair<Feature, Boolean>>> importedTrainingData = importer
-				.loadTrainingDatabases(Configuration.yamlTrainingData());
+				.loadTrainingDatabases(CONFIG.getString(Configuration.KEY_TRAINING_DIRECTORY, Configuration.DEFAULT_VALUE_TRAINING_DIRECTORY));
 		if (importedTrainingData != null) {
 			logger.info("Imported training data was NOT null -> will train now.");
 			fb.addNewFeatures(importedTrainingData, true);
@@ -185,5 +178,22 @@ public class Main {
 
 	private static void initModules() {
 		logger.info("initializing modules ... ");
+
+		getConfig();
 	}
+
+	public static Properties getConfig() {
+		if (CONFIG == null) {
+			URL config = Main.class.getClassLoader().getResource("irondetect.yml");
+			String path = config.getPath();
+			logger.info("Path: " + path);
+			CONFIG = new Properties(path);
+			if (CONFIG == null) {
+				throw new RuntimeException("Application property has not been initialized. This is not good!");
+			}
+		}
+		
+		return CONFIG;
+	}
+	
 }

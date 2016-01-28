@@ -38,12 +38,9 @@
  */
 package de.hshannover.f4.trust.irondetect.util;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+import java.net.URL;
 
-import org.apache.log4j.Logger;
+import de.hshannover.f4.trust.ironcommon.properties.Properties;
 
 /**
  * @author Ralf Steuerwald
@@ -51,188 +48,65 @@ import org.apache.log4j.Logger;
  *
  */
 public class Configuration {
+	public static final String KEY_IFMAP_AUTH_METHOD = "irondetect.ifmap.method";
+	public static final String DEFAULT_VALUE_IFMAP_AUTH_METHOD = "basic";
 
-	private static Logger logger = Logger.getLogger(Configuration.class);
+	public static final String KEY_IFMAP_BASIC_URL = "irondetect.ifmap.basic.url";
+	public static final String DEFAULT_VALUE_IFMAP_BASIC_URL = "http://localhost:8443";
+	
+	public static final String KEY_IFMAP_BASIC_PDPSUBSCRIBER_USERNAME = "irondetect.ifmap.basic.pdpsubscriber.username";
+	public static final String DEFAULT_VALUE_IFMAP_BASIC_PDPSUBSCRIBER_USERNAME = "irondetect-pdp";
+	public static final String KEY_IFMAP_BASIC_PDPSUBSCRIBER_PASSWORD = "irondetect.ifmap.basic.pdpsubscriber.password";
+	public static final String DEFAULT_VALUE_IFMAP_BASIC_PDPSUBSCRIBER_PASSWORD = "irondetect-pdp";
+	
+	public static final String KEY_IFMAP_BASIC_DEVICESUBSCRIBER_USERNAME = "irondetect.ifmap.basic.devicesubscriber.username";
+	public static final String DEFAULT_VALUE_IFMAP_BASIC_DEVICESUBSCRIBER_USERNAME = "irondetect";
+	public static final String KEY_IFMAP_BASIC_DEVICESUBSCRIBER_PASSWORD = "irondetect.ifmap.basic.devicesubscriber.password";
+	public static final String DEFAULT_VALUE_IFMAP_BASIC_DEVICESUBSCRIBER_PASSWORD = "irondetect";
+	
+	public static final String KEY_IFMAP_BASIC_POLICYPUBLISHER_USERNAME = "irondetect.ifmap.basic.policypublisher.username";
+	public static final String DEFAULT_VALUE_IFMAP_BASIC_POLICYPUBLISHER_USERNAME = "irondetect-publisher";
+	public static final String KEY_IFMAP_BASIC_POLICYPUBLISHER_PASSWORD = "irondetect.ifmap.basic.policypublisher.password";
+	public static final String DEFAULT_VALUE_IFMAP_BASIC_POLICYPUBLISHER_PASSWORD = "irondetect-publisher";
+	
+	public static final String KEY_IFMAP_CERT_URL = "irondetect.ifmap.cert.url";
+	public static final String DEFAULT_VALUE_IFMAP_CERT_URL = "http://localhost:8444";
 
-	private static String CONFIG_FILE = "/configuration.properties";
+	public static final String KEY_IFMAP_TRUSTSTORE_PATH = "irondetect.ifmap.truststore.path";
+	public static final String DEFAULT_VALUE_IFMAP_TRUSTSTORE_PATH = "/irondetect.jks";
+	public static final String KEY_IFMAP_TRUSTSTORE_PASSWORD = "irondetect.ifmap.truststore.password";
+	public static final String DEFAULT_VALUE_IFMAP_TRUSTSTORE_PASSWORD = "irondetect";
 
-	private static Properties properties;
+	public static final String KEY_IFMAP_THREADSAFE = "irondetect.ifmap.threadsafe";
+	public static final boolean DEFAULT_VALUE_IFMAP_THREADSAFE = true;
+	public static final String KEY_IFMAP_INITIALCONNECTIONTIMEOUT = "irondetect.ifmap.initialconnectiontimeout";
+	public static final int DEFAULT_VALUE_IFMAP_INITIALCONNECTIONTIMEOUT = 120000;
+	public static final String KEY_IFMAP_MAXRESULTSIZE = "irondetect.ifmap.maxresultsize";
+	public static final int DEFAULT_VALUE_IFMAP_MAXRESULTSIZE = 100000000;
+	
+	public static final String KEY_TRAINING_DIRECTORY = "irondetect.training.directory";
+	public static final String DEFAULT_VALUE_TRAINING_DIRECTORY = "training-dbs";
 
-	// begin of parameter block
-	private static final String IFMAP_AUTH_METHOD = "ifmap.server.auth.method";
-	private static final String IFMAP_URL_BASIC = "ifmap.server.url.basic";
-	private static final String IFMAP_URL_CERT = "ifmap.server.url.cert";
-
-	private static final String IFMAP_MAX_RESULT_SIZE = "ifmap.maxresult.size";
-
-	private static final String IRONDETECT_PDPSUBSCRIBER_USER = "irondetect.pdpsubscriber.user";
-	private static final String IRONDETECT_PDPSUBSCRIBER_PASSWORD = "irondetect.pdpsubscriber.password";
-	private static final String IRONDETECT_DEVICESUBSCRIBER_USER = "irondetect.devicesubscriber.user";
-	private static final String IRONDETECT_DEVICESUBSCRIBER_PASSWORD = "irondetect.devicesubscriber.password";
-	private static final String IRONDETECT_POLICYPUBLISHER_USER = "irondetect.PolicyPublisher.user";
-	private static final String IRONDETECT_POLICYPUBLISHER_PASSWORD = "irondetect.PolicyPublisher.password";
-
-	private static final String KEYSTORE_PATH = "keystore.path";
-	private static final String KEYSTORE_PASSWORD = "keystore.password";
-
-	private static final String SUBSCRIBER_PDP = "irondetect.subscriber.pdp";
-
-	private static final String POLICY_FILE = "irondetect.policy.filename";
-
-	private static final String PROCEDURE_DIRECTORY = "irondetect.procedure.directory";
-
-	private static final String YAML_TRAINING_DATA = "irondetect.yaml.trainingdata";
-
-	private static final String ACTION_AS_IFMAP_EVENT = "irondetect.publisher.actionasifmapevent";
-	private static final String PUBLISH_NOTIFY = "irondetect.publisher.notify";
-
-	private static final String IRONDETECT_GUI = "irondetect.gui";
-
-	private static final String SEND_POLICY_ACTION_FOR_NO_FIRED_RULES = "irondetect.PolicyPublisher.policyAction.noFiredRules";
-	private static final String POLICY_PUBLISHER_IDENTIFIER = "irondetect.PolicyPublisher.identifier";
-
-	// end of parameter block
-
-	/**
-	 * Loads the configuration file. Every time this method is called the file
-	 * is read again.
-	 */
-	public static void init() {
-		// support user specific config files without rebuilding the whole thing
-		String config = System.getProperty("config");
-		if (config != null) {
-			CONFIG_FILE = config;
-		}
-		logger.info("Trying to read in configuration file: " + CONFIG_FILE);
-
-		properties = new Properties();
-		// InputStream is =
-		// Configuration.class.getResourceAsStream(CONFIG_FILE);
-		InputStream is = null;
-		try {
-			is = Helper.getInputStreamForFile(CONFIG_FILE);
-			properties.load(is);
-		} catch (FileNotFoundException e) {
-			logger.error("Could not find " + CONFIG_FILE);
-			throw new RuntimeException(e.getMessage());
-		} catch (IOException e) {
-			logger.error("Error while reading " + CONFIG_FILE);
-			throw new RuntimeException(e.getMessage());
-		} finally {
-			try {
-				if (is != null) {
-					is.close();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	/**
-	 * Returns the value assigned to the given key. If the configuration has not
-	 * been loaded jet this method loads it.
-	 *
-	 * @param key
-	 * @return the value assigned to key or null if the is none
-	 */
-	private static String get(String key) {
-		if (properties == null) {
-			init();
-		}
-
-		String result = properties.getProperty(key);
-		if (result == null) {
-			logger.error("Could not find configuration entry for '" + key + "'");
-			return "";
-		} else {
-			logger.info("Found configuration entry for '" + key + "': "
-					+ result);
-			return result;
-		}
-	}
-
-	public static String ifmapAuthMethod() {
-		return get(IFMAP_AUTH_METHOD);
-	}
-
-	public static String ifmapUrlBasic() {
-		return get(IFMAP_URL_BASIC);
-	}
-
-	public static String ifmapUrlCert() {
-		return get(IFMAP_URL_CERT);
-	}
-
-	public static String irondetectPdpSubscriberUser() {
-		return get(IRONDETECT_PDPSUBSCRIBER_USER);
-	}
-
-	public static String irondetectPdpSubscriberPassword() {
-		return get(IRONDETECT_PDPSUBSCRIBER_PASSWORD);
-	}
-
-	public static String irondetectDeviceSubscriberUser() {
-		return get(IRONDETECT_DEVICESUBSCRIBER_USER);
-	}
-
-	public static String irondetectDeviceSubscriberPassword() {
-		return get(IRONDETECT_DEVICESUBSCRIBER_PASSWORD);
-	}
-
-	public static String keyStorePath() {
-		return get(KEYSTORE_PATH);
-	}
-
-	public static String keyStorePassword() {
-		return get(KEYSTORE_PASSWORD);
-	}
-
-	public static String subscriberPdp() {
-		return get(SUBSCRIBER_PDP);
-	}
-
-	public static String policyFile() {
-		return get(POLICY_FILE);
-	}
-
-	public static String procedureDirectory() {
-		return get(PROCEDURE_DIRECTORY);
-	}
-
-	public static String yamlTrainingData() {
-		return get(YAML_TRAINING_DATA);
-	}
-
-	public static boolean actionAsIfmapEvent() {
-		return get(ACTION_AS_IFMAP_EVENT).equalsIgnoreCase("true");
-	}
-
-	public static boolean publishNotify() {
-		return get(PUBLISH_NOTIFY).equalsIgnoreCase("true");
-	}
-
-	public static int ifmapMaxResultSize() {
-		return Integer.parseInt(get(IFMAP_MAX_RESULT_SIZE));
-	}
-
-	public static boolean loadGUI() {
-		return Boolean.parseBoolean(get(IRONDETECT_GUI));
-	}
-
-	public static String irondetectPolicyPublisherUser() {
-		return get(IRONDETECT_POLICYPUBLISHER_USER);
-	}
-
-	public static String irondetectPolicyPublisherPassword() {
-		return get(IRONDETECT_POLICYPUBLISHER_PASSWORD);
-	}
-
-	public static boolean sendPolicyActionForNoFiredRules() {
-		return Boolean.parseBoolean(get(SEND_POLICY_ACTION_FOR_NO_FIRED_RULES));
-	}
-
-	public static String getPolicyPublisherIdentifier() {
-		return get(POLICY_PUBLISHER_IDENTIFIER);
-	}
+	public static final String KEY_POLICY_FILENAME = "irondetect.policy.filename";
+	public static final String DEFAULT_VALUE_POLICY_FILENAME = "/policy/MobileDevicesSzenario.pol";
+	
+	public static final String KEY_PROCEDURES_DIRECTORY = "irondetect.procedures.directory";
+	public static final String DEFAULT_VALUE_PROCEDURES_DIRECTORY = "procedures";
+	
+	public static final String KEY_GUI_ENABLED = "irondetect.gui.enabled";
+	public static final boolean DEFAULT_VALUE_GUI_ENABLED = true;
+	
+	public static final String KEY_SUBSCRIBER_DEVICENAME = "irondetect.subscriber.devicename";
+	public static final String DEFAULT_VALUE_SUBSCRIBER_DEVICENAME = "freeradius-pdp";
+	
+	public static final String KEY_PUBLISHER_ACTIONASIFMAPEVENT = "irondetect.publisher.actionasifmapevent";
+	public static final boolean DEFAULT_VALUE_PUBLISHER_ACTIONASIFMAPEVENT = false;
+	public static final String KEY_PUBLISHER_NOTIFY = "irondetect.publisher.notify";
+	public static final boolean DEFAULT_VALUE_PUBLISHER_NOTIFY = false;
+	public static final String KEY_PUBLISHER_POLICY_ENABLED = "irondetect.publisher.policy.enabled";
+	public static final boolean DEFAULT_VALUE_PUBLISHER_POLICY_ENABLED = true;
+	public static final String KEY_PUBLISHER_POLICY_NOFIREDRULES = "irondetect.publisher.policy.nofiredrules";
+	public static final boolean DEFAULT_VALUE_PUBLISHER_POLICY_NOFIREDRULES = false;
+	public static final String KEY_PUBLISHER_POLICY_DEVICENAME = "irondetect.publisher.policy.devicename";
+	public static final String DEFAULT_VALUE_PUBLISHER_POLICY_DEVICENAME = "irondetect-policy";
 }

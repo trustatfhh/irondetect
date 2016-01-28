@@ -52,7 +52,9 @@ import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 
+import de.hshannover.f4.trust.ironcommon.properties.Properties;
 import de.hshannover.f4.trust.ironcommon.yaml.YamlWriter;
+import de.hshannover.f4.trust.irondetect.Main;
 import de.hshannover.f4.trust.irondetect.model.Category;
 import de.hshannover.f4.trust.irondetect.model.ContextParamType;
 import de.hshannover.f4.trust.irondetect.model.ContextParameter;
@@ -64,17 +66,22 @@ import de.hshannover.f4.trust.irondetect.util.Helper;
 public class YamlImporterTest {
 
 	private Logger logger = Logger.getLogger(YamlImporterTest.class);
-
+	
 	private final int COUNT_FEATURES = 5;
 	private final int COUNT_DEVICES = 3;
 
 	private final String FILENAME_PREFIX = "device";
 	private final String FILENAME_POSTFIX = "_000000_20150327.yaml";
 
+	private String mDirectory;
+
 	@Before
 	public void setUp() {
+		Properties config = Main.getConfig();
+		mDirectory = config.getString(Configuration.KEY_TRAINING_DIRECTORY, Configuration.DEFAULT_VALUE_TRAINING_DIRECTORY);
+		
 		try {
-			createTestFiles();
+			createTestFiles(mDirectory);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -83,7 +90,7 @@ public class YamlImporterTest {
 	@Test
 	public void test() {
 		YamlImporter importer = new YamlImporter();
-		importer.loadTrainingDatabases(Configuration.yamlTrainingData());
+		importer.loadTrainingDatabases(mDirectory);
 	}
 
 	private List<Feature> createFeatures() {
@@ -110,13 +117,11 @@ public class YamlImporterTest {
 		return result;
 	}
 
-	private void createTestFiles() throws IOException {
+	private void createTestFiles(String directory) throws IOException {
 		logger.info(YamlImporterTest.class.getSimpleName() + " has started");
-
+		
 		String filename;
-		String directory = Configuration.yamlTrainingData();
-
-		new File(Configuration.yamlTrainingData()).mkdir();
+		new File(directory).mkdir();
 
 		for (int i = 0; i < COUNT_DEVICES; i++) {
 			filename = directory + "/" + FILENAME_PREFIX + i + FILENAME_POSTFIX;

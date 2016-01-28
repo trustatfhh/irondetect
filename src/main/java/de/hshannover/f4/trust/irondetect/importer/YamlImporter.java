@@ -54,7 +54,6 @@ import de.hshannover.f4.trust.irondetect.model.ContextParamType;
 import de.hshannover.f4.trust.irondetect.model.ContextParameter;
 import de.hshannover.f4.trust.irondetect.model.Feature;
 import de.hshannover.f4.trust.irondetect.model.FeatureType;
-import de.hshannover.f4.trust.irondetect.util.Configuration;
 import de.hshannover.f4.trust.irondetect.util.Pair;
 
 public class YamlImporter implements Importer {
@@ -73,7 +72,7 @@ public class YamlImporter implements Importer {
 	public List<Pair<String, Pair<Feature, Boolean>>> loadTrainingDatabases(
 			String directoryPath) {
 		logger.info("Trying to load training data from: "
-				+ Configuration.yamlTrainingData());
+				+ directoryPath);
 		File directory = new File(directoryPath);
 
 		if (directory.isDirectory()) {

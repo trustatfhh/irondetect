@@ -1,0 +1,20 @@
+Unstaged changes after reset:
+M	pom.xml
+M	src/main/java/de/hshannover/f4/trust/irondetect/Main.java
+M	src/main/java/de/hshannover/f4/trust/irondetect/engine/Processor.java
+M	src/main/java/de/hshannover/f4/trust/irondetect/ifmap/ActionToIfmapMapper.java
+M	src/main/java/de/hshannover/f4/trust/irondetect/ifmap/DeviceSearcher.java
+M	src/main/java/de/hshannover/f4/trust/irondetect/ifmap/IfmapController.java
+M	src/main/java/de/hshannover/f4/trust/irondetect/importer/YamlImporter.java
+M	src/main/java/de/hshannover/f4/trust/irondetect/policy/publisher/PolicyActionUpdater.java
+M	src/main/java/de/hshannover/f4/trust/irondetect/policy/publisher/PolicyPublisher.java
+M	src/main/java/de/hshannover/f4/trust/irondetect/procedure/ProcedureRepository.java
+M	src/main/java/de/hshannover/f4/trust/irondetect/util/Configuration.java
+M	src/main/java/de/hshannover/f4/trust/irondetect/util/Helper.java
+D	src/main/templates/configuration.properties
+M	src/test/java/de/hshannover/f4/trust/irondetect/importer/YamlImporterTest.java
+M	src/test/java/de/hshannover/f4/trust/irondetect/policy/publisher/PolicyActionUpdaterTest.java
+M	src/test/java/de/hshannover/f4/trust/irondetect/policy/publisher/PolicyFeatureUpdaterTest.java
+M	src/test/java/de/hshannover/f4/trust/irondetect/policy/publisher/PolicyPublisherTest.java
+D	src/test/resources/MobileDeviceSzenario.pol
+M	src/test/resources/policy/MobileDeviceSzenario.pol

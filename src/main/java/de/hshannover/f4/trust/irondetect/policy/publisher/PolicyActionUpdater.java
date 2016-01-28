@@ -36,6 +36,8 @@ import de.hshannover.f4.trust.ifmapj.messages.PublishUpdate;
 import de.hshannover.f4.trust.ifmapj.messages.Requests;
 import de.hshannover.f4.trust.ifmapj.messages.ResultItem;
 import de.hshannover.f4.trust.ifmapj.messages.SearchResult;
+import de.hshannover.f4.trust.ironcommon.properties.Properties;
+import de.hshannover.f4.trust.irondetect.Main;
 import de.hshannover.f4.trust.irondetect.gui.ResultObject;
 import de.hshannover.f4.trust.irondetect.gui.ResultObjectType;
 import de.hshannover.f4.trust.irondetect.ifmap.EndpointPoller;
@@ -69,6 +71,8 @@ import de.hshannover.f4.trust.irondetect.util.event.ResultUpdateEvent;
 public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventReceiver {
 
 	private static final Logger LOGGER = Logger.getLogger(PolicyActionUpdater.class);
+	
+	private Properties mConfig = Main.getConfig();
 
 	private static final String ESUKOM_CATEGORY_IDENTIFIER = "32939:category";
 
@@ -112,7 +116,7 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 		mNewPollResults = new LinkedBlockingQueue<PollResult>();
 		mNewResultUpdateEvent = new LinkedBlockingQueue<ResultUpdateEvent>();
 		mMetadataFactory = new PolicyMetadataFactory();
-		policyActionForNoFiredRules = Configuration.sendPolicyActionForNoFiredRules();
+		policyActionForNoFiredRules = mConfig.getBoolean(Configuration.KEY_PUBLISHER_POLICY_NOFIREDRULES, Configuration.DEFAULT_VALUE_PUBLISHER_POLICY_NOFIREDRULES);
 	}
 
 	protected void sendPublishUpdate(List<PublishUpdate> publishUpdates) throws IfmapErrorResult, IfmapException {

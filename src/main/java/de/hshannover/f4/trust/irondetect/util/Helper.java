@@ -145,7 +145,7 @@ public class Helper {
         // try filesystem
         try {
             logger.trace("looking for file on disk ...");
-            is = new FileInputStream(new File(path));
+            return new FileInputStream(new File(path));
         } catch (FileNotFoundException e) {
             // try jar
             logger.trace("looking for file in jar ...");

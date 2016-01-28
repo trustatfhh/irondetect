@@ -51,7 +51,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.net.ssl.TrustManager;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -60,11 +59,8 @@ import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import de.hshannover.f4.trust.ifmapj.IfmapJ;
 import de.hshannover.f4.trust.ifmapj.binding.IfmapStrings;
 import de.hshannover.f4.trust.ifmapj.channel.SSRC;
-import de.hshannover.f4.trust.ifmapj.config.BasicAuthConfig;
-import de.hshannover.f4.trust.ifmapj.config.CertAuthConfig;
 import de.hshannover.f4.trust.ifmapj.exception.IfmapErrorResult;
 import de.hshannover.f4.trust.ifmapj.exception.IfmapException;
 import de.hshannover.f4.trust.ifmapj.exception.InitializationException;
@@ -83,6 +79,8 @@ import de.hshannover.f4.trust.ifmapj.messages.ResultItem;
 import de.hshannover.f4.trust.ifmapj.messages.SearchRequest;
 import de.hshannover.f4.trust.ifmapj.messages.SearchResult;
 import de.hshannover.f4.trust.ifmapj.messages.SubscribeUpdate;
+import de.hshannover.f4.trust.ironcommon.properties.Properties;
+import de.hshannover.f4.trust.irondetect.Main;
 import de.hshannover.f4.trust.irondetect.util.Configuration;
 import de.hshannover.f4.trust.irondetect.util.Constants;
 import de.hshannover.f4.trust.irondetect.util.Triple;
@@ -108,8 +106,9 @@ import de.hshannover.f4.trust.irondetect.util.Triple;
  */
 public class IfmapController {
 
-	private static final Logger logger = Logger
-			.getLogger(IfmapController.class);
+	private static final Logger logger = Logger.getLogger(IfmapController.class);
+	
+	private Properties mConfig = Main.getConfig();
 
 	/**
 	 * The only SSRC
@@ -125,6 +124,10 @@ public class IfmapController {
 	private NewDevicePoller mNewDevicePoller;
 
 	private Map<String, Integer> mAlertInstanceNumber;
+
+	private int mIfmapMaxResultSize;
+
+	private boolean mPublishNotify;
 	
 	/**
 	 * @param ifmapToFeatureMapper
@@ -132,9 +135,13 @@ public class IfmapController {
 	 */
 	public IfmapController() {
 		mAlertInstanceNumber = new HashMap<String, Integer>();
+		mIfmapMaxResultSize = mConfig.getInt(Configuration.KEY_IFMAP_MAXRESULTSIZE, Configuration.DEFAULT_VALUE_IFMAP_MAXRESULTSIZE);
 
+		String username = mConfig.getString(Configuration.KEY_IFMAP_BASIC_DEVICESUBSCRIBER_USERNAME, Configuration.DEFAULT_VALUE_IFMAP_BASIC_DEVICESUBSCRIBER_USERNAME);
+		String password = mConfig.getString(Configuration.KEY_IFMAP_BASIC_DEVICESUBSCRIBER_PASSWORD, Configuration.DEFAULT_VALUE_IFMAP_BASIC_DEVICESUBSCRIBER_PASSWORD);
+		
 		try {
-			initSsrc();
+			mSsrc = IfmapUtil.initSsrc(username, password);
 		} catch (FileNotFoundException e) {
 			logger.error("Could not initialize truststore: " + e.getMessage());
 			System.exit(Constants.RETURN_CODE_ERROR_TRUSTSTORE_LOADING_FAILED);
@@ -167,46 +174,9 @@ public class IfmapController {
 		}
 	}
 
-	/**
-	 * Load {@link TrustManager} instances and create {@link SSRC}.
-	 * 
-	 * @throws FileNotFoundException
-	 * @throws InitializationException
-	 */
-	private void initSsrc() throws FileNotFoundException,
-			InitializationException {
-		String authMethod = Configuration.ifmapAuthMethod();
-		
-		String basicUrl = Configuration.ifmapUrlBasic();
-		String certUrl = Configuration.ifmapUrlCert();
-		String username = Configuration.irondetectDeviceSubscriberUser();
-		String password = Configuration.irondetectDeviceSubscriberPassword();
-		String trustStorePath = Configuration.keyStorePath();
-		String trustStorePassword = Configuration.keyStorePassword();
-		
-		try {
-			if (authMethod.equalsIgnoreCase("basic")) {
-				logger.info("Creating SSRC using basic authentication to " + Configuration.ifmapUrlBasic());
-				BasicAuthConfig basicConfig = new BasicAuthConfig(basicUrl, username, password, trustStorePath, trustStorePassword);
-				this.mSsrc = IfmapJ.createSsrc(basicConfig);
-			}
-			else if (authMethod.equalsIgnoreCase("cert")) {
-				logger.info("Creating SSRC using certificate-based authentication to " + Configuration.ifmapUrlCert());
-				CertAuthConfig certConfig = new CertAuthConfig(certUrl, trustStorePath, trustStorePassword, trustStorePath, trustStorePassword);
-				this.mSsrc= IfmapJ.createSsrc(certConfig);
-			}
-			else {
-				throw new IllegalArgumentException("unknown authentication method '" + authMethod + "'");
-			}
-		} catch (InitializationException e) {
-			logger.error("Could not initialize ifmapj: " + e.getMessage() + ", " + e.getCause());
-			System.exit(Constants.RETURN_CODE_ERROR_IFMAPJ_INITIALIZATION_FAILED);
-		}
-	}
-
 	private void initSession() {
 		try {
-			mSsrc.newSession(Configuration.ifmapMaxResultSize());
+			mSsrc.newSession(mIfmapMaxResultSize);
 		} catch (IfmapErrorResult e) {
 			logger.error("Got IfmapErrorResult: " + e.getMessage() + ", " + e.getCause());
 		} catch (IfmapException e) {
@@ -215,7 +185,7 @@ public class IfmapController {
 		}
 		
 		logger.debug("Session initialized: Session ID: " + mSsrc.getSessionId()
-				+ " - Publisher ID : " + mSsrc.getPublisherId() + " (with MAX_RESULT_SIZE = " + Configuration.ifmapMaxResultSize() + ")");
+				+ " - Publisher ID : " + mSsrc.getPublisherId() + " (with MAX_RESULT_SIZE = " + mIfmapMaxResultSize + ")");
 		mPublisherId = mSsrc.getPublisherId();
 	}
 
@@ -267,7 +237,7 @@ public class IfmapController {
 		}
 		subscribeUpdate.setStartIdentifier(device);
 		subscribeUpdate.setMaxDepth(10000); // FIXME maxDepth needed?
-		subscribeUpdate.setMaxSize(Configuration.ifmapMaxResultSize());
+		subscribeUpdate.setMaxSize(mIfmapMaxResultSize);
 		subscribeUpdate.setMatchLinksFilter(Constants.MATCH_LINKS_SMARTPHONE);
 
 		subscribeUpdate.addNamespaceDeclaration("esukom", Constants.ESUKOM_NAMESPACE_URI);
@@ -322,7 +292,7 @@ public class IfmapController {
 			elements.add(createLinksForDevice(device, target));
 		}
 		
-		if (Configuration.publishNotify()) {
+		if (mPublishNotify) {
 			for (Document metadata : metadataList) {
 				elements.add(Requests.createPublishNotify(target, metadata));
 			}
@@ -370,7 +340,7 @@ public class IfmapController {
 		
 		logger.trace("Adding link to new alert-instance = " + mAlertInstanceNumber.get(device));
 		
-		if (Configuration.publishNotify()) {
+		if (mPublishNotify) {
 			PublishNotify result = Requests.createPublishNotify();
 			result.setIdentifier1(Identifiers.createDev(device));
 			result.setIdentifier2(alertFeature);
@@ -393,7 +363,7 @@ public class IfmapController {
 	private Identifier searchAccessRequestDeviceIdentifier(String device) {
 		Identifier startIdentifier = Identifiers.createDev(device);
 		
-		SearchRequest searchRequest = Requests.createSearchReq(Constants.MATCH_LINKS_ACCESS_REQUEST, 1, null, Configuration.ifmapMaxResultSize(), null, startIdentifier);
+		SearchRequest searchRequest = Requests.createSearchReq(Constants.MATCH_LINKS_ACCESS_REQUEST, 1, null, mIfmapMaxResultSize, null, startIdentifier);
 		searchRequest.addNamespaceDeclaration(IfmapStrings.BASE_PREFIX, IfmapStrings.BASE_NS_URI);
 		searchRequest.addNamespaceDeclaration(IfmapStrings.STD_METADATA_PREFIX, IfmapStrings.STD_METADATA_NS_URI);
 		try {

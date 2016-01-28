@@ -38,23 +38,16 @@
  */
 package de.hshannover.f4.trust.irondetect.ifmap;
 
-
-
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.net.ssl.TrustManager;
-
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 
-import de.hshannover.f4.trust.ifmapj.IfmapJ;
 import de.hshannover.f4.trust.ifmapj.binding.IfmapStrings;
 import de.hshannover.f4.trust.ifmapj.channel.ARC;
 import de.hshannover.f4.trust.ifmapj.channel.SSRC;
-import de.hshannover.f4.trust.ifmapj.config.BasicAuthConfig;
-import de.hshannover.f4.trust.ifmapj.config.CertAuthConfig;
 import de.hshannover.f4.trust.ifmapj.exception.EndSessionException;
 import de.hshannover.f4.trust.ifmapj.exception.IfmapErrorResult;
 import de.hshannover.f4.trust.ifmapj.exception.IfmapException;
@@ -66,6 +59,8 @@ import de.hshannover.f4.trust.ifmapj.messages.Requests;
 import de.hshannover.f4.trust.ifmapj.messages.ResultItem;
 import de.hshannover.f4.trust.ifmapj.messages.SearchResult;
 import de.hshannover.f4.trust.ifmapj.messages.SubscribeUpdate;
+import de.hshannover.f4.trust.ironcommon.properties.Properties;
+import de.hshannover.f4.trust.irondetect.Main;
 import de.hshannover.f4.trust.irondetect.util.Configuration;
 import de.hshannover.f4.trust.irondetect.util.Constants;
 
@@ -78,6 +73,8 @@ public class DeviceSearcher implements Runnable {
 
 	private static final Logger logger = Logger.getLogger(DeviceSearcher.class);
 	
+	private Properties mConfig = Main.getConfig();
+	
 	private IfmapController mController;
 	
 	/**
@@ -89,12 +86,21 @@ public class DeviceSearcher implements Runnable {
 	 * The only ARC
 	 */
 	private ARC mArc;
+
+	private int mIfmapMaxResultSize;
+
+	private String mSubscriberDeviceName;
 	
 	public DeviceSearcher(IfmapController controller) {
 		mController = controller;
+		mIfmapMaxResultSize = mConfig.getInt(Configuration.KEY_IFMAP_MAXRESULTSIZE, Configuration.DEFAULT_VALUE_IFMAP_MAXRESULTSIZE);
+		mSubscriberDeviceName = mConfig.getString(Configuration.KEY_SUBSCRIBER_DEVICENAME, Configuration.DEFAULT_VALUE_SUBSCRIBER_DEVICENAME);
+		
+		String username = mConfig.getString(Configuration.KEY_IFMAP_BASIC_PDPSUBSCRIBER_USERNAME, Configuration.DEFAULT_VALUE_IFMAP_BASIC_PDPSUBSCRIBER_USERNAME);
+		String password = mConfig.getString(Configuration.KEY_IFMAP_BASIC_PDPSUBSCRIBER_PASSWORD, Configuration.DEFAULT_VALUE_IFMAP_BASIC_PDPSUBSCRIBER_PASSWORD);
 		
 		try {
-			initSsrc();
+			mSsrc = IfmapUtil.initSsrc(username, password);
 			initArc();
 		} catch (FileNotFoundException e) {
 			logger.error("Could not initialize truststore: " + e.getMessage());
@@ -104,43 +110,7 @@ public class DeviceSearcher implements Runnable {
 			System.exit(Constants.RETURN_CODE_ERROR_IFMAPJ_INITIALIZATION_FAILED);
 		}
 	}
-	
-	/**
-	 * Load {@link TrustManager} instances and create {@link SSRC}.
-	 * 
-	 * @throws FileNotFoundException
-	 * @throws InitializationException
-	 */
-	private void initSsrc() throws FileNotFoundException,
-			InitializationException {
-		String authMethod = Configuration.ifmapAuthMethod();
-		
-		String basicUrl = Configuration.ifmapUrlBasic();
-		String certUrl = Configuration.ifmapUrlCert();
-		String username = Configuration.irondetectPdpSubscriberUser();
-		String password = Configuration.irondetectPdpSubscriberPassword();
-		String trustStorePath = Configuration.keyStorePath();
-		String trustStorePassword = Configuration.keyStorePassword();
-		
-		try {
-			if (authMethod.equalsIgnoreCase("basic")) {
-				logger.info("Creating SSRC using basic authentication.");
-				BasicAuthConfig basicConfig = new BasicAuthConfig(basicUrl, username, password, trustStorePath, trustStorePassword);
-				this.mSsrc = IfmapJ.createSsrc(basicConfig);
-			}
-			else if (authMethod.equalsIgnoreCase("cert")) {
-				logger.info("Creating SSRC using certificate-based authentication.");
-				CertAuthConfig certConfig = new CertAuthConfig(certUrl, trustStorePath, trustStorePassword, trustStorePath, trustStorePassword);
-				this.mSsrc= IfmapJ.createSsrc(certConfig);
-			}
-			else {
-				throw new IllegalArgumentException("unknown authentication method '" + authMethod + "'");
-			}
-		} catch (InitializationException e) {
-			logger.error("Could not initialize ifmapj: " + e.getMessage() + ", " + e.getCause());
-			System.exit(Constants.RETURN_CODE_ERROR_IFMAPJ_INITIALIZATION_FAILED);
-		}
-	}
+
 	
 	/**
 	 * @throws InitializationException
@@ -234,9 +204,8 @@ public class DeviceSearcher implements Runnable {
 		// TODO do the following for each PDP
 
 		// set subscription parameters for pdp
-		subscribeUpdate.setName(Configuration.subscriberPdp());
-		subscribeUpdate.setStartIdentifier(Identifiers.createDev(Configuration
-				.subscriberPdp()));
+		subscribeUpdate.setName(mSubscriberDeviceName);
+		subscribeUpdate.setStartIdentifier(Identifiers.createDev(mSubscriberDeviceName));
 		subscribeUpdate.setMatchLinksFilter(Constants.MATCH_LINKS_PDP);
 		subscribeUpdate.setMaxDepth(2);
 		subscribeUpdate.setMaxSize(16384);
@@ -256,7 +225,7 @@ public class DeviceSearcher implements Runnable {
 	
 	private void initSession() {
 		try {
-			mSsrc.newSession(Configuration.ifmapMaxResultSize());
+			mSsrc.newSession(mIfmapMaxResultSize);
 		} catch (IfmapErrorResult e) {
 			logger.error("Got IfmapErrorResult: " + e.getMessage() + ", " + e.getCause());
 		} catch (IfmapException e) {
@@ -264,6 +233,6 @@ public class DeviceSearcher implements Runnable {
 		}
 		
 		logger.debug("Session initialized: Session ID: " + mSsrc.getSessionId()
-				+ " - Publisher ID : " + mSsrc.getPublisherId() + " (with MAX_POLL_RESULT_SIZE = " + Configuration.ifmapMaxResultSize() + ")");
+				+ " - Publisher ID : " + mSsrc.getPublisherId() + " (with MAX_POLL_RESULT_SIZE = " + mIfmapMaxResultSize + ")");
 	}
 }
