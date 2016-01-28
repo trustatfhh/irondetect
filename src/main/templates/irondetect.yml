@@ -32,7 +32,7 @@ irondetect:
     # Truststore configuration
     truststore:
       # path and filename of the keystore
-      path: /irondetect.jks
+      path: irondetect.jks
       # password of the keystore
       password: irondetect
     # connection uses a thread-safe SSRC
