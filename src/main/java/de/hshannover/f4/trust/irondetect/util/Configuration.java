@@ -38,10 +38,6 @@
  */
 package de.hshannover.f4.trust.irondetect.util;
 
-import java.net.URL;
-
-import de.hshannover.f4.trust.ironcommon.properties.Properties;
-
 /**
  * @author Ralf Steuerwald
  * @author Bastian Hellmann
@@ -109,4 +105,8 @@ public class Configuration {
 	public static final boolean DEFAULT_VALUE_PUBLISHER_POLICY_NOFIREDRULES = false;
 	public static final String KEY_PUBLISHER_POLICY_DEVICENAME = "irondetect.publisher.policy.devicename";
 	public static final String DEFAULT_VALUE_PUBLISHER_POLICY_DEVICENAME = "irondetect-policy";
+
+	public static final String KEY_REST_URL = "irondetect.rest.url";
+	public static final String DEFAULT_VALUE_REST_URL = "http://127.0.0.1:8001/";
+	
 }

@@ -70,3 +70,7 @@ irondetect:
       nofiredrules: false
       # is the value of the specific start identifier for the policy graph
       devicename: irondetect-policy
+  # REST service settings
+  rest:
+    # URL of the REST service
+    url: http://127.0.0.1:8001

@@ -165,11 +165,7 @@ public class Main {
 	private static void startRestService() {
 		logger.info("Start RestService");
 
-		String url = "";
-
-		url = "http://127.0.0.1:8001/"; // TODO
-
-
+		String url = CONFIG.getString(Configuration.KEY_REST_URL, Configuration.DEFAULT_VALUE_REST_URL);
 		restService = new RestService(url, new HashSet<Class<?>>());
 
 		restServiceThread = new Thread(restService, "RestService-Thread");
