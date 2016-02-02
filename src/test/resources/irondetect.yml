@@ -41,8 +41,10 @@ irondetect:
     initialconnectiontimeout: 120000
     # Max sizes for results (in bytes)
     maxresultsize: 100000000
-  # training data
+  # Settings for training data
   training:
+    # Is training enabled?
+    enabled: true
     # Directory for training data, stored as a DB4O databases
     directory: src/test/resources/training-dbs
   policy:

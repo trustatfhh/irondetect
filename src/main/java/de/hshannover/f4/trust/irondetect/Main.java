@@ -132,16 +132,23 @@ public class Main {
 		Thread processingThread = new Thread(processor, "processor-thread");
 		processingThread.start();
 
-		Importer importer = new YamlImporter();
-		List<Pair<String, Pair<Feature, Boolean>>> importedTrainingData = importer
-				.loadTrainingDatabases(CONFIG.getString(Configuration.KEY_TRAINING_DIRECTORY, Configuration.DEFAULT_VALUE_TRAINING_DIRECTORY));
-		if (importedTrainingData != null) {
-			logger.info("Imported training data was NOT null -> will train now.");
-			fb.addNewFeatures(importedTrainingData, true);
+		boolean trainingEnabled = CONFIG.getBoolean(Configuration.KEY_TRAINING_ENABLED, Configuration.DEFAULT_VALUE_TRAINING_ENABLED);
+		if (trainingEnabled) {
+			Importer importer = new YamlImporter();
+			List<Pair<String, Pair<Feature, Boolean>>> importedTrainingData = importer
+					.loadTrainingDatabases(CONFIG.getString(Configuration.KEY_TRAINING_DIRECTORY, Configuration.DEFAULT_VALUE_TRAINING_DIRECTORY));
+			if (importedTrainingData != null) {
+				logger.info("Imported training data was NOT null -> will train now.");
+				fb.addNewFeatures(importedTrainingData, true);
+			} else {
+				logger.info("Imported training data was null.");
+			}
 		} else {
-			logger.info("Imported training data was null -> will begin testing now.");
-			processor.setToTesting();
+			logger.info("Training was disabled.");
 		}
+		
+		logger.info("Will begin testing now.");
+		processor.setToTesting();
 
 		// Create new IF-MAP-to-Feature Mapper
 		IfmapToFeatureMapper ifmapToFeatureMapper = new IfmapToFeatureMapper();
@@ -159,7 +166,6 @@ public class Main {
 		ActionToIfmapMapper.getInstance().setIfmapController(ifmapController);
 
 		startRestService();
-
 	}
 
 	private static void startRestService() {

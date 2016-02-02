@@ -80,6 +80,8 @@ public class Configuration {
 	public static final String KEY_IFMAP_MAXRESULTSIZE = "irondetect.ifmap.maxresultsize";
 	public static final int DEFAULT_VALUE_IFMAP_MAXRESULTSIZE = 100000000;
 	
+	public static final String KEY_TRAINING_ENABLED = "irondetect.training.enabled";
+	public static final boolean DEFAULT_VALUE_TRAINING_ENABLED = false;
 	public static final String KEY_TRAINING_DIRECTORY = "irondetect.training.directory";
 	public static final String DEFAULT_VALUE_TRAINING_DIRECTORY = "training-dbs";
 
