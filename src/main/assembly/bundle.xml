@@ -15,7 +15,7 @@
                         <filtered>true</filtered>
                 </file>
 		<file>
-			<source>${project.build.directory}/irondetect-${version}-bin.jar</source>
+			<source>${project.build.directory}/irondetect-${version}.jar</source>
 			<outputDirectory></outputDirectory>
 			<destName>irondetect.jar</destName>
 		</file>
