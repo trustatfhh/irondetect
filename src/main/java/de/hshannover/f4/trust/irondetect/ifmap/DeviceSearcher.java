@@ -209,7 +209,6 @@ public class DeviceSearcher implements Runnable {
 		subscribeUpdate.setMatchLinksFilter(Constants.MATCH_LINKS_PDP);
 		subscribeUpdate.setMaxDepth(2);
 		subscribeUpdate.setMaxSize(16384);
-		subscribeUpdate.setResultFilter(Constants.RESULT_FILTER_PDP);
 
 		// add default namespaces
 		subscribeUpdate.addNamespaceDeclaration(IfmapStrings.BASE_PREFIX,
@@ -218,7 +217,7 @@ public class DeviceSearcher implements Runnable {
 				IfmapStrings.STD_METADATA_PREFIX,
 				IfmapStrings.STD_METADATA_NS_URI);
 
-		logger.debug("Subscribe for new PDP device ...");
+		logger.debug("Subscribe for new PDP device: " + mSubscriberDeviceName + " ...");
 		mSsrc.subscribe(Requests.createSubscribeReq(subscribeUpdate));
 		logger.debug("Subscription done!");
 	}

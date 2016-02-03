@@ -62,11 +62,6 @@ public class Constants {
 	public static final String MATCH_LINKS_PDP = "meta:authenticated-by or meta:access-request-device";
 
 	/**
-	 * The result filter for each Pdp
-	 */
-	public static final String RESULT_FILTER_PDP = "meta:authenticated-by or meta:access-request-device";
-	
-	/**
 	 * Exit-codes
 	 */
 	public static final int RETURN_CODE_SUCCES = 0;
