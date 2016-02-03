@@ -239,6 +239,7 @@ public class IfmapController {
 		subscribeUpdate.setMaxDepth(10000); // FIXME maxDepth needed?
 		subscribeUpdate.setMaxSize(mIfmapMaxResultSize);
 		subscribeUpdate.setMatchLinksFilter(Constants.MATCH_LINKS_SMARTPHONE);
+		subscribeUpdate.setResultFilter(Constants.RESULT_FILTER_SMARTPHONE);
 
 		subscribeUpdate.addNamespaceDeclaration("esukom", Constants.ESUKOM_NAMESPACE_URI);
 
