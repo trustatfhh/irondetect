@@ -125,9 +125,9 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 	private void addFeatureRevIfExistInPolicy(Identity categoryIdentity, Document featureMetadata) throws DOMException,
 			MarshalException, ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		String metadataFeatureId = findElement("id", featureMetadata.getDocumentElement());
+		String metadataFeatureId = categoryIdentity.getName() + "." + findElement("id", featureMetadata.getDocumentElement());
 		String metadataFeatureValue = findElement("value", featureMetadata.getDocumentElement());
-
+		
 		for (Rule r : mPolicy.getRuleSet()) {
 			for (Pair<ConditionElement, BooleanOperator> p : r.getCondition().getConditionSet()) {
 				ConditionElement conditionElement = p.getFirstElement();

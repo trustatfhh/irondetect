@@ -75,7 +75,7 @@ public class PolicyPublisher {
 
 	private PolicyMetadataFactory mMetadataFactory;
 
-	private String policyPublisherIdentifier = "irondetect-policy";
+	private String policyPublisherIdentifier;
 
 	private Thread mPolicyPollerThread;
 
