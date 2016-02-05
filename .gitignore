@@ -5,4 +5,5 @@
 .DS_Store
 bin/
 src/test/resources/training-dbs/
+dependency-reduced-pom.xml
 
