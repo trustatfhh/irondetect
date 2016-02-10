@@ -93,9 +93,21 @@ public class Main {
 		// Create and Start main processing controller
 		Processor processor = Processor.getInstance();
 
+		// Create processor and thread
+		Thread processingThread = new Thread(processor, "processor-thread");
+		processingThread.start();
+		
 		try {
 			PolicyPublisher policyUpdater = new PolicyPublisher(processor.getPolicy());
 			processor.setPolicyPublisher(policyUpdater);
+			
+			
+			boolean automaticPolicyReload = CONFIG.getBoolean(Configuration.KEY_POLICY_RELOAD_FROM_GRAPH,
+					Configuration.DEFAULT_VALUE_POLICY_RELOAD_FROM_GRAPH);
+			if (automaticPolicyReload) {
+				logger.info("Start automatic reloading of policy from IF-MAP graph");
+				processor.startPolicyAutomaticReload();
+			}
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
 			logger.error("Error while init PolicyPublisher", e);
 		} catch (IfmapErrorResult e) {
@@ -127,10 +139,6 @@ public class Main {
 		}
 
 		resultLoggerThread.start();
-
-		// Create processor and thread
-		Thread processingThread = new Thread(processor, "processor-thread");
-		processingThread.start();
 
 		boolean trainingEnabled = CONFIG.getBoolean(Configuration.KEY_TRAINING_ENABLED, Configuration.DEFAULT_VALUE_TRAINING_ENABLED);
 		if (trainingEnabled) {

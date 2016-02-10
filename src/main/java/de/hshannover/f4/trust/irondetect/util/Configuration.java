@@ -87,6 +87,8 @@ public class Configuration {
 
 	public static final String KEY_POLICY_FILENAME = "irondetect.policy.filename";
 	public static final String DEFAULT_VALUE_POLICY_FILENAME = "/policy/MobileDevicesSzenario.pol";
+	public static final String KEY_POLICY_RELOAD_FROM_GRAPH = "irondetect.policy.reloadfromgraph";
+	public static final boolean DEFAULT_VALUE_POLICY_RELOAD_FROM_GRAPH = false;
 	
 	public static final String KEY_PROCEDURES_DIRECTORY = "irondetect.procedures.directory";
 	public static final String DEFAULT_VALUE_PROCEDURES_DIRECTORY = "procedures";
@@ -110,5 +112,4 @@ public class Configuration {
 
 	public static final String KEY_REST_URL = "irondetect.rest.url";
 	public static final String DEFAULT_VALUE_REST_URL = "http://127.0.0.1:8001/";
-	
 }

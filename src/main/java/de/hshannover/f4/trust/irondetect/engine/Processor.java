@@ -150,7 +150,6 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 
 		// Parse policy
 		readPolicyFromFile(mCurrentPolicyPath);
-
 	}
 
 	public Map<String, TrainingData> getTrainingDataMap(){

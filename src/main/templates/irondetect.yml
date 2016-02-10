@@ -44,12 +44,14 @@ irondetect:
   # Settings for training data
   training:
     # Is training enabled?
-    enabled: true
+    enabled: false
     # Directory for training data, stored as a DB4O databases
     directory: training-dbs
   policy:
     # Filename of the policy
     filename: /policy/MobileDevicesSzenario.pol
+    # Subscribe to graph changes of policy
+    reloadfromgraph: false
   procedures:
     # Directory for procedure JARs
     directory: procedures
