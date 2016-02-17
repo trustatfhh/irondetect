@@ -44,7 +44,7 @@ import de.hshannover.f4.trust.irondetect.util.PollResultReceiver;
 /**
  * An {@link PolicyFeatureUpdater} publishes for a new ESUKOM-feature metadata a new policy-feature metadata with
  * reference to the ESUKOM-feature.
- * 
+ *
  * @author Marcel Reichenbach
  */
 public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
@@ -66,7 +66,7 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 	private SSRC mSsrc;
 
 	protected List<PublishUpdate> mPublishUpdates;
-	
+
 	private PolicyMetadataFactory mMetadataFactory;
 
 	public PolicyFeatureUpdater(Policy policy, SSRC ssrc) throws IfmapErrorResult, IfmapException {
@@ -94,16 +94,16 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 			LOGGER.trace("Nothig was sended. Wait for new poll results...");
 		}
 	}
-	
+
 	private void addPublishUpdate(Identifier identifier, Document metadata) {
 		PublishUpdate update = Requests.createPublishUpdate();
 
 		update.setIdentifier1(identifier);
 		update.addMetadata(metadata);
 		update.setLifeTime(MetadataLifetime.session);
-		 
+
 		mPublishUpdates.add(update);
-		
+
 	}
 
 	private String findElement(String element, Element root) {
@@ -123,11 +123,11 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 	}
 
 	private void addFeatureRevIfExistInPolicy(Identity categoryIdentity, Document featureMetadata) throws DOMException,
-			MarshalException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+	MarshalException, ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		String metadataFeatureId = categoryIdentity.getName() + "." + findElement("id", featureMetadata.getDocumentElement());
 		String metadataFeatureValue = findElement("value", featureMetadata.getDocumentElement());
-		
+
 		for (Rule r : mPolicy.getRuleSet()) {
 			for (Pair<ConditionElement, BooleanOperator> p : r.getCondition().getConditionSet()) {
 				ConditionElement conditionElement = p.getFirstElement();
@@ -323,7 +323,7 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 					LOGGER.error(e.getClass().getSimpleName() + " when send policy-feature (" + e.toString() + ")");
 				} catch (IfmapException e) {
 					LOGGER.error(e.getClass().getSimpleName() + " when send policy-feature (Message= " + e.getMessage()
-							+ " |Description= " + e.getDescription() + ")");
+					+ " |Description= " + e.getDescription() + ")");
 				}
 
 			} catch (InterruptedException e) {
@@ -331,8 +331,12 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 				break;
 			}
 		}
-            
-        LOGGER.info("... run()");
+
+		LOGGER.info("... run()");
+	}
+
+	public void submitChangedPolicy(Policy newPolicy) {
+		mPolicy = newPolicy;
 	}
 
 }

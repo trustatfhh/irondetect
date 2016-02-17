@@ -68,7 +68,7 @@ import de.hshannover.f4.trust.irondetect.util.event.ResultUpdateEvent;
 public class LiveCheckerPolicyActionUpdater implements Runnable, EventReceiver {
 
 	private static final Logger LOGGER = Logger.getLogger(LiveCheckerPolicyActionUpdater.class);
-	
+
 	private static Properties CONFIG = Main.getConfig();
 
 	private static final String ESUKOM_CATEGORY_IDENTIFIER = "32939:category";
@@ -103,7 +103,7 @@ public class LiveCheckerPolicyActionUpdater implements Runnable, EventReceiver {
 	}
 
 	public static LiveCheckerPolicyActionUpdater getInstance(Policy policy, SSRC ssrc) throws IfmapErrorResult,
-			IfmapException {
+	IfmapException {
 		if (mInstance == null) {
 			mInstance = new LiveCheckerPolicyActionUpdater(policy, ssrc);
 		}
@@ -520,6 +520,10 @@ public class LiveCheckerPolicyActionUpdater implements Runnable, EventReceiver {
 				}
 			}
 		}
+	}
+
+	public void submitChangedPolicy(Policy newPolicy) {
+		mPolicy = newPolicy;
 	}
 
 }

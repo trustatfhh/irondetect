@@ -65,13 +65,13 @@ import de.hshannover.f4.trust.irondetect.util.event.ResultUpdateEvent;
 /**
  * An {@link PolicyActionUpdater} publishes for a new (alert)ESUKOM-feature metadata a new policy-action metadata with
  * reference.
- * 
+ *
  * @author Marcel Reichenbach
  */
 public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventReceiver {
 
 	private static final Logger LOGGER = Logger.getLogger(PolicyActionUpdater.class);
-	
+
 	private Properties mConfig = Main.getConfig();
 
 	private static final String ESUKOM_CATEGORY_IDENTIFIER = "32939:category";
@@ -109,7 +109,7 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 	}
 
 	protected void init(Policy policy, SSRC ssrc, PolicyActionSearcher policyActionSearcher) throws IfmapErrorResult,
-			IfmapException {
+	IfmapException {
 		mSsrc = ssrc;
 		mPolicy = policy;
 		mPolicyActionSearcher = policyActionSearcher;
@@ -132,14 +132,14 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 			LOGGER.trace("Nothig was sended. Wait for new poll results...");
 		}
 	}
-	
+
 	private PublishUpdate buildPublishUpdate(Identifier identifier, Document metadata) {
 		PublishUpdate update = Requests.createPublishUpdate();
 
 		update.setIdentifier1(identifier);
 		update.addMetadata(metadata);
 		update.setLifeTime(MetadataLifetime.session);
-		 
+
 		return update;
 	}
 
@@ -394,7 +394,7 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 
 		while (!Thread.currentThread().isInterrupted()) {
 			try {
-				
+
 				newPollResult();
 
 			} catch (InterruptedException e) {
@@ -402,10 +402,10 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 				break;
 			}
 		}
-            
-        LOGGER.info("... run()");
+
+		LOGGER.info("... run()");
 	}
-	
+
 	private Map<Document, Identity> getFeatureMetadata(PollResult pollResult, Set<String> ruleFeatures, String device) {
 		Map<Document, Identity> featureDocuments = new HashMap<Document, Identity>();
 
@@ -543,7 +543,7 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 
 	private boolean checkResultType(ResultObject result, ResultObjectType... type) {
 		if (Arrays.asList(type).contains(result.getType())) {
-				return true;
+			return true;
 		}
 		return false;
 	}
@@ -564,4 +564,8 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 		}
 	}
 
+	public void submitChangedPolicy(Policy newPolicy) {
+		mPolicy = newPolicy;
+		mPolicyActionSearcher.submitChangedPolicy(newPolicy);
+	}
 }

@@ -24,8 +24,8 @@ import de.hshannover.f4.trust.ironcommon.properties.Properties;
 import de.hshannover.f4.trust.irondetect.Main;
 import de.hshannover.f4.trust.irondetect.gui.ResultLoggerImpl;
 import de.hshannover.f4.trust.irondetect.ifmap.EndpointPoller;
-import de.hshannover.f4.trust.irondetect.livechecker.policy.publisher.LiveCheckerPolicyActionUpdater;
 import de.hshannover.f4.trust.irondetect.ifmap.IfmapUtil;
+import de.hshannover.f4.trust.irondetect.livechecker.policy.publisher.LiveCheckerPolicyActionUpdater;
 import de.hshannover.f4.trust.irondetect.model.Action;
 import de.hshannover.f4.trust.irondetect.model.Anomaly;
 import de.hshannover.f4.trust.irondetect.model.ConditionElement;
@@ -56,7 +56,7 @@ import de.hshannover.f4.trust.irondetect.util.Pair;
 public class PolicyPublisher {
 
 	private static final Logger LOGGER = Logger.getLogger(PolicyPublisher.class);
-	
+
 	private Properties mConfig = Main.getConfig();
 
 	public static final String SUBSCRIPTION_NAME_POLICY_RELOAD = "AutoPolicyReload";
@@ -98,10 +98,10 @@ public class PolicyPublisher {
 		policyPublisherIdentifier = mConfig.getString(Configuration.KEY_PUBLISHER_POLICY_DEVICENAME, Configuration.DEFAULT_VALUE_PUBLISHER_POLICY_DEVICENAME);
 
 		ifmapMaxResultSize = mConfig.getInt(Configuration.KEY_IFMAP_MAXRESULTSIZE, Configuration.DEFAULT_VALUE_IFMAP_MAXRESULTSIZE);
-		
+
 		String username = mConfig.getString(Configuration.KEY_IFMAP_BASIC_POLICYPUBLISHER_USERNAME, Configuration.DEFAULT_VALUE_IFMAP_BASIC_POLICYPUBLISHER_USERNAME);
 		String password = mConfig.getString(Configuration.KEY_IFMAP_BASIC_POLICYPUBLISHER_PASSWORD, Configuration.DEFAULT_VALUE_IFMAP_BASIC_POLICYPUBLISHER_PASSWORD);
-		
+
 		try {
 			mSsrc = IfmapUtil.initSsrc(username, password);
 		} catch (FileNotFoundException e) {
@@ -111,9 +111,9 @@ public class PolicyPublisher {
 			LOGGER.error("Could not initialize ifmapj: " + e.getMessage() + ", " + e.getCause());
 			System.exit(Constants.RETURN_CODE_ERROR_IFMAPJ_INITIALIZATION_FAILED);
 		}
-		
+
 		initSession(ifmapMaxResultSize);
-		
+
 		buildPublishUpdate();
 		sendPublishUpdate();
 
@@ -283,6 +283,13 @@ public class PolicyPublisher {
 		}
 
 		LOGGER.debug("Subscription done!");
+	}
+
+	public void submitChangedPolicy(Policy newPolicy) {
+		mPolicy = newPolicy;
+		mPolicyFeatureUpdater.submitChangedPolicy(newPolicy);
+		mPolicyActionUpdater.submitChangedPolicy(newPolicy);
+		mLiveCheckerPolicyActionUpdater.submitChangedPolicy(newPolicy);
 	}
 
 }

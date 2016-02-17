@@ -38,7 +38,7 @@ import de.hshannover.f4.trust.irondetect.util.PollResultReceiver;
 /**
  * An {@link PolicyActionSearcher} searches for a new (alert)ESUKOM-feature metadata and add this iin policy-action
  * metadata.
- * 
+ *
  * @author Marcel Reichenbach
  */
 public class PolicyActionSearcher implements Runnable, PollResultReceiver {
@@ -68,7 +68,7 @@ public class PolicyActionSearcher implements Runnable, PollResultReceiver {
 	private Thread mPolicyActionSearcherThread;
 
 	public PolicyActionSearcher(PolicyActionUpdater policyActionUpdater, Policy policy) throws IfmapErrorResult,
-			IfmapException {
+	IfmapException {
 		mPolicyActionUpdater = policyActionUpdater;
 		mPolicy = policy;
 		mAlertInstanceNumber = new HashMap<String, Integer>();
@@ -111,7 +111,7 @@ public class PolicyActionSearcher implements Runnable, PollResultReceiver {
 
 	private Map<Identity, List<Document>> preparePollResult(PollResult pollResult) {
 		Map<Identity, List<Document>> alertResults = new HashMap<Identity, List<Document>>();
-		
+
 		for (SearchResult searchResult : pollResult.getResults()) {
 			for (ResultItem resultItem : searchResult.getResultItems()) {
 				Identifier identifier1 = resultItem.getIdentifier1();
@@ -292,7 +292,7 @@ public class PolicyActionSearcher implements Runnable, PollResultReceiver {
 				ResultObject ruleResult = policyAction.getFirstElement();
 				Document policyActionMetadata = policyAction.getSecondElement();
 				String device = ruleResult.getDevice();
-				
+
 				List<Action> actions = getActions(ruleResult.getId());
 
 				for (Action action : actions) {
@@ -337,13 +337,13 @@ public class PolicyActionSearcher implements Runnable, PollResultReceiver {
 				LOGGER.error(e.getClass().getSimpleName() + " when send policy-action (" + e.toString() + ")");
 			} catch (IfmapException e) {
 				LOGGER.error(e.getClass().getSimpleName() + " when send policy-action (Message= " + e.getMessage()
-						+ " |Description= " + e.getDescription() + ")");
+				+ " |Description= " + e.getDescription() + ")");
 			}
 		}
-            
-        LOGGER.info("... run()");
+
+		LOGGER.info("... run()");
 	}
-	
+
 	private void addActionFeatures(Document policyActionMetadata, List<Document> alertFeatures, Identity identity)
 			throws MarshalException {
 		Element rootElement = policyActionMetadata.getDocumentElement();
@@ -382,6 +382,10 @@ public class PolicyActionSearcher implements Runnable, PollResultReceiver {
 		} catch (InterruptedException e) {
 			LOGGER.error("InterruptedException when submit new result-update: " + e.getMessage());
 		}
+	}
+
+	public void submitChangedPolicy(Policy newPolicy) {
+		mPolicy = newPolicy;
 	}
 
 }

@@ -107,9 +107,9 @@ import de.hshannover.f4.trust.irondetect.util.event.TriggerUpdateEvent;
 public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 
 	private Logger logger = Logger.getLogger(Processor.class);
-	
+
 	private Properties mConfig = Main.getConfig();
-	
+
 	private LinkedBlockingQueue<Event> incomingEvents;
 	private Policy mPolicy;
 
@@ -200,8 +200,11 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 
 			Policy newPolicy = PolicyFactory.readPolicy(policyFile);
 
-			mPolicy = null;
 			mPolicy = newPolicy;
+
+			if (mPolicyPublisher != null) {
+				mPolicyPublisher.submitChangedPolicy(mPolicy);
+			}
 
 		} catch (FileNotFoundException e) {
 			logger.error("Policy file could not be loaded: " + e.getMessage() + ", " + e.getCause());
@@ -346,8 +349,9 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 		addFeatureIdsToRules(policyDataList);
 
 		// change to the new Policy
-		mPolicy = null;
 		mPolicy = policy;
+
+		mPolicyPublisher.submitChangedPolicy(mPolicy);
 	}
 
 	private void addFeatureIdsToRules(List<PolicyData> policyDataList) {
