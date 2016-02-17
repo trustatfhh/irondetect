@@ -25,7 +25,7 @@ import de.hshannover.f4.trust.irondetect.Main;
 import de.hshannover.f4.trust.irondetect.gui.ResultLoggerImpl;
 import de.hshannover.f4.trust.irondetect.ifmap.EndpointPoller;
 import de.hshannover.f4.trust.irondetect.ifmap.IfmapUtil;
-import de.hshannover.f4.trust.irondetect.livechecker.policy.publisher.LiveCheckerPolicyActionUpdater;
+import de.hshannover.f4.trust.irondetect.livechecker.policy.publisher.LiveCheckerPolicyEvaluationUpdater;
 import de.hshannover.f4.trust.irondetect.model.Action;
 import de.hshannover.f4.trust.irondetect.model.Anomaly;
 import de.hshannover.f4.trust.irondetect.model.ConditionElement;
@@ -69,7 +69,7 @@ public class PolicyPublisher {
 
 	private PolicyActionUpdater mPolicyActionUpdater;
 
-	private LiveCheckerPolicyActionUpdater mLiveCheckerPolicyActionUpdater;
+	private LiveCheckerPolicyEvaluationUpdater mLiveCheckerPolicyEvaluationUpdater;
 
 	protected List<PublishUpdate> mPublishUpdates;
 
@@ -119,17 +119,17 @@ public class PolicyPublisher {
 
 		mPolicyFeatureUpdater = new PolicyFeatureUpdater(mPolicy, mSsrc);
 		mPolicyActionUpdater = new PolicyActionUpdater(mPolicy, mSsrc);
-		mLiveCheckerPolicyActionUpdater = LiveCheckerPolicyActionUpdater.getInstance(mPolicy, mSsrc);
+		mLiveCheckerPolicyEvaluationUpdater = LiveCheckerPolicyEvaluationUpdater.getInstance(mPolicy, mSsrc);
 
 		ResultLoggerImpl.getInstance().addEventReceiver(mPolicyActionUpdater);
-		ResultLoggerImpl.getInstance().addEventReceiver(mLiveCheckerPolicyActionUpdater);
+		ResultLoggerImpl.getInstance().addEventReceiver(mLiveCheckerPolicyEvaluationUpdater);
 		EndpointPoller.getInstance().addPollResultReceiver(mPolicyFeatureUpdater);
 		EndpointPoller.getInstance().addPollResultReceiver(mPolicyActionUpdater);
 
 		Thread featureThread = new Thread(mPolicyFeatureUpdater, PolicyFeatureUpdater.class.getSimpleName() + "-Thread");
 		Thread actionThread = new Thread(mPolicyActionUpdater, PolicyActionUpdater.class.getSimpleName() + "-Thread");
 		Thread liveCheckeractionThread =
-				new Thread(mLiveCheckerPolicyActionUpdater, LiveCheckerPolicyActionUpdater.class.getSimpleName()
+				new Thread(mLiveCheckerPolicyEvaluationUpdater, LiveCheckerPolicyEvaluationUpdater.class.getSimpleName()
 						+ "-Thread");
 
 		featureThread.start();
@@ -289,7 +289,7 @@ public class PolicyPublisher {
 		mPolicy = newPolicy;
 		mPolicyFeatureUpdater.submitChangedPolicy(newPolicy);
 		mPolicyActionUpdater.submitChangedPolicy(newPolicy);
-		mLiveCheckerPolicyActionUpdater.submitChangedPolicy(newPolicy);
+		mLiveCheckerPolicyEvaluationUpdater.submitChangedPolicy(newPolicy);
 	}
 
 }

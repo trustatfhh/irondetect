@@ -60,14 +60,14 @@ import de.hshannover.f4.trust.irondetect.util.event.EventType;
 import de.hshannover.f4.trust.irondetect.util.event.ResultUpdateEvent;
 
 /**
- * An {@link LiveCheckerPolicyActionUpdater} publishes for a new (alert)ESUKOM-feature metadata a new policy-action metadata with
+ * An {@link LiveCheckerPolicyEvaluationUpdater} publishes for a new (alert)ESUKOM-feature metadata a new policy-action metadata with
  * reference.
  *
  * @author Marcel Reichenbach
  */
-public class LiveCheckerPolicyActionUpdater implements Runnable, EventReceiver {
+public class LiveCheckerPolicyEvaluationUpdater implements Runnable, EventReceiver {
 
-	private static final Logger LOGGER = Logger.getLogger(LiveCheckerPolicyActionUpdater.class);
+	private static final Logger LOGGER = Logger.getLogger(LiveCheckerPolicyEvaluationUpdater.class);
 
 	private static Properties CONFIG = Main.getConfig();
 
@@ -90,22 +90,22 @@ public class LiveCheckerPolicyActionUpdater implements Runnable, EventReceiver {
 
 	private static PolicyMetadataFactory mMetadataFactory;
 
-	private boolean policyActionForNoFiredRules = false;
+	private boolean policyEvaluationForNoFiredRules = false;
 
-	private static LiveCheckerPolicyActionUpdater mInstance;
+	private static LiveCheckerPolicyEvaluationUpdater mInstance;
 
-	private LiveCheckerPolicyActionUpdater(Policy policy, SSRC ssrc) throws IfmapErrorResult, IfmapException {
+	private LiveCheckerPolicyEvaluationUpdater(Policy policy, SSRC ssrc) throws IfmapErrorResult, IfmapException {
 		init(policy, ssrc);
 	}
 
-	public static LiveCheckerPolicyActionUpdater getInstance() {
+	public static LiveCheckerPolicyEvaluationUpdater getInstance() {
 		return mInstance;
 	}
 
-	public static LiveCheckerPolicyActionUpdater getInstance(Policy policy, SSRC ssrc) throws IfmapErrorResult,
+	public static LiveCheckerPolicyEvaluationUpdater getInstance(Policy policy, SSRC ssrc) throws IfmapErrorResult,
 	IfmapException {
 		if (mInstance == null) {
-			mInstance = new LiveCheckerPolicyActionUpdater(policy, ssrc);
+			mInstance = new LiveCheckerPolicyEvaluationUpdater(policy, ssrc);
 		}
 		return mInstance;
 	}
@@ -117,7 +117,9 @@ public class LiveCheckerPolicyActionUpdater implements Runnable, EventReceiver {
 		mNewPollResults = new LinkedBlockingQueue<Map<Identity, List<Document>>>();
 		mNewResultUpdateEvent = new LinkedBlockingQueue<ResultUpdateEvent>();
 		mMetadataFactory = new PolicyMetadataFactory();
-		policyActionForNoFiredRules = CONFIG.getBoolean(Configuration.KEY_PUBLISHER_POLICY_NOFIREDRULES, Configuration.DEFAULT_VALUE_PUBLISHER_POLICY_NOFIREDRULES);
+		policyEvaluationForNoFiredRules =
+				CONFIG.getBoolean(Configuration.KEY_PUBLISHER_POLICY_NOFIREDRULES,
+						Configuration.DEFAULT_VALUE_PUBLISHER_POLICY_NOFIREDRULES);
 	}
 
 	protected void sendPublishUpdate(List<PublishUpdate> publishUpdates) throws IfmapErrorResult, IfmapException {
@@ -184,7 +186,7 @@ public class LiveCheckerPolicyActionUpdater implements Runnable, EventReceiver {
 		sendPublishUpdate(publishUpdates);
 	}
 
-	public synchronized void sendPolicyAction(Document policyAction, String ruleId)
+	public synchronized void sendPolicyEvaluation(Document policyAction, String ruleId)
 			throws ClassNotFoundException, InstantiationException, IllegalAccessException, IfmapErrorResult,
 			IfmapException {
 		List<PublishUpdate> publishUpdates = new ArrayList<PublishUpdate>();
@@ -202,7 +204,7 @@ public class LiveCheckerPolicyActionUpdater implements Runnable, EventReceiver {
 	}
 
 	/**
-	 * Submit a new {@link PollResult} to this {@link LiveCheckerPolicyActionUpdater}. [changed for live checking]
+	 * Submit a new {@link PollResult} to this {@link LiveCheckerPolicyEvaluationUpdater}. [changed for live checking]
 	 *
 	 * @param pollResult
 	 *            A new {@link PollResult} to submit
@@ -313,44 +315,29 @@ public class LiveCheckerPolicyActionUpdater implements Runnable, EventReceiver {
 				Map<Document, Identity> featureDocuments = getFeatureMetadata(pollResult, ruleFeatures,
 						result.getDevice());
 
-				Document policyAction = null;
+				Document policyEvaluation = null;
 
 				try {
-					policyAction = mMetadataFactory.createPolicyActionMetadata(result, signatureFeatureMap, anomalyMap,
-							featureDocuments);
+					policyEvaluation =
+							mMetadataFactory.createPolicyEvaluationMetadata(result, signatureFeatureMap, anomalyMap,
+									featureDocuments);
 				} catch (DOMException | MarshalException e) {
-					LOGGER.error(e.getClass().getSimpleName() + " when create Policy-Action-Metadata");
+					LOGGER.error(e.getClass().getSimpleName() + " when create Policy-Evaluation-Metadata");
 				}
 
-				if (result.getValue() && policyAction != null) {
+				if (policyEvaluation != null) {
 					// search feature-alerts while rule fires [changed for live checking]
 
 					try {
-						sendPolicyAction(policyAction, result.getId());
+						sendPolicyEvaluation(policyEvaluation, result.getId());
 					} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-						LOGGER.error(e.getClass().getSimpleName() + " when send policy-action(Message= "
+						LOGGER.error(e.getClass().getSimpleName() + " when send policy-evaluation(Message= "
 								+ e.getMessage() + ")");
 					} catch (IfmapErrorResult e) {
-						LOGGER.error(e.getClass().getSimpleName() + " when send policy-action ("
+						LOGGER.error(e.getClass().getSimpleName() + " when send policy-evaluation ("
 								+ e.toString() + ")");
 					} catch (IfmapException e) {
-						LOGGER.error(e.getClass().getSimpleName() + " when send policy-action (Message= "
-								+ e.getMessage() + " |Description= " + e.getDescription() + ")");
-					}
-
-				} else if (policyActionForNoFiredRules && policyAction != null) {
-					// send without feature-alerts
-
-					try {
-						sendPolicyAction(policyAction, result.getId());
-					} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-						LOGGER.error(e.getClass().getSimpleName() + " when send policy-action(Message= "
-								+ e.getMessage() + ")");
-					} catch (IfmapErrorResult e) {
-						LOGGER.error(e.getClass().getSimpleName() + " when send policy-action ("
-								+ e.toString() + ")");
-					} catch (IfmapException e) {
-						LOGGER.error(e.getClass().getSimpleName() + " when send policy-action (Message= "
+						LOGGER.error(e.getClass().getSimpleName() + " when send policy-evaluation (Message= "
 								+ e.getMessage() + " |Description= " + e.getDescription() + ")");
 					}
 				}

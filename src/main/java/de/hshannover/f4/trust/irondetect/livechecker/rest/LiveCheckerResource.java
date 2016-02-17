@@ -70,7 +70,7 @@ import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifiers;
 import de.hshannover.f4.trust.ifmapj.identifier.Identity;
 import de.hshannover.f4.trust.irondetect.livechecker.ifmap.IdentifierGraphToFeatureMapper;
-import de.hshannover.f4.trust.irondetect.livechecker.policy.publisher.LiveCheckerPolicyActionUpdater;
+import de.hshannover.f4.trust.irondetect.livechecker.policy.publisher.LiveCheckerPolicyEvaluationUpdater;
 import de.hshannover.f4.trust.visitmeta.implementations.IdentifierGraphImpl;
 import de.hshannover.f4.trust.visitmeta.implementations.IdentifierImpl;
 import de.hshannover.f4.trust.visitmeta.implementations.LinkImpl;
@@ -164,7 +164,7 @@ public class LiveCheckerResource {
 			}
 		}
 
-		LiveCheckerPolicyActionUpdater.getInstance().submitNewMapGraph(graphMap);
+		LiveCheckerPolicyEvaluationUpdater.getInstance().submitNewMapGraph(graphMap);
 
 
 		return Response.ok().entity("New FeatureData was checked").build();
