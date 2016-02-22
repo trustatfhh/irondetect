@@ -139,16 +139,45 @@ public class HandlerHelper {
 					.valueOf();
 			String featureValue = p.getFirstElement().getFeatureValuePair().getSecondElement().getSecondElement();
 
+
 			sb.append(feature);
 			sb.append(' ');
 			sb.append(comparisonOperator);
 			sb.append(' ');
-			sb.append(featureValue);
+			sb.append(escapeSpaces(featureValue));
 
 			stringExpressions.add(sb.toString());
 		}
 
 		return stringExpressions;
+	}
+
+	protected static String escapeSpaces(String input) {
+
+		String ret = input;
+
+		String[] unwanted = {" "};
+		String[] replaceBy = {"&space;"};
+
+		for (int i = 0; i < unwanted.length; i++) {
+			ret = ret.replace(unwanted[i], replaceBy[i]);
+		}
+
+		return ret;
+	}
+
+	protected static String deEscapeSpaces(String input) {
+
+		String ret = input;
+
+		String[] unwanted = {"&space;"};
+		String[] replaceBy = {" "};
+
+		for (int i = 0; i < unwanted.length; i++) {
+			ret = ret.replace(unwanted[i], replaceBy[i]);
+		}
+
+		return ret;
 	}
 
 	static List<Pair<FeatureExpression, BooleanOperator>> retransformFeatureExpression(List<String> expressions)
@@ -165,7 +194,7 @@ public class HandlerHelper {
 
 				String feature = expressionArray[0];
 				ComparisonOperator comparisonOperator = ComparisonOperator.valueOf2(expressionArray[1]);
-				String featureValue = expressionArray[2];
+				String featureValue = deEscapeSpaces(expressionArray[2]);
 
 				Pair<FeatureExpression, BooleanOperator> featureExpression =
 						buildFeatureExpression(feature, comparisonOperator, featureValue, null);
@@ -177,7 +206,7 @@ public class HandlerHelper {
 				BooleanOperator booleanOperator = BooleanOperator.valueOf(expressionArray[0]);
 				String feature = expressionArray[1];
 				ComparisonOperator comparisonOperator = ComparisonOperator.valueOf2(expressionArray[2]);
-				String featureValue = expressionArray[3];
+				String featureValue = deEscapeSpaces(expressionArray[3]);
 
 				Pair<FeatureExpression, BooleanOperator> featureExpression =
 						buildFeatureExpression(feature, comparisonOperator, featureValue, booleanOperator);
