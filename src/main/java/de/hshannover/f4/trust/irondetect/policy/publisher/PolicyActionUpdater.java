@@ -346,27 +346,40 @@ public class PolicyActionUpdater implements Runnable, PollResultReceiver, EventR
 				hintFeatureMap.clear();
 			} else if (checkResultType(result, RULE)) {
 
-				Map<Document, Identity> featureDocuments = getFeatureMetadata(pollResult, ruleFeatures,
-						result.getDevice());
+				Map<Document, Identity> featureDocuments = getFeatureMetadata(
+						pollResult, ruleFeatures, result.getDevice());
 
-				Document policyAction = null;
 
-				try {
-					policyAction = mMetadataFactory.createPolicyActionMetadata(result, signatureFeatureMap, anomalyMap,
-							featureDocuments);
-				} catch (DOMException | MarshalException e) {
-					LOGGER.error(e.getClass().getSimpleName() + " when create Policy-Action-Metadata");
-				}
-
-				if (result.getValue() && policyAction != null) {
+				if (result.getValue()) {
 					// search feature-alerts while rule fires
-					mPolicyActionSearcher.submitNewPolicyAction(new Pair<ResultObject, Document>(result, policyAction));
-
-				} else if (policyActionForNoFiredRules && policyAction != null) {
-					// send without feature-alerts
-
 					try {
-						sendPolicyAction(policyAction, result.getId());
+						Document policyAction =
+								mMetadataFactory.createPolicyActionMetadata(
+										result, signatureFeatureMap, anomalyMap,
+										featureDocuments);
+
+						mPolicyActionSearcher.submitNewPolicyAction(
+								new Pair<ResultObject, Document>(result,
+										policyAction));
+					} catch (DOMException | MarshalException e) {
+						LOGGER.error(e.getClass().getSimpleName()
+								+ " when create Policy-Action-Metadata");
+					}
+
+				} else if (policyActionForNoFiredRules) {
+					// send without feature-alerts
+					try {
+						try {
+							Document policyPartial = mMetadataFactory
+									.createPolicyPartialMetadata(result,
+											signatureFeatureMap, anomalyMap,
+											featureDocuments);
+
+							sendPolicyAction(policyPartial, result.getId());
+						} catch (DOMException | MarshalException e) {
+							LOGGER.error(e.getClass().getSimpleName()
+									+ " when create Policy-Action-Metadata");
+						}
 					} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
 						LOGGER.error(e.getClass().getSimpleName() + " when send policy-action(Message= "
 								+ e.getMessage() + ")");

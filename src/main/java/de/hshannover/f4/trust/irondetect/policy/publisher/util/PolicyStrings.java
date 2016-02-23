@@ -27,6 +27,7 @@ public class PolicyStrings {
 	public static final String POLICY_FEATURE_EL_NAME = "policy-feature";
 	public static final String POLICY_ACTION_EL_NAME = "policy-action";
 	public static final String POLICY_EVALUATION_EL_NAME = "policy-evaluation";
+	public static final String POLICY_PARTIAL_EL_NAME = "policy-partial-result";
 
 	public static final String FEATURE_EXPRESSION_EL_NAME = "featureExpression";
 	public static final String PARAMETER_EXPRESSION_EL_NAME = "parameterExpression";

@@ -99,6 +99,54 @@ public class PolicyMetadataFactory {
 		return doc;
 	}
 
+	public Document createPolicyPartialMetadata(ResultObject ruleResult,
+			Map<ResultObject, List<String>> signatureFeatureMap,
+			Map<ResultObject, Map<ResultObject, List<String>>> anomalyMap,
+			Map<Document, Identity> featureDocuments)
+					throws DOMException, MarshalException {
+
+		Document doc = mDocumentBuilder.newDocument();
+		Element metadataElement =
+				doc.createElementNS(PolicyStrings.POLICY_METADATA_NS_URI,
+						PolicyStrings.POLICY_QUALIFIED_NAME + ":"
+								+ PolicyStrings.POLICY_PARTIAL_EL_NAME);
+		metadataElement.setAttributeNS(null, PolicyStrings.IFMAP_CARDINALITY,
+				Cardinality.multiValue.toString());
+
+		addRuleResults(metadataElement, ruleResult, doc);
+		addSignatureResults(metadataElement, signatureFeatureMap, doc);
+		addAnomalyResults(metadataElement, anomalyMap, doc);
+
+		for (Entry<Document, Identity> entry : featureDocuments.entrySet()) {
+			Document mapDocument = entry.getKey();
+			Identity mapIdentity = entry.getValue();
+
+			Element revMetadataElement =
+					doc.createElementNS(null, PolicyStrings.FEATURE_EL_NAME);
+
+			// # build new metadata element
+			// Create a duplicate node and transfer ownership of the new node
+			// into the destination document
+			Node revMetadataRootElementClone =
+					mapDocument.getDocumentElement().cloneNode(true);
+			doc.adoptNode(revMetadataRootElementClone);
+			// Place the node in the new document
+			revMetadataElement.appendChild(revMetadataRootElementClone);
+
+			// # build new Identity element
+			Element identifierElement = Identifiers.toElement(mapIdentity, doc);
+			revMetadataElement.appendChild(identifierElement);
+
+			metadataElement.appendChild(revMetadataElement);
+		}
+
+		doc.appendChild(metadataElement);
+		doc.createAttributeNS(PolicyStrings.POLICY_METADATA_NS_URI,
+				PolicyStrings.POLICY_QUALIFIED_NAME);
+
+		return doc;
+	}
+
 	public Document createPolicyActionMetadata(ResultObject ruleResult,
 			Map<ResultObject, List<String>> signatureFeatureMap,
 			Map<ResultObject, Map<ResultObject, List<String>>> anomalyMap, Map<Document, Identity> featureDocuments)
