@@ -200,7 +200,6 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 			}
 			result.append(".");
 		}
-		result.append(tmp[tmp.length - 1]);
 		return result.toString();
 	}
 
