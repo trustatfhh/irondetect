@@ -48,13 +48,13 @@ import org.apache.log4j.Logger;
 
 import de.hshannover.f4.trust.ifmapj.messages.PollResult;
 import de.hshannover.f4.trust.ifmapj.messages.SearchResult;
+import de.hshannover.f4.trust.irondetect.livechecker.repository.FeatureBaseForLiveCheck;
 import de.hshannover.f4.trust.irondetect.model.Category;
 import de.hshannover.f4.trust.irondetect.model.ContextParamType;
 import de.hshannover.f4.trust.irondetect.model.ContextParameter;
 import de.hshannover.f4.trust.irondetect.model.Feature;
 import de.hshannover.f4.trust.irondetect.model.FeatureType;
 import de.hshannover.f4.trust.irondetect.repository.FeatureBase;
-import de.hshannover.f4.trust.irondetect.repository.FeatureBaseImpl;
 import de.hshannover.f4.trust.irondetect.util.Pair;
 import de.hshannover.f4.trust.visitmeta.interfaces.Identifier;
 import de.hshannover.f4.trust.visitmeta.interfaces.IdentifierGraph;
@@ -74,7 +74,7 @@ public class IdentifierGraphToFeatureMapper {
 	private LinkedBlockingQueue<PollResult> mIncomingResults = new LinkedBlockingQueue<PollResult>();
 
 	public IdentifierGraphToFeatureMapper() {
-		this.mFeatureBase = FeatureBaseImpl.getInstance();
+		this.mFeatureBase = FeatureBaseForLiveCheck.getInstance();
 	}
 
 	/**

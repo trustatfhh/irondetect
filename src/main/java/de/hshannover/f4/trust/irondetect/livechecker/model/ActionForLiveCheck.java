@@ -39,7 +39,7 @@
 /**
  *
  */
-package de.hshannover.f4.trust.irondetect.model;
+package de.hshannover.f4.trust.irondetect.livechecker.model;
 
 
 
@@ -49,28 +49,27 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import de.hshannover.f4.trust.irondetect.ifmap.ActionToIfmapMapper;
-import de.hshannover.f4.trust.irondetect.repository.FeatureBaseImpl;
+import de.hshannover.f4.trust.irondetect.livechecker.repository.FeatureBaseForLiveCheck;
+import de.hshannover.f4.trust.irondetect.model.Action;
+import de.hshannover.f4.trust.irondetect.model.Feature;
+import de.hshannover.f4.trust.irondetect.model.Policy;
 import de.hshannover.f4.trust.irondetect.util.Pair;
 
 /**
- * @author jvieweg
+ * @author Marcel Reichenbach
  *
  */
-public class Action implements PolicyData {
+public class ActionForLiveCheck extends Action {
 
-	private String id;
+	private Logger logger = Logger.getLogger(ActionForLiveCheck.class);
 
-	protected List<Pair<String, String>> keyValuePairs;
+	public ActionForLiveCheck(Action action) {
 
-	private Logger logger = Logger.getLogger(this.getClass());
-
-	public Action() {
-		this.keyValuePairs = new ArrayList<Pair<String,String>>();
 	}
 
-
+	@Override
 	public void perform(String device){
-		assert this.keyValuePairs != null : "action shouldn't be null!";
+		assert super.keyValuePairs != null : "action shouldn't be null!";
 
 		logger.info("PERFORMING ACTION (" + this.toString() + ")");
 
@@ -83,7 +82,7 @@ public class Action implements PolicyData {
 				String valueKey = value.substring(1);
 				ArrayList<String> tmp = new ArrayList<String>();
 				tmp.add(valueKey);
-				List<Feature> features = FeatureBaseImpl.getInstance().getFeaturesByContext(device, tmp, null);
+				List<Feature> features = FeatureBaseForLiveCheck.getInstance().getFeaturesByContext(device, tmp, null);
 				for(Feature f : features) {
 					Pair<String, String> remapped = new Pair<String, String>(key, f.getValue());
 					mappedKeyValuePairs.add(remapped);
@@ -95,81 +94,4 @@ public class Action implements PolicyData {
 
 		ActionToIfmapMapper.getInstance().addNewAction(device, mappedKeyValuePairs);
 	}
-
-
-	/**
-	 * @return the id
-	 */
-	public String getId() {
-		return id;
-	}
-
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	/**
-	 * @return the keyValuePairs
-	 */
-	public List<Pair<String, String>> getKeyValuePairs() {
-		return keyValuePairs;
-	}
-
-	/**
-	 * @param keyValuePairs the keyValuePairs to set
-	 */
-	public void setKeyValuePairs(List<Pair<String, String>> keyValuePairs) {
-		this.keyValuePairs = keyValuePairs;
-	}
-
-	public void addkeyValuePair(String key, String value) {
-		this.keyValuePairs.add(new Pair<String, String>(key, value));
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder kvStr = new StringBuilder("keyValuePairs=");
-		if(this.keyValuePairs != null) {
-			for (Pair<String, String> p : this.keyValuePairs) {
-				kvStr.append("[" + p.getFirstElement() + "|" + p.getSecondElement() + "]");
-			}
-		}
-		return "Action " + this.id +  " (" + kvStr + ")";
-	}
-
-	@Override
-	public int hashCode() {
-		int prime = 31;
-		int result = 1;
-		result = prime * result + getId().hashCode();
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object other) {
-		if (other == null) {
-			return false;
-		}
-		if (other == this) {
-			return true;
-		}
-		if (!(other instanceof Action)) {
-			return false;
-		}
-
-		Action otherItem = (Action) other;
-
-		if (!getId().equals(otherItem.getId())) {
-			return false;
-		}
-
-		return true;
-	}
-
 }

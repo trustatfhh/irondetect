@@ -59,7 +59,7 @@ import de.hshannover.f4.trust.irondetect.repository.FeatureBaseImpl;
  */
 public class ConditionElement extends Evaluable implements PolicyData {
 
-	private List<Context> contextSet;
+	protected List<Context> contextSet;
 	private Logger logger = Logger.getLogger(this.getClass());
 	private Rule parent;
 
