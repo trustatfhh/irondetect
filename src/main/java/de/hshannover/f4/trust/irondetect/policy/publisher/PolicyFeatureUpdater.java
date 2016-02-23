@@ -125,7 +125,9 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 	private void addFeatureRevIfExistInPolicy(Identity categoryIdentity, Document featureMetadata) throws DOMException,
 	MarshalException, ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		String metadataFeatureId = categoryIdentity.getName() + "." + findElement("id", featureMetadata.getDocumentElement());
+		String metadataFeatureId = findElement("id", featureMetadata.getDocumentElement());
+		String metadataFeatureIdWithoutCardinality =
+				removeCardinality(metadataFeatureId);
 		String metadataFeatureValue = findElement("value", featureMetadata.getDocumentElement());
 
 		for (Rule r : mPolicy.getRuleSet()) {
@@ -142,7 +144,8 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 						for (String featureId : hint.getFeatureIds()) {
 							LOGGER.trace("check feature-id: " + featureId);
 
-							if (featureId.equalsIgnoreCase(metadataFeatureId)
+							if (featureId.equalsIgnoreCase(
+									metadataFeatureIdWithoutCardinality)
 									&& featureValue.equalsIgnoreCase(metadataFeatureValue)) {
 								ExtendedIdentifier identfierHint = PolicyDataManager.transformPolicyData(hint);
 								Document revFeatureMetadata = mMetadataFactory.createRevMetadata(
@@ -164,7 +167,8 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 
 						LOGGER.trace("check feature-id: " + featureId);
 
-						if (featureId.equalsIgnoreCase(metadataFeatureId)
+						if (featureId.equalsIgnoreCase(
+								metadataFeatureIdWithoutCardinality)
 								&& featureValue.equalsIgnoreCase(metadataFeatureValue)) {
 							ExtendedIdentifier identfierSignature = PolicyDataManager.transformPolicyData(signature);
 							Document revFeatureMetadata = mMetadataFactory.createRevMetadata(
@@ -179,6 +183,26 @@ public class PolicyFeatureUpdater implements Runnable, PollResultReceiver {
 				}
 			}
 		}
+	}
+
+	private String removeCardinality(String input) {
+		StringBuilder result = new StringBuilder();
+		String[] tmp = input.split("\\.");
+		int firstColon;
+		String instanceString;
+		for (int i = 0; i < tmp.length; i++) {
+			firstColon = tmp[i].indexOf(":");
+			if (firstColon != -1) {
+				instanceString = tmp[i].substring(firstColon);
+				result.append(tmp[i].replaceAll(instanceString, ""));
+			} else {
+				result.append(tmp[i]);
+			}
+			if (i + 1 < tmp.length) {
+				result.append(".");
+			}
+		}
+		return result.toString();
 	}
 
 	/**
