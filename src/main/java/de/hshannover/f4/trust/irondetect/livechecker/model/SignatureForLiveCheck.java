@@ -42,13 +42,26 @@
 package de.hshannover.f4.trust.irondetect.livechecker.model;
 
 
+import static de.hshannover.f4.trust.irondetect.gui.ResultObjectType.SIGNATURE;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import de.hshannover.f4.trust.irondetect.engine.Processor;
+import de.hshannover.f4.trust.irondetect.gui.ResultLogger;
+import de.hshannover.f4.trust.irondetect.livechecker.gui.ResultLoggerForLiveCheck;
 import de.hshannover.f4.trust.irondetect.livechecker.repository.FeatureBaseForLiveCheck;
+import de.hshannover.f4.trust.irondetect.model.Category;
 import de.hshannover.f4.trust.irondetect.model.Feature;
+import de.hshannover.f4.trust.irondetect.model.FeatureExpression;
+import de.hshannover.f4.trust.irondetect.model.FeatureType;
+import de.hshannover.f4.trust.irondetect.model.Policy;
 import de.hshannover.f4.trust.irondetect.model.Signature;
+import de.hshannover.f4.trust.irondetect.util.BooleanOperator;
+import de.hshannover.f4.trust.irondetect.util.ComparisonOperator;
+import de.hshannover.f4.trust.irondetect.util.Pair;
 
 /**
  * @author Marcel Reichenbach
@@ -56,7 +69,9 @@ import de.hshannover.f4.trust.irondetect.model.Signature;
  */
 public class SignatureForLiveCheck extends Signature {
 
-	private Logger logger = Logger.getLogger(SignatureForLiveCheck.class);
+	private Logger mLogger = Logger.getLogger(SignatureForLiveCheck.class);
+
+	private ResultLogger mRlogger = ResultLoggerForLiveCheck.getInstance();
 
 	public SignatureForLiveCheck(Signature signature) {
 
@@ -69,7 +84,305 @@ public class SignatureForLiveCheck extends Signature {
 	 */
 	@Override
 	protected synchronized List<Feature> getFeatureValues(String device, List<String> featureIds) {
-		logger.trace("trying to get feature values, contextSet = " + super.contextSet);
+		mLogger.trace("trying to get feature values, contextSet = " + super.contextSet);
 		return FeatureBaseForLiveCheck.getInstance().getFeaturesByContext(device, featureIds, super.contextSet);
+	}
+
+	@Override
+	public boolean evaluate(String device) {
+
+		/**
+		 * Evaluate signatures only in testing mode
+		 */
+		if (!Processor.getInstance().isTesting()) {
+			return true;
+		}
+		mLogger.debug("----------------Evaluating signature "
+				+ this.id + " for device " + device + "---------------------");
+
+		super.checkSlidingCtx(device);
+		mLogger.trace("preparing feature ids");
+
+		// time measurement
+		long sTime = System.currentTimeMillis();
+		long eTime = 0;
+
+		// final result field
+		boolean result = false;
+
+		// the full set of feature expressions (including instance copies)
+		ArrayList<FeatureExpression> featureExpr = new ArrayList<FeatureExpression>();
+
+		// derived id set
+		List<String> fIds = new ArrayList<String>();
+
+		// derived id count set
+		List<String> fIdsCount = new ArrayList<String>();
+
+		// blacklisted fIDs
+		List<String> blacklisted = new ArrayList<String>();
+
+		// copy all fIds parsed out of the policy into the id set
+		for (Pair<FeatureExpression, BooleanOperator> p : super.featureSet) {
+
+			// distinguish between features that shall be counted and normal features
+			if (p.getFirstElement().getFeatureId().contains(Policy.COUNT_KEY)) {
+				mLogger.trace("-->found count " + p.getFirstElement().getFeatureId().substring(1));
+				// add count ids to the count set
+				fIdsCount.add(p.getFirstElement().getFeatureId().substring(1));
+			} else {
+				mLogger.trace("->found id " + p.getFirstElement().getFeatureId());
+				// normal features
+				fIds.add(p.getFirstElement().getFeatureId());
+			}
+		}
+
+		// receive actual features from the featureBase, if there are instances-
+		// this should be larger than the fId-set which was used to query the featureBase
+		List<Feature> fVals = getFeatureValues(device, fIds);
+		// receive features which shall be counted out of the feature base
+		List<Feature> fValsCount = getFeatureValues(device, fIdsCount);
+
+		// build the real set of featureExpressions which includes all instances
+		// this is done by creating a set of feature expression which holds all features that were
+		// received from the feature base, additionally count features are flagged in the second step
+		mLogger.trace("preparing feature values");
+		// first step with normal features
+		for (Feature feature : fVals) {
+			int step = 0;
+			for (Pair<FeatureExpression, BooleanOperator> p : super.featureSet) {
+				String targetId = p.getFirstElement().getFeatureId();
+				if (targetId.equals(feature.getQualifiedIdWithoutInstance())) {
+					mLogger.trace("->feature assigned "
+							+ feature.getQualifiedId() + " with value " + feature.getValue());
+					if (p.getFirstElement().getFeatureValuePair().getSecondElement().getSecondElement().contains(
+							Policy.GET_KEY)) {
+						ArrayList<String> rightFeatureVals = new ArrayList<String>();
+						rightFeatureVals.add(p.getFirstElement().getFeatureValuePair().getSecondElement()
+								.getSecondElement().substring(1));
+						List<Feature> getValues = getFeatureValues(device, rightFeatureVals);
+						for (Feature featureRight : getValues) {
+							FeatureExpression f =
+									new FeatureExpression(feature, new Pair<String, Pair<ComparisonOperator, String>>(p
+											.getFirstElement().getFeatureId(), new Pair<ComparisonOperator, String>(p
+													.getFirstElement().getFeatureValuePair().getSecondElement()
+													.getFirstElement(),
+													featureRight.getValue())), p.getFirstElement().getId(), p
+															.getFirstElement().getScope());
+							f.setStep(step);
+							featureExpr.add(f);
+						}
+					} else {
+						FeatureExpression f =
+								new FeatureExpression(feature, p.getFirstElement(), p.getFirstElement().getId());
+						f.setStep(step);
+						featureExpr.add(f);
+					}
+				}
+				step++;
+			}
+		}
+
+		// add all feature id we need to look up to the blacklist tp prevent them from getting deleted later
+		// fixes problems if evaluating signatures working on the same feature ids multiple times
+		for (FeatureExpression e : featureExpr) {
+			String id = e.getFeatureId();
+			blacklisted.add(id);
+		}
+
+		// second step with features that should only be counted, this is necessary as count features cannot be
+		// evaluated directly (evaluation loop shows how they are evaluated)
+		mLogger.trace("preparing count-feature values");
+		for (Feature feature : fValsCount) {
+			for (Pair<FeatureExpression, BooleanOperator> p : this.featureSet) {
+				if (p.getFirstElement().getFeatureId().contains(Policy.COUNT_KEY)) {
+					String targetId = p.getFirstElement().getFeatureId().substring(1);
+					if (targetId.equals(feature.getQualifiedIdWithoutInstance())) {
+						mLogger.trace("->count feature assigned " + feature.getQualifiedId());
+						FeatureExpression cF =
+								new FeatureExpression(feature, p.getFirstElement(), p.getFirstElement().getId());
+						cF.setCounter();
+						featureExpr.add(cF);
+					}
+				}
+			}
+		}
+
+		// evaluate all feature expressions
+		mLogger.debug("found " + featureExpr.size() + " features (including counters), starting evaluation...");
+
+		// loop counter
+		int k = 0;
+
+		// check which kind of operator was used
+		BooleanOperator op = BooleanOperator.AND;
+		if (this.featureSet.size() > 1) {
+			op = this.featureSet.get(1).getSecondElement();
+		}
+
+		// policy loop, i.e. this runs over each signature part parsed out of the policy
+		for (int a = 0; a < this.featureSet.size(); a++) {
+			Pair<FeatureExpression, BooleanOperator> p = this.featureSet.get(a);
+			mLogger.trace("->stepping forward ("
+					+ k + "), evaluating against " + p.getFirstElement().getFeatureValuePair().getSecondElement()
+							.getSecondElement());
+
+			k++;
+			result = false;
+
+			// shall we count the feature ids instead of evaluating them
+			if (p.getFirstElement().getFeatureId().contains(Policy.COUNT_KEY)) {
+				int counter = 0;
+				mLogger.trace("found countkey- counting...");
+				for (Feature feature : fValsCount) {
+					for (FeatureExpression fE : featureExpr) {
+						// check if the FE we are currently evaluating shall be evaluated by having a look onto
+						// the current signature part (outer loop)
+						if (feature.getQualifiedIdWithoutInstance().equals(p.getFirstElement().getFeatureId().substring(
+								1))) {
+							// do the ids match, is it a valid FE and is it a countable expression
+							if (feature.getCategory().getId().equals(fE.getFeature().getCategory().getId())
+									&& fE.isValid() && fE.isCounter()) {
+								counter++;
+								mLogger.trace(feature.getQualifiedId() + " ...(" + counter + ")");
+							}
+						}
+					}
+				}
+				// when counting is finished and something could be counted, create a new expression which represents
+				// the counting result
+				Feature countFeature;
+				if (counter > 0) {
+					countFeature = new Feature(fValsCount.get(0));
+				} else {
+					countFeature =
+							new Feature(p.getFirstElement().getFeatureId(), "0", new FeatureType(
+									FeatureType.QUANTITIVE), new Category("irondetect"), null);
+				}
+				countFeature.setType(new FeatureType(FeatureType.QUANTITIVE));
+				countFeature.setValue(Integer.toString(counter));
+				// evaluate the expression, i.e. take the counted value and compare it against the desired (out of the
+				// policy) value
+				result =
+						(new FeatureExpression(countFeature, p.getFirstElement(), p.getFirstElement().getId()))
+								.evaluate(device);
+			} else {
+
+				// if we do not have to count, simply evaluate the appropriate parts of the expression set
+				List<String> trueCat = new ArrayList<String>();
+				for (int i = 0; i < featureExpr.size(); i++) {
+					FeatureExpression fE = featureExpr.get(i);
+					// check if we shall evaluate the current element
+					if (fE.getStep() == a) {
+
+						// evaluation returned true
+						if (fE.isValid() && !fE.isEvaluated() && !fE.isCounter() && fE.evaluate(device)) {
+							mLogger.trace("-->(" + i + ") returned true, scope is " + fE.getScope());
+
+							// apply scope filter
+							String root = super.applyScopeFilter(fE.getScope(), fE.getFeature().getCategory().getId());
+
+							trueCat.add(root);
+							// trueCat.add(fE.getFeature().getCategory().getId());
+
+							result = true;
+							// dont look at this FE again
+							fE.setEvaluated();
+							// still valid but eval was false
+						} else if (fE.isValid() && !fE.isCounter()) {
+							mLogger.trace("-->(" + i + ") returned false - trying to remove expressions");
+							mLogger.trace("-->root category is " + fE.getFeature().getCategory().getId());
+							for (int j = 0; j < featureExpr.size(); j++) {
+								String currId = featureExpr.get(j).getFeature().getCategory().getId();
+								String evalFalseId = fE.getFeature().getCategory().getId();
+								if (currId.contains(evalFalseId)) {
+									// logger.trace("..." + featureExpr.get(j).getFeature().getQualifiedId() + " ("+ j +
+									// ") invalidated");
+									if (!fE.isRevalidated()) {
+										featureExpr.get(j).invalidate();
+										// featureExpr.get(j).tagValidation();
+									} else {
+										featureExpr.get(j).tagValidation();
+									}
+								}
+							}
+						} /*
+							 * else { logger.trace("--> FE not valid or counter: " + fE.getFeature().getQualifiedId() +
+							 * ", value is " + fE.getFeature().getValue()); logger.trace("fEIsValid = " + fE.isValid() +
+							 * ", fe.isCounter = " + fE.isCounter() + ",fe.isTagged = " + fE.isTagged() +
+							 * ", fe.isRevalidated = " + fE.isRevalidated()); }
+							 */
+					}
+				}
+
+				for (FeatureExpression fE : featureExpr) {
+					if (fE.isTagged()) {
+						fE.invalidate();
+						fE.unTagValidation();
+					}
+				}
+
+				if (a < this.featureSet.size() - 1) {
+					mLogger.trace("revalidating expressions...");
+					String lookAheadId = this.featureSet.get(a + 1).getFirstElement().getFeatureId();
+					for (FeatureExpression fE : featureExpr) {
+						if (fE.isTagged()) {
+							fE.invalidate();
+						}
+						if (!fE.isValid()) {
+							for (String root : trueCat) {
+								// logger.trace("matching " + fE.getFeature().getCategory().getId() + " against " + root
+								// + ", look ahead id is " + lookAheadId);
+								if (fE.getFeature().getCategory().getId().contains(root)
+										&& fE.getFeature().getQualifiedIdWithoutInstance().equals(lookAheadId)) {
+									fE.setRevalidated();
+									fE.unTagValidation();
+									// logger.trace("revalidated " + fE.getFeature().getQualifiedId()
+									// + " policy values: " +
+									// fE.getFeatureValuePair().getSecondElement().getSecondElement());
+								}
+							}
+						}
+					}
+				}
+
+				// debug
+				// for(FeatureExpression fE : featureExpr) {
+				// logger.trace(fE.getFeature().getQualifiedId() + " value: " + fE.getFeature().getValue() + " VS " +
+				// fE.getFeatureValuePair().getSecondElement().getSecondElement() + " VRTE :" + fE.isValid() +
+				// fE.isRevalidated() + fE.isTagged() + fE.isEvaluated());
+				// }
+
+			}
+
+			eTime = System.currentTimeMillis();
+
+			// if we have and, return false if one step fails
+			if (op == BooleanOperator.AND && !result) {
+				mLogger.debug("step evaluation returned false... nothing more to do");
+				mLogger.info("------------------------------Sig eval "
+						+ this.getId() + " finished with false----------------------");
+				mRlogger.reportResultsToLogger(device, this.id, SIGNATURE, false);
+				super.printTimedResult(Signature.class, result, eTime - sTime);
+				return false;
+			}
+
+			// one true is enough if we check it or style
+			if (op == BooleanOperator.OR && result) {
+				mLogger.debug("step evaluation returned true... nothing more to do");
+				mLogger.info("------------------------------Sig eval "
+						+ this.getId() + " finished with true----------------------");
+				mRlogger.reportResultsToLogger(device, this.id, SIGNATURE, true);
+				super.printTimedResult(Signature.class, result, eTime - sTime);
+				return true;
+			}
+
+		}
+
+		mLogger.info(
+				"--------------------Sig eval " + this.getId() + " finished with " + result + "--------------------");
+		mRlogger.reportResultsToLogger(device, this.id, SIGNATURE, result);
+		super.printTimedResult(Signature.class, result, eTime - sTime);
+		return result;
 	}
 }

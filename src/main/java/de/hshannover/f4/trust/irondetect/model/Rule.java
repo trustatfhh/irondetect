@@ -7,17 +7,17 @@
  *    | | | |  | |_| \__ \ |_| | (_| |  _  |\__ \|  _  |
  *    |_| |_|   \__,_|___/\__|\ \__,_|_| |_||___/|_| |_|
  *                             \____/
- * 
+ *
  * =====================================================
- * 
+ *
  * Hochschule Hannover
  * (University of Applied Sciences and Arts, Hannover)
  * Faculty IV, Dept. of Computer Science
  * Ricklinger Stadtweg 118, 30459 Hannover, Germany
- * 
+ *
  * Email: trust@f4-i.fh-hannover.de
  * Website: http://trust.f4.hs-hannover.de/
- * 
+ *
  * This file is part of irondetect, version 0.0.8,
  * implemented by the Trust@HsH research group at the Hochschule Hannover.
  * %%
@@ -26,9 +26,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,7 +37,7 @@
  * #L%
  */
 /**
- * 
+ *
  */
 package de.hshannover.f4.trust.irondetect.model;
 
@@ -60,13 +60,13 @@ import de.hshannover.f4.trust.irondetect.gui.ResultLoggerImpl;
  *
  */
 public class Rule implements PolicyData {
-	
+
 	private Logger logger = Logger.getLogger(this.getClass());
 	private ResultLogger rlogger = ResultLoggerImpl.getInstance();
 
-	private Condition condition;
-	private List<Action> actions = new ArrayList<Action>();
-	private String id;
+	protected Condition condition;
+	protected List<Action> actions = new ArrayList<Action>();
+	protected String id;
 	private Set<String> featureIds;
 
 	public Rule() {
@@ -77,7 +77,7 @@ public class Rule implements PolicyData {
 	 * checks the condition, if it is true all actions will be performed
 	 */
 	public void evaluate(String device) {
-		
+
 		logger.info("checking rule " + getId());
 		this.condition.setParent(this);
 		boolean result = this.condition.evaluate(device);
@@ -90,7 +90,7 @@ public class Rule implements PolicyData {
 			}
 		}
 	}
-	
+
 	/**
 	 * @return the condition
 	 */
@@ -131,11 +131,11 @@ public class Rule implements PolicyData {
 			}
 		}
 		return "Rule [condition=" + (condition != null ? condition : " ") + ", " + actionStr.toString()
-				+ ", " + super.toString() + "]";
+		+ ", " + super.toString() + "]";
 	}
 
 	/**
-	 * 
+	 *
 	 * @param featureIds
 	 * @return true if one of the given featureIds is used by this rule
 	 */

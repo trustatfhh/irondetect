@@ -57,12 +57,10 @@ import de.hshannover.f4.trust.irondetect.model.Context;
 import de.hshannover.f4.trust.irondetect.model.ContextParamType;
 import de.hshannover.f4.trust.irondetect.model.ContextParameter;
 import de.hshannover.f4.trust.irondetect.model.Feature;
-import de.hshannover.f4.trust.irondetect.repository.FeatureBase;
 import de.hshannover.f4.trust.irondetect.repository.FeatureHistory;
 import de.hshannover.f4.trust.irondetect.util.Helper;
 import de.hshannover.f4.trust.irondetect.util.Pair;
 import de.hshannover.f4.trust.irondetect.util.event.Event;
-import de.hshannover.f4.trust.irondetect.util.event.EventReceiver;
 import de.hshannover.f4.trust.irondetect.util.event.FeatureBaseUpdateEvent;
 import de.hshannover.f4.trust.irondetect.util.event.TrainingData;
 import de.hshannover.f4.trust.irondetect.util.event.TrainingDataLoadedEvent;
@@ -71,19 +69,16 @@ import de.hshannover.f4.trust.irondetect.util.event.TrainingDataLoadedEvent;
  * @author bahellma
  *
  */
-public class FeatureBaseForLiveCheck implements FeatureBase {
+public class FeatureBaseForLiveCheck {
 
 	private static Logger logger = Logger.getLogger(FeatureBaseForLiveCheck.class);
 
 	private Map<String, List<FeatureHistory>> featuresForDevice;
 
-	private List<EventReceiver> eventReceiver;
-
 	private static FeatureBaseForLiveCheck instance;
 
 	private FeatureBaseForLiveCheck() {
 		this.featuresForDevice = new HashMap<String, List<FeatureHistory>>();
-		this.eventReceiver = new ArrayList<EventReceiver>();
 	}
 
 	public static synchronized FeatureBaseForLiveCheck getInstance() {
@@ -94,16 +89,7 @@ public class FeatureBaseForLiveCheck implements FeatureBase {
 		return instance;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see de.hshannover.f4.trust.irondetect.repository.FeatureBaseInterface#
-	 * addNewFeatures(java.util.ArrayList)
-	 */
-	@Override
-	public synchronized void addNewFeatures(
-			List<Pair<String, Pair<Feature, Boolean>>> features,
-			boolean isTraining) {
+	public Event addNewFeatures(List<Pair<String, Pair<Feature, Boolean>>> features, boolean isTraining) {
 		if (features != null && features.size() > 0) {
 			logger.trace("Incoming features: " + features.size());
 			long startTime = System.currentTimeMillis();
@@ -315,18 +301,12 @@ public class FeatureBaseForLiveCheck implements FeatureBase {
 				.setPayload(changesDuringFeatureBaseUpdate);
 			}
 
-			/**
-			 * Inform all registered EventReceiver.
-			 */
-			for (EventReceiver er : this.eventReceiver) {
-				er.submitNewEvent(e);
-			}
-
 			long time = System.currentTimeMillis() - startTime;
-			logger.info("Adding " + features.size() + " items took " + time
-					+ " milliseconds.");
+			logger.info("Adding " + features.size() + " items took " + time + " milliseconds.");
+			return e;
 		} else {
 			logger.trace("Incoming feature list was empty; not adding anything to FeatureBase.");
+			return null;
 		}
 	}
 
@@ -411,7 +391,6 @@ public class FeatureBaseForLiveCheck implements FeatureBase {
 	 * getFeaturesByContext
 	 * (de.hshannover.f4.trust.irondetect.model.ContextParameter)
 	 */
-	@Override
 	public synchronized List<Feature> getFeaturesByContext(String device,
 			List<String> ids, List<Context> contextSet) {
 		List<Feature> result = new Vector<Feature>();
@@ -438,21 +417,7 @@ public class FeatureBaseForLiveCheck implements FeatureBase {
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * de.hshannover.f4.trust.irondetect.repository.FeatureBase#addEventReceiver
-	 * (de.hshannover.f4.trust.irondetect.util.EventReceiver)
-	 */
-	@Override
-	public void addEventReceiver(EventReceiver er) {
-		if (!this.eventReceiver.contains(er)) {
-			this.eventReceiver.add(er);
-		}
-	}
 
-	@Override
 	public void resetFeatureBase() {
 		this.featuresForDevice = new HashMap<String, List<FeatureHistory>>();
 	}

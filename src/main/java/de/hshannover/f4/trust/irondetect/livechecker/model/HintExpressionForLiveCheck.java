@@ -36,74 +36,38 @@
  * limitations under the License.
  * #L%
  */
-package de.hshannover.f4.trust.irondetect.model;
+package de.hshannover.f4.trust.irondetect.livechecker.model;
 
 
 import static de.hshannover.f4.trust.irondetect.gui.ResultObjectType.HINT;
 
 import de.hshannover.f4.trust.irondetect.gui.ResultLogger;
-import de.hshannover.f4.trust.irondetect.gui.ResultLoggerImpl;
-import de.hshannover.f4.trust.irondetect.util.ComparisonOperator;
-import de.hshannover.f4.trust.irondetect.util.Pair;
+import de.hshannover.f4.trust.irondetect.livechecker.gui.ResultLoggerForLiveCheck;
+import de.hshannover.f4.trust.irondetect.model.Hint;
+import de.hshannover.f4.trust.irondetect.model.HintExpression;
 
 /**
- * @author rosso
- * @author ib
+ * @author Marcel Reichenbach
  *
  */
-public class HintExpression extends Evaluable {
-	/**
-	 *
-	 */
-	protected Pair<Hint, Pair<ComparisonOperator, String>> hintValPair;
+public class HintExpressionForLiveCheck extends HintExpression {
 
-	private Anomaly currentAnomaly;
+	private ResultLogger mRlogger = ResultLoggerForLiveCheck.getInstance();
 
-	private ResultLogger rlogger = ResultLoggerImpl.getInstance();
+	public HintExpressionForLiveCheck(HintExpression hintExpression) {
 
-	public Anomaly getCurrentAnomaly() {
-		return currentAnomaly;
-	}
-
-	public void setCurrentAnomaly(Anomaly currentAnomaly) {
-		this.currentAnomaly = currentAnomaly;
-	}
-
-	/**
-	 * @param hintValPair
-	 */
-	public void setHintValuePair(Pair<Hint, Pair< ComparisonOperator, String>> hintValPair) {
-		this.hintValPair = hintValPair;
-	}
-
-	/**
-	 * @return
-	 */
-	public Pair<Hint, Pair<ComparisonOperator, String>> getHintValuePair() {
-		return this.hintValPair;
 	}
 
 	@Override
 	public boolean evaluate(String device) {
-		Hint hint = hintValPair.getFirstElement();
+		Hint hint = super.hintValPair.getFirstElement();
 		double actual = hint.evaluate(device, getCurrentAnomaly());
-		boolean result = evaluateCompOpOnNumber(hintValPair.getSecondElement().getFirstElement(), actual,
-				Double.parseDouble(hintValPair.getSecondElement().getSecondElement()));
+		boolean result = evaluateCompOpOnNumber(super.hintValPair.getSecondElement().getFirstElement(), actual,
+				Double.parseDouble(super.hintValPair.getSecondElement().getSecondElement()));
 
-		rlogger.reportResultsToLogger(device, hint.getId(), HINT, result);
+		mRlogger.reportResultsToLogger(device, hint.getId(), HINT, result);
 
 		return result;
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder sigStr = new StringBuilder("hintValPair=");
-		sigStr.append(hintValPair.getFirstElement());
-		sigStr.append(' ');
-		sigStr.append(hintValPair.getSecondElement().getFirstElement());
-		sigStr.append(' ');
-		sigStr.append(hintValPair.getSecondElement().getSecondElement());
-		return "HintExpression [" + sigStr.toString() + "]";
 	}
 
 }

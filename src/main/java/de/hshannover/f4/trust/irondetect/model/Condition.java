@@ -7,17 +7,17 @@
  *    | | | |  | |_| \__ \ |_| | (_| |  _  |\__ \|  _  |
  *    |_| |_|   \__,_|___/\__|\ \__,_|_| |_||___/|_| |_|
  *                             \____/
- * 
+ *
  * =====================================================
- * 
+ *
  * Hochschule Hannover
  * (University of Applied Sciences and Arts, Hannover)
  * Faculty IV, Dept. of Computer Science
  * Ricklinger Stadtweg 118, 30459 Hannover, Germany
- * 
+ *
  * Email: trust@f4-i.fh-hannover.de
  * Website: http://trust.f4.hs-hannover.de/
- * 
+ *
  * This file is part of irondetect, version 0.0.8,
  * implemented by the Trust@HsH research group at the Hochschule Hannover.
  * %%
@@ -26,9 +26,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,7 +37,7 @@
  * #L%
  */
 /**
- * 
+ *
  */
 package de.hshannover.f4.trust.irondetect.model;
 
@@ -58,16 +58,16 @@ import de.hshannover.f4.trust.irondetect.util.Pair;
  *
  */
 public class Condition extends Evaluable implements PolicyData {
-	
+
 	private static Logger logger = Logger.getLogger(Condition.class);
-        private ResultLogger rlogger = ResultLoggerImpl.getInstance();
+	private ResultLogger rlogger = ResultLoggerImpl.getInstance();
 
-	private List<Pair<ConditionElement, BooleanOperator>> conditionSet;
-	
-	private Rule parent;
+	protected List<Pair<ConditionElement, BooleanOperator>> conditionSet;
 
-	
-	
+	protected Rule parent;
+
+
+
 	/**
 	 * @return the conditionSet
 	 */
@@ -90,11 +90,11 @@ public class Condition extends Evaluable implements PolicyData {
 		StringBuilder condSetStr = new StringBuilder("conditionSet=");
 		if(conditionSet != null) {
 			for (Pair<ConditionElement, BooleanOperator> p : conditionSet) {
-			condSetStr.append(p.toString());
+				condSetStr.append(p.toString());
 			}
 		}
 		return "Condition [" + condSetStr + ", "
-				+ super.toString() + "]";
+		+ super.toString() + "]";
 	}
 
 	@Override
@@ -109,37 +109,37 @@ public class Condition extends Evaluable implements PolicyData {
 		return result;
 
 	}
-	
-	private boolean evaluateConditionSet(String device) {
+
+	protected boolean evaluateConditionSet(String device) {
 		boolean result = false;
 		if(getConditionSet().size() < 2) {
 			return getConditionSet().get(0).getFirstElement().evaluate(device);
 		}
 		BooleanOperator op = getConditionSet().get(1).getSecondElement();
 		switch (op) {
-		case AND:
-			for (int i = 0; i < getConditionSet().size(); i++) {
-				result = getConditionSet().get(i).getFirstElement().evaluate(device);
-				if(!result){
-					return result;
+			case AND:
+				for (int i = 0; i < getConditionSet().size(); i++) {
+					result = getConditionSet().get(i).getFirstElement().evaluate(device);
+					if(!result){
+						return result;
+					}
 				}
-			}
-			break;
-		case OR:
-			for (int i = 0; i < getConditionSet().size(); i++) {
-				result = getConditionSet().get(i).getFirstElement().evaluate(device);
-				if(result){
-					return result;
+				break;
+			case OR:
+				for (int i = 0; i < getConditionSet().size(); i++) {
+					result = getConditionSet().get(i).getFirstElement().evaluate(device);
+					if(result){
+						return result;
+					}
 				}
-			}
-			break;
-		default:
-			logger.error("Only AND/OR supported at this time!");
-			break;
+				break;
+			default:
+				logger.error("Only AND/OR supported at this time!");
+				break;
 		}
 		return result;
 	}
-	
+
 	/**
 	 * @param parent the parent rule to set
 	 */

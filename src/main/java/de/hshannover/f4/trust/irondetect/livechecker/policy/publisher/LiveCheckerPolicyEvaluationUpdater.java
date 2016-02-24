@@ -92,22 +92,8 @@ public class LiveCheckerPolicyEvaluationUpdater implements Runnable, EventReceiv
 
 	private boolean policyEvaluationForNoFiredRules = false;
 
-	private static LiveCheckerPolicyEvaluationUpdater mInstance;
-
-	private LiveCheckerPolicyEvaluationUpdater(Policy policy, SSRC ssrc) throws IfmapErrorResult, IfmapException {
+	public LiveCheckerPolicyEvaluationUpdater(Policy policy, SSRC ssrc) throws IfmapErrorResult, IfmapException {
 		init(policy, ssrc);
-	}
-
-	public static LiveCheckerPolicyEvaluationUpdater getInstance() {
-		return mInstance;
-	}
-
-	public static LiveCheckerPolicyEvaluationUpdater getInstance(Policy policy, SSRC ssrc) throws IfmapErrorResult,
-	IfmapException {
-		if (mInstance == null) {
-			mInstance = new LiveCheckerPolicyEvaluationUpdater(policy, ssrc);
-		}
-		return mInstance;
 	}
 
 	protected void init(Policy policy, SSRC ssrc) throws IfmapErrorResult, IfmapException {
@@ -355,16 +341,13 @@ public class LiveCheckerPolicyEvaluationUpdater implements Runnable, EventReceiv
 	public void run() {
 		LOGGER.info("run() ...");
 
-		while (!Thread.currentThread().isInterrupted()) {
 			try {
 
 				newPollResult();
 
 			} catch (InterruptedException e) {
 				LOGGER.error(e.getClass().getSimpleName() + " when take a new Poll-Result");
-				break;
 			}
-		}
 
 		LOGGER.info("... run()");
 	}

@@ -54,11 +54,13 @@ import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.log4j.Logger;
+import org.w3c.dom.Document;
 
 import de.hshannover.f4.trust.ifmapj.exception.IfmapErrorResult;
 import de.hshannover.f4.trust.ifmapj.exception.IfmapException;
 import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifier;
+import de.hshannover.f4.trust.ifmapj.identifier.Identity;
 import de.hshannover.f4.trust.ifmapj.messages.PollResult;
 import de.hshannover.f4.trust.ifmapj.messages.ResultItem;
 import de.hshannover.f4.trust.ifmapj.messages.SearchResult;
@@ -66,6 +68,14 @@ import de.hshannover.f4.trust.ironcommon.properties.Properties;
 import de.hshannover.f4.trust.irondetect.Main;
 import de.hshannover.f4.trust.irondetect.gui.ResultLogger;
 import de.hshannover.f4.trust.irondetect.gui.ResultLoggerImpl;
+import de.hshannover.f4.trust.irondetect.livechecker.gui.ResultLoggerForLiveCheck;
+import de.hshannover.f4.trust.irondetect.livechecker.ifmap.IdentifierGraphToFeatureMapper;
+import de.hshannover.f4.trust.irondetect.livechecker.model.ActionForLiveCheck;
+import de.hshannover.f4.trust.irondetect.livechecker.model.AnomalyForLiveCheck;
+import de.hshannover.f4.trust.irondetect.livechecker.model.ConditionForLiveCheck;
+import de.hshannover.f4.trust.irondetect.livechecker.model.RuleForLiveCheck;
+import de.hshannover.f4.trust.irondetect.livechecker.model.SignatureForLiveCheck;
+import de.hshannover.f4.trust.irondetect.livechecker.policy.publisher.LiveCheckerPolicyEvaluationUpdater;
 import de.hshannover.f4.trust.irondetect.model.Action;
 import de.hshannover.f4.trust.irondetect.model.Anomaly;
 import de.hshannover.f4.trust.irondetect.model.Condition;
@@ -95,6 +105,7 @@ import de.hshannover.f4.trust.irondetect.util.event.FeatureBaseUpdateEvent;
 import de.hshannover.f4.trust.irondetect.util.event.TrainingData;
 import de.hshannover.f4.trust.irondetect.util.event.TrainingDataLoadedEvent;
 import de.hshannover.f4.trust.irondetect.util.event.TriggerUpdateEvent;
+import de.hshannover.f4.trust.visitmeta.interfaces.IdentifierGraph;
 
 /**
  *
@@ -111,9 +122,13 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 	private Properties mConfig = Main.getConfig();
 
 	private LinkedBlockingQueue<Event> incomingEvents;
+
 	private Policy mPolicy;
 
+	private Policy mPolicyForLiveCheck;
+
 	private boolean isTraining; // TODO state machine
+
 	private Map<String, TrainingData> trainingDataMap;
 
 	private ResultLogger rlogger = ResultLoggerImpl.getInstance();
@@ -216,6 +231,34 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 			logger.error("Policy could not be parsed: " + e.getMessage() + ", " + e.getCause());
 			logger.info("Old policy is still active!");
 		}
+	}
+
+	public void setLiveCheckPolicy(SearchResult searchResultPolicy) throws ClassNotFoundException,
+	InstantiationException, IllegalAccessException, UnmarshalException {
+		// transform and filter SearchResult
+		List<PolicyData> policyDataList = transformToPolicyDataForLiveCheck(searchResultPolicy);
+
+		// ############################################
+		// ### NOW RECONSTRUCT THE POLICY STRUCTURE ###
+		// ############################################
+
+		Policy policy = getPolicyFrom(policyDataList);
+		List<Rule> ruleSet = getRuleSetFrom(policyDataList);
+
+		// set RuleSet to the Policy
+		policy.setRuleSet(ruleSet);
+
+		// set Signature and Anomaly to Condition
+		setConditionElementsToCondition(policyDataList);
+
+		// set Hints to Anomalys
+		setHintsToAnomalies(policyDataList);
+
+		// add FeatureIds to rules
+		addFeatureIdsToRules(policyDataList);
+
+		// change to the new Policy
+		mPolicyForLiveCheck = policy;
 	}
 
 	public void reloadPolicy() throws ClassNotFoundException, InstantiationException, IllegalAccessException,
@@ -486,6 +529,80 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 		return policyDataList;
 	}
 
+	private List<PolicyData> transformToPolicyDataForLiveCheck(SearchResult newPolicy)
+			throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnmarshalException {
+		List<PolicyData> policyDataList = new ArrayList<PolicyData>();
+
+		for (ResultItem ri : newPolicy.getResultItems()) {
+			Identifier i1 = ri.getIdentifier1();
+			Identifier i2 = ri.getIdentifier2();
+
+			PolicyData policyData1 = null;
+			PolicyData policyData2 = null;
+			if (i1 instanceof ExtendedIdentifier) {
+				policyData1 = PolicyDataManager.transformIdentifier((ExtendedIdentifier) i1);
+			}
+
+			if (i2 instanceof ExtendedIdentifier) {
+				policyData2 = PolicyDataManager.transformIdentifier((ExtendedIdentifier) i2);
+			}
+
+			if (policyData1 instanceof Policy) {
+				if (!policyDataList.contains(policyData1)) {
+					policyDataList.add(policyData1);
+				}
+
+			} else if (policyData1 instanceof Rule && policyData2 instanceof Condition) {
+				if (policyDataList.contains(policyData1)) {
+					policyData1 = policyDataList.get(policyDataList.indexOf(policyData1));
+					Condition newCondition = new ConditionForLiveCheck((Condition) policyData2);
+					((Rule) policyData1).setCondition(newCondition);
+					policyDataList.add(newCondition);
+				} else {
+					Rule newRule = new RuleForLiveCheck((Rule) policyData1);
+					policyDataList.add(newRule);
+					Condition newCondition = new ConditionForLiveCheck((Condition) policyData2);
+					newRule.setCondition(newCondition);
+					policyDataList.add(newCondition);
+				}
+
+			} else if (policyData1 instanceof Rule && policyData2 instanceof Action) {
+				if (policyDataList.contains(policyData1)) {
+					policyData1 = policyDataList.get(policyDataList.indexOf(policyData1));
+					Action newAction = new ActionForLiveCheck((Action) policyData2);
+					((Rule) policyData1).addAction(newAction);
+					policyDataList.add(newAction);
+				} else {
+					Rule newRule = new RuleForLiveCheck((Rule) policyData1);
+					policyDataList.add(newRule);
+					Action newAction = new ActionForLiveCheck((Action) policyData2);
+					newRule.addAction(newAction);
+					policyDataList.add(newAction);
+				}
+
+			} else if (policyData1 instanceof Signature) {
+				if (!policyDataList.contains(policyData1)) {
+					Signature newSignature = new SignatureForLiveCheck((Signature) policyData1);
+					policyDataList.add(newSignature);
+				}
+
+			} else if (policyData1 instanceof Anomaly) {
+				if (!policyDataList.contains(policyData1)) {
+					Anomaly newAnomaly = new AnomalyForLiveCheck((Anomaly) policyData1);
+					policyDataList.add(newAnomaly);
+				}
+
+			} else if (policyData1 instanceof Hint) {
+				if (!policyDataList.contains(policyData1)) {
+					policyDataList.add(policyData1);
+				}
+
+			}
+		}
+
+		return policyDataList;
+	}
+
 	private Policy getPolicyFrom(List<PolicyData> policyDataList) throws UnmarshalException {
 		for (PolicyData policyData : policyDataList) {
 			if (policyData instanceof Policy) {
@@ -623,5 +740,41 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 				}
 			}
 		}
+	}
+
+	public void evaluateLiveGraph(List<IdentifierGraph> identifierGraphList, Map<Identity, List<Document>> graphMap)
+			throws IfmapErrorResult, IfmapException {
+
+		// init
+		IdentifierGraphToFeatureMapper featureMapper = new IdentifierGraphToFeatureMapper();
+
+		Event updateEvent = featureMapper.addNewFeaturesToFeatureBase(identifierGraphList);
+
+		LiveCheckerPolicyEvaluationUpdater evaluationUpdater =
+				new LiveCheckerPolicyEvaluationUpdater(mPolicyForLiveCheck, mPolicyPublisher.getSsrc());
+		ResultLoggerForLiveCheck.getInstance().addEventReceiver(evaluationUpdater);
+		evaluationUpdater.submitNewMapGraph(graphMap);
+
+		Thread evaluationThread =
+				new Thread(evaluationUpdater, LiveCheckerPolicyEvaluationUpdater.class.getSimpleName() + "-Thread");
+
+		evaluationThread.start();
+
+		// check policy
+		logger.info("Check policy for LIVE Mode...");
+		if (updateEvent.getType() == EventType.FEATURE_BASE_UPDATE) {
+			// a Map containing Lists of FeatureIds that changed (new, updated, deleted) during the FeatureBaseUpdate
+			// for each device.
+			Map<String, Set<String>> payload = ((FeatureBaseUpdateEvent) updateEvent).getPayload();
+			logger.info("(LIVE Mode)Features have changed on " + payload.size() + " devices.");
+
+			for (String s : payload.keySet()) {
+				logger.trace("(LIVE Mode)Payload size for device '" + s + "' is: " + payload.get(s).size());
+				mPolicyForLiveCheck.check(s, payload.get(s));
+			}
+
+			ResultLoggerForLiveCheck.getInstance().reportResultsToLogger("BLANK", mPolicy.getId(), POLICY, true);
+		}
+
 	}
 }

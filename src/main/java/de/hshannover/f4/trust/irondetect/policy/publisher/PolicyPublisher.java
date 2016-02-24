@@ -25,7 +25,6 @@ import de.hshannover.f4.trust.irondetect.Main;
 import de.hshannover.f4.trust.irondetect.gui.ResultLoggerImpl;
 import de.hshannover.f4.trust.irondetect.ifmap.EndpointPoller;
 import de.hshannover.f4.trust.irondetect.ifmap.IfmapUtil;
-import de.hshannover.f4.trust.irondetect.livechecker.policy.publisher.LiveCheckerPolicyEvaluationUpdater;
 import de.hshannover.f4.trust.irondetect.model.Action;
 import de.hshannover.f4.trust.irondetect.model.Anomaly;
 import de.hshannover.f4.trust.irondetect.model.ConditionElement;
@@ -68,8 +67,6 @@ public class PolicyPublisher {
 	private PolicyFeatureUpdater mPolicyFeatureUpdater;
 
 	private PolicyActionUpdater mPolicyActionUpdater;
-
-	private LiveCheckerPolicyEvaluationUpdater mLiveCheckerPolicyEvaluationUpdater;
 
 	protected List<PublishUpdate> mPublishUpdates;
 
@@ -119,22 +116,17 @@ public class PolicyPublisher {
 
 		mPolicyFeatureUpdater = new PolicyFeatureUpdater(mPolicy, mSsrc);
 		mPolicyActionUpdater = new PolicyActionUpdater(mPolicy, mSsrc);
-		mLiveCheckerPolicyEvaluationUpdater = LiveCheckerPolicyEvaluationUpdater.getInstance(mPolicy, mSsrc);
 
 		ResultLoggerImpl.getInstance().addEventReceiver(mPolicyActionUpdater);
-		ResultLoggerImpl.getInstance().addEventReceiver(mLiveCheckerPolicyEvaluationUpdater);
 		EndpointPoller.getInstance().addPollResultReceiver(mPolicyFeatureUpdater);
 		EndpointPoller.getInstance().addPollResultReceiver(mPolicyActionUpdater);
 
 		Thread featureThread = new Thread(mPolicyFeatureUpdater, PolicyFeatureUpdater.class.getSimpleName() + "-Thread");
 		Thread actionThread = new Thread(mPolicyActionUpdater, PolicyActionUpdater.class.getSimpleName() + "-Thread");
-		Thread liveCheckeractionThread =
-				new Thread(mLiveCheckerPolicyEvaluationUpdater, LiveCheckerPolicyEvaluationUpdater.class.getSimpleName()
-						+ "-Thread");
 
 		featureThread.start();
 		actionThread.start();
-		liveCheckeractionThread.start();
+
 	}
 
 	private void sendPublishUpdate() throws IfmapErrorResult, IfmapException {
@@ -253,6 +245,10 @@ public class PolicyPublisher {
 		return null;
 	}
 
+	public SSRC getSsrc() {
+		return mSsrc;
+	}
+
 	public void startPolicyAutomaticReload() throws IfmapErrorResult, IfmapException {
 		if (mPolicyPollerThread == null) {
 			startPolicyPoller();
@@ -289,7 +285,6 @@ public class PolicyPublisher {
 		mPolicy = newPolicy;
 		mPolicyFeatureUpdater.submitChangedPolicy(newPolicy);
 		mPolicyActionUpdater.submitChangedPolicy(newPolicy);
-		mLiveCheckerPolicyEvaluationUpdater.submitChangedPolicy(newPolicy);
 	}
 
 }
