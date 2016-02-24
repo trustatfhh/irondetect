@@ -66,11 +66,12 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import de.hshannover.f4.trust.ifmapj.exception.IfmapErrorResult;
+import de.hshannover.f4.trust.ifmapj.exception.IfmapException;
 import de.hshannover.f4.trust.ifmapj.exception.UnmarshalException;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifiers;
 import de.hshannover.f4.trust.ifmapj.identifier.Identity;
-import de.hshannover.f4.trust.irondetect.livechecker.ifmap.IdentifierGraphToFeatureMapper;
-import de.hshannover.f4.trust.irondetect.livechecker.policy.publisher.LiveCheckerPolicyEvaluationUpdater;
+import de.hshannover.f4.trust.irondetect.engine.Processor;
 import de.hshannover.f4.trust.visitmeta.implementations.IdentifierGraphImpl;
 import de.hshannover.f4.trust.visitmeta.implementations.IdentifierImpl;
 import de.hshannover.f4.trust.visitmeta.implementations.LinkImpl;
@@ -118,19 +119,31 @@ public class LiveCheckerResource {
 	@Path("livechecker")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response checkFeatureData(String jsonFeatureData) {
+
 		// transform
 		JsonNode rootNode = parseJson(jsonFeatureData);
-		List<IdentifierGraph> identifierGraphList = extractGraphsFromJson(
-				rootNode);
 
+		List<IdentifierGraph> identifierGraphList = extractGraphsFromJson(rootNode);
 
-		//
+		Map<Identity, List<Document>> graphMap;
+		try {
+			graphMap = buildGraphMap(identifierGraphList);
+		} catch (UnmarshalException e) {
+			return responseError("Data transform", e.toString());
+		}
 
-		IdentifierGraphToFeatureMapper test = new IdentifierGraphToFeatureMapper();
-		test.addNewFeaturesToFeatureBase(identifierGraphList);
+		// evaluate
+		try {
+			Processor.getInstance().evaluateLiveGraph(identifierGraphList, graphMap);
+		} catch (IfmapErrorResult | IfmapException e) {
+			return responseError("Evaluate Live Graph", e.toString());
+		}
 
-		//
+		return Response.ok().entity("New FeatureData was checked").build();
+	}
 
+	private Map<Identity, List<Document>> buildGraphMap(List<IdentifierGraph> identifierGraphList)
+			throws UnmarshalException {
 		Map<Identity, List<Document>> graphMap = new HashMap<Identity, List<Document>>();
 
 		for (IdentifierGraph identifierGraph : identifierGraphList) {
@@ -138,14 +151,10 @@ public class LiveCheckerResource {
 				String identifierRawData = identifiers.getRawData();
 				Document identifierDocument = buildDocument(identifierRawData);
 				de.hshannover.f4.trust.ifmapj.identifier.Identifier identifier;
-				try {
-					identifier = Identifiers.fromElement(identifierDocument.getDocumentElement());
-				} catch (UnmarshalException e) {
-					return responseError("Data transform", e.toString());
-				}
+				identifier = Identifiers.fromElement(identifierDocument.getDocumentElement());
 
 				// only for Identity-Identifier
-				if(!(identifier instanceof Identity)){
+				if (!(identifier instanceof Identity)) {
 					continue;
 				}
 
@@ -164,10 +173,7 @@ public class LiveCheckerResource {
 			}
 		}
 
-		LiveCheckerPolicyEvaluationUpdater.getInstance().submitNewMapGraph(graphMap);
-
-
-		return Response.ok().entity("New FeatureData was checked").build();
+		return graphMap;
 	}
 
 	private Document buildDocument(String rawData) {

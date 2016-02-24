@@ -42,11 +42,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.log4j.Logger;
 
-import de.hshannover.f4.trust.ifmapj.messages.PollResult;
 import de.hshannover.f4.trust.ifmapj.messages.SearchResult;
 import de.hshannover.f4.trust.irondetect.livechecker.repository.FeatureBaseForLiveCheck;
 import de.hshannover.f4.trust.irondetect.model.Category;
@@ -56,6 +54,7 @@ import de.hshannover.f4.trust.irondetect.model.Feature;
 import de.hshannover.f4.trust.irondetect.model.FeatureType;
 import de.hshannover.f4.trust.irondetect.repository.FeatureBase;
 import de.hshannover.f4.trust.irondetect.util.Pair;
+import de.hshannover.f4.trust.irondetect.util.event.Event;
 import de.hshannover.f4.trust.visitmeta.interfaces.Identifier;
 import de.hshannover.f4.trust.visitmeta.interfaces.IdentifierGraph;
 import de.hshannover.f4.trust.visitmeta.interfaces.Metadata;
@@ -66,12 +65,9 @@ import de.hshannover.f4.trust.visitmeta.interfaces.Metadata;
  */
 public class IdentifierGraphToFeatureMapper {
 
-	private static Logger LOGGER = Logger
-			.getLogger(IdentifierGraphToFeatureMapper.class);
+	private static Logger LOGGER = Logger.getLogger(IdentifierGraphToFeatureMapper.class);
 
-	private FeatureBase mFeatureBase;
-
-	private LinkedBlockingQueue<PollResult> mIncomingResults = new LinkedBlockingQueue<PollResult>();
+	private FeatureBaseForLiveCheck mFeatureBase;
 
 	public IdentifierGraphToFeatureMapper() {
 		this.mFeatureBase = FeatureBaseForLiveCheck.getInstance();
@@ -82,7 +78,7 @@ public class IdentifierGraphToFeatureMapper {
 	 *
 	 * @param lastPollResult the last {@link SearchResult} inside the incoming queue
 	 */
-	public void addNewFeaturesToFeatureBase(List<IdentifierGraph> identifierGraphList) {
+	public Event addNewFeaturesToFeatureBase(List<IdentifierGraph> identifierGraphList) {
 		//CoreComponent and deleteFlag - true if CC was deleted
 		ArrayList<Pair<String, Pair<Feature, Boolean>>> coreComps = new ArrayList<Pair<String, Pair<Feature, Boolean>>>();
 
@@ -171,11 +167,13 @@ public class IdentifierGraphToFeatureMapper {
 					"Sending " + coreComps.size() + " features to FeatureBase");
 			LOGGER.debug(
 					"------------------------------------------------------------");
-			this.mFeatureBase.addNewFeatures(coreComps, false);
+			return mFeatureBase.addNewFeatures(coreComps, false);
 		} else {
 			LOGGER.debug("No features were sent to FeatureBase.");
 			LOGGER.debug(
 					"------------------------------------------------------------");
+
+			return null;
 		}
 	}
 

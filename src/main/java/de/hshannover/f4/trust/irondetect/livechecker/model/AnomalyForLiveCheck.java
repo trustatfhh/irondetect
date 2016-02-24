@@ -43,13 +43,23 @@ package de.hshannover.f4.trust.irondetect.livechecker.model;
 
 
 
+import static de.hshannover.f4.trust.irondetect.gui.ResultObjectType.ANOMALY;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import de.hshannover.f4.trust.irondetect.engine.Processor;
+import de.hshannover.f4.trust.irondetect.gui.ResultLogger;
+import de.hshannover.f4.trust.irondetect.livechecker.gui.ResultLoggerForLiveCheck;
 import de.hshannover.f4.trust.irondetect.livechecker.repository.FeatureBaseForLiveCheck;
 import de.hshannover.f4.trust.irondetect.model.Anomaly;
 import de.hshannover.f4.trust.irondetect.model.Feature;
+import de.hshannover.f4.trust.irondetect.model.Hint;
+import de.hshannover.f4.trust.irondetect.model.HintExpression;
+import de.hshannover.f4.trust.irondetect.util.BooleanOperator;
+import de.hshannover.f4.trust.irondetect.util.Pair;
 
 /**
  * Adds context to the whole thing.
@@ -59,9 +69,19 @@ import de.hshannover.f4.trust.irondetect.model.Feature;
  */
 public class AnomalyForLiveCheck extends Anomaly {
 
-	private Logger logger = Logger.getLogger(AnomalyForLiveCheck.class);
+	private Logger mLogger = Logger.getLogger(AnomalyForLiveCheck.class);
+
+	private ResultLogger mRlogger = ResultLoggerForLiveCheck.getInstance();
 
 	public AnomalyForLiveCheck(Anomaly anomaly) {
+
+		List<Pair<HintExpression, BooleanOperator>> newHintSet = new ArrayList<Pair<HintExpression, BooleanOperator>>();
+		for (Pair<HintExpression, BooleanOperator> pair : anomaly.getHintSet()) {
+			newHintSet.add(new Pair<HintExpression, BooleanOperator>(new HintExpressionForLiveCheck(pair
+					.getFirstElement()), pair.getSecondElement()));
+		}
+
+		super.setHintSet(newHintSet);
 
 	}
 
@@ -72,8 +92,50 @@ public class AnomalyForLiveCheck extends Anomaly {
 	 */
 	@Override
 	protected synchronized List<Feature> getFeatureValues(String device, List<String> featureIds) {
-		logger.trace("trying to get feature values, contextSet = " + super.contextSet);
+		mLogger.trace("trying to get feature values, contextSet = " + super.contextSet);
 		return FeatureBaseForLiveCheck.getInstance().getFeaturesByContext(device, featureIds, super.contextSet);
+	}
+
+	@Override
+	public boolean evaluate(String device) {
+
+		mLogger.info("----------------Evaluating anomaly "
+				+ this.id + " for device " + device + "---------------------");
+
+		/**
+		 * Only create triggers in testing mode
+		 */
+		if (Processor.getInstance().isTesting()) {
+			super.checkSlidingCtx(device);
+		}
+
+		long sTime = System.currentTimeMillis();
+
+		for (Pair<HintExpression, BooleanOperator> p : super.hintSet) {
+			Hint hint = p.getFirstElement().getHintValuePair().getFirstElement();
+			List<String> featureIdSet = hint.getFeatureIds();
+			List<Feature> fVals = getFeatureValues(device, featureIdSet);
+
+			// logger.warn("#### " + fVals.size());
+
+			if (fVals.isEmpty()) {
+				mLogger.warn("--------------------Anomaly " + this.id +
+						" no features found for Hint " + hint.getId() + " --------------------");
+			}
+
+			// set effective featureset in hint
+			hint.setFeatureSet(fVals);
+		}
+
+		// evaluate all hints
+		boolean result = super.evaluateHintSet(device);
+		long eTime = System.currentTimeMillis();
+		mLogger.info("--------------------Anomaly "
+				+ this.id + " eval finished with " + result + "--------------------");
+		mRlogger.reportResultsToLogger(device, id, ANOMALY, result);
+		super.printTimedResult(getClass(), result, eTime - sTime);
+		return result;
+
 	}
 
 }

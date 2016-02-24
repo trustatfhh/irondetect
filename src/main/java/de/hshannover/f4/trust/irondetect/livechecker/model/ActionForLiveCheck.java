@@ -61,7 +61,7 @@ import de.hshannover.f4.trust.irondetect.util.Pair;
  */
 public class ActionForLiveCheck extends Action {
 
-	private Logger logger = Logger.getLogger(ActionForLiveCheck.class);
+	private Logger mLogger = Logger.getLogger(ActionForLiveCheck.class);
 
 	public ActionForLiveCheck(Action action) {
 
@@ -71,7 +71,7 @@ public class ActionForLiveCheck extends Action {
 	public void perform(String device){
 		assert super.keyValuePairs != null : "action shouldn't be null!";
 
-		logger.info("PERFORMING ACTION (" + this.toString() + ")");
+		mLogger.info("PERFORMING ACTION (" + this.toString() + ")");
 
 		ArrayList<Pair<String, String>> mappedKeyValuePairs = new ArrayList<Pair<String, String>>();
 
