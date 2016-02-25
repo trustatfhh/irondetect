@@ -64,10 +64,10 @@ public class Rule implements PolicyData {
 	private Logger logger = Logger.getLogger(this.getClass());
 	private ResultLogger rlogger = ResultLoggerImpl.getInstance();
 
-	private Condition condition;
-	private List<Action> actions = new ArrayList<Action>();
-	private String id;
-	private Set<String> featureIds;
+	protected Condition condition;
+	protected List<Action> actions = new ArrayList<Action>();
+	protected String id;
+	protected Set<String> featureIds;
 
 	public Rule() {
 		featureIds = new HashSet<String>();
@@ -177,6 +177,10 @@ public class Rule implements PolicyData {
 
 	public void addFeatureId(String featureId) {
 		this.featureIds.add(featureId);
+	}
+
+	public Set<String> getFeatureId() {
+		return featureIds;
 	}
 
 	@Override

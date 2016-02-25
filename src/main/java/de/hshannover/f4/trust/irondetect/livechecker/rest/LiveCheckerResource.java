@@ -135,7 +135,8 @@ public class LiveCheckerResource {
 		// evaluate
 		try {
 			Processor.getInstance().evaluateLiveGraph(identifierGraphList, graphMap);
-		} catch (IfmapErrorResult | IfmapException e) {
+		} catch (IfmapErrorResult | IfmapException | ClassNotFoundException | InstantiationException
+				| IllegalAccessException e) {
 			return responseError("Evaluate Live Graph", e.toString());
 		}
 

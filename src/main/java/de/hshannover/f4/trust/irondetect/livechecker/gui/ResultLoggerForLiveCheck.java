@@ -82,6 +82,11 @@ public class ResultLoggerForLiveCheck implements ResultLogger, Runnable {
 		}
 	}
 
+	public void resetEventReceiver() {
+		eventReceiver = null;
+		eventReceiver = new ArrayList<EventReceiver>();
+	}
+
 	@Override
 	public void reportResultsToLogger(String device, String id, ResultObjectType type,
 			boolean value) {

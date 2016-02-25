@@ -17,7 +17,10 @@ public class RuleForLiveCheck extends Rule {
 	private ResultLogger mRlogger = ResultLoggerForLiveCheck.getInstance();
 
 	public RuleForLiveCheck(Rule rule) {
-
+		super.setCondition(rule.getCondition());
+		super.setActions(rule.getActions());
+		super.setId(rule.getId());
+		super.setFeatureIds(rule.getFeatureId());
 	}
 
 	/**

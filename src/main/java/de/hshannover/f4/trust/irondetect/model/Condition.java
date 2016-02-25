@@ -147,4 +147,8 @@ public class Condition extends Evaluable implements PolicyData {
 		this.parent = parent;
 	}
 
+	public Rule getParent() {
+		return parent;
+	}
+
 }

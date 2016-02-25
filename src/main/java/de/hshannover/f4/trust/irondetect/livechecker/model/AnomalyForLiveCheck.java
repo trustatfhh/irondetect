@@ -82,7 +82,9 @@ public class AnomalyForLiveCheck extends Anomaly {
 		}
 
 		super.setHintSet(newHintSet);
-
+		super.setId(anomaly.getId());
+		super.setContextSet(anomaly.getContextSet());
+		super.setParent(anomaly.getParent());
 	}
 
 	/**

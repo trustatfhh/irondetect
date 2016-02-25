@@ -125,8 +125,6 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 
 	private Policy mPolicy;
 
-	private Policy mPolicyForLiveCheck;
-
 	private boolean isTraining; // TODO state machine
 
 	private Map<String, TrainingData> trainingDataMap;
@@ -165,6 +163,12 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 
 		// Parse policy
 		readPolicyFromFile(mCurrentPolicyPath);
+
+		ResultLoggerForLiveCheck rlForLiveCheck = ResultLoggerForLiveCheck.getInstance();
+
+		Thread rlThread = new Thread(rlForLiveCheck, ResultLoggerForLiveCheck.class.getSimpleName() + "-Thread");
+
+		rlThread.start();
 	}
 
 	public Map<String, TrainingData> getTrainingDataMap(){
@@ -231,34 +235,6 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 			logger.error("Policy could not be parsed: " + e.getMessage() + ", " + e.getCause());
 			logger.info("Old policy is still active!");
 		}
-	}
-
-	public void setLiveCheckPolicy(SearchResult searchResultPolicy) throws ClassNotFoundException,
-	InstantiationException, IllegalAccessException, UnmarshalException {
-		// transform and filter SearchResult
-		List<PolicyData> policyDataList = transformToPolicyDataForLiveCheck(searchResultPolicy);
-
-		// ############################################
-		// ### NOW RECONSTRUCT THE POLICY STRUCTURE ###
-		// ############################################
-
-		Policy policy = getPolicyFrom(policyDataList);
-		List<Rule> ruleSet = getRuleSetFrom(policyDataList);
-
-		// set RuleSet to the Policy
-		policy.setRuleSet(ruleSet);
-
-		// set Signature and Anomaly to Condition
-		setConditionElementsToCondition(policyDataList);
-
-		// set Hints to Anomalys
-		setHintsToAnomalies(policyDataList);
-
-		// add FeatureIds to rules
-		addFeatureIdsToRules(policyDataList);
-
-		// change to the new Policy
-		mPolicyForLiveCheck = policy;
 	}
 
 	public void reloadPolicy() throws ClassNotFoundException, InstantiationException, IllegalAccessException,
@@ -742,16 +718,48 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 		}
 	}
 
+	public Policy setLiveCheckPolicy(SearchResult searchResultPolicy) throws ClassNotFoundException,
+	InstantiationException, IllegalAccessException, UnmarshalException {
+		// transform and filter SearchResult
+		List<PolicyData> policyDataList = transformToPolicyDataForLiveCheck(searchResultPolicy);
+
+		// ############################################
+		// ### NOW RECONSTRUCT THE POLICY STRUCTURE ###
+		// ############################################
+
+		Policy policyForLiveCheck = getPolicyFrom(policyDataList);
+		List<Rule> ruleSet = getRuleSetFrom(policyDataList);
+
+		// set RuleSet to the Policy
+		policyForLiveCheck.setRuleSet(ruleSet);
+
+		// set Signature and Anomaly to Condition
+		setConditionElementsToCondition(policyDataList);
+
+		// set Hints to Anomalys
+		setHintsToAnomalies(policyDataList);
+
+		// add FeatureIds to rules
+		addFeatureIdsToRules(policyDataList);
+
+		// change to the new Policy
+		return policyForLiveCheck;
+	}
+
 	public void evaluateLiveGraph(List<IdentifierGraph> identifierGraphList, Map<Identity, List<Document>> graphMap)
-			throws IfmapErrorResult, IfmapException {
+			throws IfmapErrorResult, IfmapException, ClassNotFoundException, InstantiationException,
+			IllegalAccessException {
 
 		// init
+		Policy policyForLiveCheck = setLiveCheckPolicy(getGraphPolicy());
+
 		IdentifierGraphToFeatureMapper featureMapper = new IdentifierGraphToFeatureMapper();
 
 		Event updateEvent = featureMapper.addNewFeaturesToFeatureBase(identifierGraphList);
 
 		LiveCheckerPolicyEvaluationUpdater evaluationUpdater =
-				new LiveCheckerPolicyEvaluationUpdater(mPolicyForLiveCheck, mPolicyPublisher.getSsrc());
+				new LiveCheckerPolicyEvaluationUpdater(policyForLiveCheck, mPolicyPublisher.getSsrc());
+		ResultLoggerForLiveCheck.getInstance().resetEventReceiver();
 		ResultLoggerForLiveCheck.getInstance().addEventReceiver(evaluationUpdater);
 		evaluationUpdater.submitNewMapGraph(graphMap);
 
@@ -770,7 +778,7 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 
 			for (String s : payload.keySet()) {
 				logger.trace("(LIVE Mode)Payload size for device '" + s + "' is: " + payload.get(s).size());
-				mPolicyForLiveCheck.check(s, payload.get(s));
+				policyForLiveCheck.check(s, payload.get(s));
 			}
 
 			ResultLoggerForLiveCheck.getInstance().reportResultsToLogger("BLANK", mPolicy.getId(), POLICY, true);
