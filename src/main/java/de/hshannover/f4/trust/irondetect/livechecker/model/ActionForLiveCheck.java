@@ -43,25 +43,13 @@ package de.hshannover.f4.trust.irondetect.livechecker.model;
 
 
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-
-import de.hshannover.f4.trust.irondetect.ifmap.ActionToIfmapMapper;
-import de.hshannover.f4.trust.irondetect.livechecker.repository.FeatureBaseForLiveCheck;
 import de.hshannover.f4.trust.irondetect.model.Action;
-import de.hshannover.f4.trust.irondetect.model.Feature;
-import de.hshannover.f4.trust.irondetect.model.Policy;
-import de.hshannover.f4.trust.irondetect.util.Pair;
 
 /**
  * @author Marcel Reichenbach
  *
  */
 public class ActionForLiveCheck extends Action {
-
-	private Logger mLogger = Logger.getLogger(ActionForLiveCheck.class);
 
 	public ActionForLiveCheck(Action action) {
 		super.setId(action.getId());
@@ -70,29 +58,6 @@ public class ActionForLiveCheck extends Action {
 
 	@Override
 	public void perform(String device){
-		assert super.keyValuePairs != null : "action shouldn't be null!";
-
-		mLogger.info("PERFORMING ACTION (" + this.toString() + ")");
-
-		ArrayList<Pair<String, String>> mappedKeyValuePairs = new ArrayList<Pair<String, String>>();
-
-		for(Pair<String, String> p : this.keyValuePairs) {
-			String key = p.getFirstElement();
-			String value = p.getSecondElement();
-			if(value.startsWith(Policy.GET_KEY)) {
-				String valueKey = value.substring(1);
-				ArrayList<String> tmp = new ArrayList<String>();
-				tmp.add(valueKey);
-				List<Feature> features = FeatureBaseForLiveCheck.getInstance().getFeaturesByContext(device, tmp, null);
-				for(Feature f : features) {
-					Pair<String, String> remapped = new Pair<String, String>(key, f.getValue());
-					mappedKeyValuePairs.add(remapped);
-				}
-			} else {
-				mappedKeyValuePairs.add(p);
-			}
-		}
-
-		ActionToIfmapMapper.getInstance().addNewAction(device, mappedKeyValuePairs);
+		// no PERFORMING for a ActionForLiveCheck
 	}
 }
