@@ -57,6 +57,7 @@ import de.hshannover.f4.trust.irondetect.ifmap.IfmapController;
 import de.hshannover.f4.trust.irondetect.ifmap.IfmapToFeatureMapper;
 import de.hshannover.f4.trust.irondetect.importer.Importer;
 import de.hshannover.f4.trust.irondetect.importer.YamlImporter;
+import de.hshannover.f4.trust.irondetect.livechecker.gui.ResultLoggerForLiveCheck;
 import de.hshannover.f4.trust.irondetect.livechecker.rest.RestService;
 import de.hshannover.f4.trust.irondetect.model.Feature;
 import de.hshannover.f4.trust.irondetect.policy.publisher.PolicyPublisher;
@@ -138,6 +139,7 @@ public class Main {
 			// GUI)
 			ResultVisualizer resultVisualizer = new ResultVisualizer();
 			resultLogger.addEventReceiver(resultVisualizer);
+			ResultLoggerForLiveCheck.getInstance().addResultVisualizer(resultVisualizer);
 		}
 
 		resultLoggerThread.start();

@@ -49,6 +49,7 @@ import org.apache.log4j.Logger;
 import de.hshannover.f4.trust.irondetect.gui.ResultLogger;
 import de.hshannover.f4.trust.irondetect.gui.ResultObject;
 import de.hshannover.f4.trust.irondetect.gui.ResultObjectType;
+import de.hshannover.f4.trust.irondetect.gui.ResultVisualizer;
 import de.hshannover.f4.trust.irondetect.util.event.Event;
 import de.hshannover.f4.trust.irondetect.util.event.EventReceiver;
 import de.hshannover.f4.trust.irondetect.util.event.ResultUpdateEvent;
@@ -60,6 +61,8 @@ public class ResultLoggerForLiveCheck implements ResultLogger, Runnable {
 	private static ResultLoggerForLiveCheck instance;
 
 	private List<EventReceiver> eventReceiver;
+
+	private ResultVisualizer mResultVisualizer;
 
 	private LinkedBlockingQueue<ResultObject> incomingResults;
 
@@ -136,7 +139,17 @@ public class ResultLoggerForLiveCheck implements ResultLogger, Runnable {
 		for (EventReceiver er : this.eventReceiver) {
 			er.submitNewEvent(e);
 		}
+
+		if (mResultVisualizer != null) {
+			Event liveCheck = new ResultUpdateEvent(new ResultObjectForLiveCheck(lastPollResult));
+			mResultVisualizer.submitNewEvent(liveCheck);
+		}
+
 		logger.trace("ResultsObjects were send to registered receivers.");
+	}
+
+	public void addResultVisualizer(ResultVisualizer resultVisualizer) {
+		mResultVisualizer = resultVisualizer;
 	}
 
 }
