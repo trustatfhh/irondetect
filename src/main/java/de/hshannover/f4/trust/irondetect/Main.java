@@ -57,6 +57,7 @@ import de.hshannover.f4.trust.irondetect.ifmap.IfmapController;
 import de.hshannover.f4.trust.irondetect.ifmap.IfmapToFeatureMapper;
 import de.hshannover.f4.trust.irondetect.importer.Importer;
 import de.hshannover.f4.trust.irondetect.importer.YamlImporter;
+import de.hshannover.f4.trust.irondetect.livechecker.gui.ResultLoggerForLiveCheck;
 import de.hshannover.f4.trust.irondetect.livechecker.rest.RestService;
 import de.hshannover.f4.trust.irondetect.model.Feature;
 import de.hshannover.f4.trust.irondetect.policy.publisher.PolicyPublisher;
@@ -96,12 +97,12 @@ public class Main {
 		// Create processor and thread
 		Thread processingThread = new Thread(processor, "processor-thread");
 		processingThread.start();
-		
+
 		try {
 			PolicyPublisher policyUpdater = new PolicyPublisher(processor.getPolicy());
 			processor.setPolicyPublisher(policyUpdater);
-			
-			
+
+
 			boolean automaticPolicyReload = CONFIG.getBoolean(Configuration.KEY_POLICY_RELOAD_FROM_GRAPH,
 					Configuration.DEFAULT_VALUE_POLICY_RELOAD_FROM_GRAPH);
 			if (automaticPolicyReload) {
@@ -136,6 +137,7 @@ public class Main {
 			// GUI)
 			ResultVisualizer resultVisualizer = new ResultVisualizer();
 			resultLogger.addEventReceiver(resultVisualizer);
+			ResultLoggerForLiveCheck.getInstance().addResultVisualizer(resultVisualizer);
 		}
 
 		resultLoggerThread.start();
@@ -154,7 +156,7 @@ public class Main {
 		} else {
 			logger.info("Training was disabled.");
 		}
-		
+
 		logger.info("Will begin testing now.");
 		processor.setToTesting();
 
@@ -202,8 +204,8 @@ public class Main {
 				throw new RuntimeException("Application property has not been initialized. This is not good!");
 			}
 		}
-		
+
 		return CONFIG;
 	}
-	
+
 }
