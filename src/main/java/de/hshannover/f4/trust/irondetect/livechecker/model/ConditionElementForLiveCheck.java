@@ -36,40 +36,44 @@
  * limitations under the License.
  * #L%
  */
+/**
+ *
+ */
 package de.hshannover.f4.trust.irondetect.livechecker.model;
 
+import java.util.List;
 
-import static de.hshannover.f4.trust.irondetect.gui.ResultObjectType.HINT;
+import org.apache.log4j.Logger;
 
-import de.hshannover.f4.trust.irondetect.gui.ResultLogger;
-import de.hshannover.f4.trust.irondetect.livechecker.gui.ResultLoggerForLiveCheck;
-import de.hshannover.f4.trust.irondetect.model.Hint;
-import de.hshannover.f4.trust.irondetect.model.HintExpression;
+import de.hshannover.f4.trust.irondetect.livechecker.repository.FeatureBaseForLiveCheck;
+import de.hshannover.f4.trust.irondetect.model.ConditionElement;
+import de.hshannover.f4.trust.irondetect.model.Feature;
 
 /**
+ * Adds context to the whole thing.
+ *
  * @author Marcel Reichenbach
  *
  */
-public class HintExpressionForLiveCheck extends HintExpression {
+public class ConditionElementForLiveCheck extends ConditionElement {
 
-	private ResultLogger mRlogger = ResultLoggerForLiveCheck.getInstance();
+	private Logger logger = Logger.getLogger(this.getClass());
 
-	public HintExpressionForLiveCheck(HintExpression hintExpression) {
-		super.setId(hintExpression.getId());
-		super.setHintValuePair(hintExpression.getHintValuePair());
-		super.setCurrentAnomaly(hintExpression.getCurrentAnomaly());
+	public ConditionElementForLiveCheck(ConditionElement conditionElement) {
+		super.setId(conditionElement.getId());
+		super.setContextSet(conditionElement.getContextSet());
+		super.setParent(conditionElement.getParent());
 	}
 
+	/**
+	 * @param device
+	 * @param featureIds
+	 * @return list which contains a pair consisting of featureId and the appropriate
+	 */
 	@Override
-	public boolean evaluate(String device) {
-		Hint hint = super.hintValPair.getFirstElement();
-		double actual = hint.evaluate(device, getCurrentAnomaly());
-		boolean result = evaluateCompOpOnNumber(super.hintValPair.getSecondElement().getFirstElement(), actual,
-				Double.parseDouble(super.hintValPair.getSecondElement().getSecondElement()));
-
-		mRlogger.reportResultsToLogger(device, hint.getId(), HINT, result);
-
-		return result;
+	protected synchronized List<Feature> getFeatureValues(String device, List<String> featureIds) {
+		logger.trace("trying to get feature values, contextSet = " + super.contextSet);
+		return FeatureBaseForLiveCheck.getInstance().getFeaturesByContext(device, featureIds, super.contextSet);
 	}
 
 }

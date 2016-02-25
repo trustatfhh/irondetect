@@ -125,6 +125,10 @@ public class ConditionElement extends Evaluable implements PolicyData {
 		this.parent = parent;
 	}
 
+	public Rule getParent() {
+		return parent;
+	}
+
 	@Override
 	public boolean evaluate(String device) {
 		return false;

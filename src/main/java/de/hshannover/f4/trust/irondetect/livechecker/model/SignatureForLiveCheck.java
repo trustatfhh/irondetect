@@ -74,7 +74,7 @@ public class SignatureForLiveCheck extends Signature {
 	private ResultLogger mRlogger = ResultLoggerForLiveCheck.getInstance();
 
 	public SignatureForLiveCheck(Signature signature) {
-
+		super.setFeatureSet(signature.getFeatureSet());
 	}
 
 	/**
@@ -168,7 +168,7 @@ public class SignatureForLiveCheck extends Signature {
 													.getFirstElement().getFeatureValuePair().getSecondElement()
 													.getFirstElement(),
 													featureRight.getValue())), p.getFirstElement().getId(), p
-															.getFirstElement().getScope());
+											.getFirstElement().getScope());
 							f.setStep(step);
 							featureExpr.add(f);
 						}
@@ -225,7 +225,7 @@ public class SignatureForLiveCheck extends Signature {
 			Pair<FeatureExpression, BooleanOperator> p = this.featureSet.get(a);
 			mLogger.trace("->stepping forward ("
 					+ k + "), evaluating against " + p.getFirstElement().getFeatureValuePair().getSecondElement()
-							.getSecondElement());
+					.getSecondElement());
 
 			k++;
 			result = false;
@@ -265,7 +265,7 @@ public class SignatureForLiveCheck extends Signature {
 				// policy) value
 				result =
 						(new FeatureExpression(countFeature, p.getFirstElement(), p.getFirstElement().getId()))
-								.evaluate(device);
+						.evaluate(device);
 			} else {
 
 				// if we do not have to count, simply evaluate the appropriate parts of the expression set
@@ -307,11 +307,11 @@ public class SignatureForLiveCheck extends Signature {
 								}
 							}
 						} /*
-							 * else { logger.trace("--> FE not valid or counter: " + fE.getFeature().getQualifiedId() +
-							 * ", value is " + fE.getFeature().getValue()); logger.trace("fEIsValid = " + fE.isValid() +
-							 * ", fe.isCounter = " + fE.isCounter() + ",fe.isTagged = " + fE.isTagged() +
-							 * ", fe.isRevalidated = " + fE.isRevalidated()); }
-							 */
+						 * else { logger.trace("--> FE not valid or counter: " + fE.getFeature().getQualifiedId() +
+						 * ", value is " + fE.getFeature().getValue()); logger.trace("fEIsValid = " + fE.isValid() +
+						 * ", fe.isCounter = " + fE.isCounter() + ",fe.isTagged = " + fE.isTagged() +
+						 * ", fe.isRevalidated = " + fE.isRevalidated()); }
+						 */
 					}
 				}
 

@@ -64,7 +64,8 @@ public class ActionForLiveCheck extends Action {
 	private Logger mLogger = Logger.getLogger(ActionForLiveCheck.class);
 
 	public ActionForLiveCheck(Action action) {
-
+		super.setId(action.getId());
+		super.setKeyValuePairs(action.getKeyValuePairs());
 	}
 
 	@Override

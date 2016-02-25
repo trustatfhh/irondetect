@@ -48,6 +48,7 @@ import de.hshannover.f4.trust.irondetect.model.HintExpression;
 import de.hshannover.f4.trust.irondetect.model.Policy;
 import de.hshannover.f4.trust.irondetect.model.Rule;
 import de.hshannover.f4.trust.irondetect.model.Signature;
+import de.hshannover.f4.trust.irondetect.policy.publisher.model.handler.PolicyActionHandler;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.handler.PolicyDataManager;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.metadata.PolicyMetadataFactory;
@@ -179,7 +180,7 @@ public class LiveCheckerPolicyEvaluationUpdater implements Runnable, EventReceiv
 		for (Rule rule : mPolicy.getRuleSet()) {
 			if (rule.getId().equals(ruleId)) {
 				for (Action action : rule.getActions()) {
-					ExtendedIdentifier identfierAction = PolicyDataManager.transformPolicyData(action);
+					ExtendedIdentifier identfierAction = new PolicyActionHandler().toIdentifier(action);
 					publishUpdates.add(buildPublishUpdate(identfierAction, policyAction));
 				}
 				break;
@@ -341,13 +342,13 @@ public class LiveCheckerPolicyEvaluationUpdater implements Runnable, EventReceiv
 	public void run() {
 		LOGGER.info("run() ...");
 
-			try {
+		try {
 
-				newPollResult();
+			newPollResult();
 
-			} catch (InterruptedException e) {
-				LOGGER.error(e.getClass().getSimpleName() + " when take a new Poll-Result");
-			}
+		} catch (InterruptedException e) {
+			LOGGER.error(e.getClass().getSimpleName() + " when take a new Poll-Result");
+		}
 
 		LOGGER.info("... run()");
 	}

@@ -2,6 +2,9 @@ package de.hshannover.f4.trust.irondetect.livechecker.model;
 
 import static de.hshannover.f4.trust.irondetect.gui.ResultObjectType.CONDITION;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 
 import de.hshannover.f4.trust.irondetect.gui.ResultLogger;
@@ -19,6 +22,16 @@ public class ConditionForLiveCheck extends Condition {
 
 	public ConditionForLiveCheck(Condition condition) {
 
+		List<Pair<ConditionElement, BooleanOperator>> newconditionSet =
+				new ArrayList<Pair<ConditionElement, BooleanOperator>>();
+		for (Pair<ConditionElement, BooleanOperator> pair : condition.getConditionSet()) {
+			newconditionSet.add(new Pair<ConditionElement, BooleanOperator>(new ConditionElementForLiveCheck(pair
+					.getFirstElement()), pair.getSecondElement()));
+		}
+
+		super.setId(condition.getId());
+		super.setParent(condition.getParent());
+		super.setConditionSet(newconditionSet);
 	}
 
 	@Override

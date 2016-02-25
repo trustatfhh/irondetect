@@ -67,7 +67,7 @@ public class Rule implements PolicyData {
 	protected Condition condition;
 	protected List<Action> actions = new ArrayList<Action>();
 	protected String id;
-	private Set<String> featureIds;
+	protected Set<String> featureIds;
 
 	public Rule() {
 		featureIds = new HashSet<String>();
@@ -177,6 +177,10 @@ public class Rule implements PolicyData {
 
 	public void addFeatureId(String featureId) {
 		this.featureIds.add(featureId);
+	}
+
+	public Set<String> getFeatureId() {
+		return featureIds;
 	}
 
 	@Override
