@@ -10,7 +10,7 @@
 	<!-- general project information -->
 	<groupId>de.hshannover.f4.trust</groupId>
 	<artifactId>irondetect</artifactId>
-	<version>0.0.8</version>
+	<version>0.0.9</version>
 	<packaging>jar</packaging>
 	<name>irondetect</name>
 	<url>http://trust.f4.hs-hannover.de/</url>
@@ -53,7 +53,10 @@
 		</contributor>
 		<contributor>
 			<name>Bastian Hellmann</name>
-		</contributor>
+                      </contributor>
+                <contributor>
+                        <name>Marcel Reichenbach</name>
+                </contributor>
 	</contributors>
 
 	<build>
@@ -233,7 +236,7 @@
 		<dependency>
 			<groupId>de.hshannover.f4.trust</groupId>
 			<artifactId>visitmeta-common</artifactId>
-			<version>0.5.2</version>
+			<version>0.6.0</version>
 		</dependency>
 
 		<dependency>
