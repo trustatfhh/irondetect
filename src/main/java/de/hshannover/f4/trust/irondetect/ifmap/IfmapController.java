@@ -7,18 +7,18 @@
  *    | | | |  | |_| \__ \ |_| | (_| |  _  |\__ \|  _  |
  *    |_| |_|   \__,_|___/\__|\ \__,_|_| |_||___/|_| |_|
  *                             \____/
- * 
+ *
  * =====================================================
- * 
+ *
  * Hochschule Hannover
  * (University of Applied Sciences and Arts, Hannover)
  * Faculty IV, Dept. of Computer Science
  * Ricklinger Stadtweg 118, 30459 Hannover, Germany
- * 
+ *
  * Email: trust@f4-i.fh-hannover.de
  * Website: http://trust.f4.hs-hannover.de/
- * 
- * This file is part of irondetect, version 0.0.9, 
+ *
+ * This file is part of irondetect, version 0.0.9,
  * implemented by the Trust@HsH research group at the Hochschule Hannover.
  * %%
  * Copyright (C) 2010 - 2016 Trust@HsH
@@ -26,9 +26,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,14 +36,11 @@
  * limitations under the License.
  * #L%
  */
-/**
- * 
- */
 package de.hshannover.f4.trust.irondetect.ifmap;
 
-
-
 import java.io.FileNotFoundException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -99,15 +96,15 @@ import de.hshannover.f4.trust.irondetect.util.Triple;
  * For each new endpoint, another Subscription is created to monitor the
  * Category and Feature metadata.</li>
  * </ol>
- * 
- * 
+ *
+ *
  * @author ibente
- * 
+ *
  */
 public class IfmapController {
 
 	private static final Logger logger = Logger.getLogger(IfmapController.class);
-	
+
 	private Properties mConfig = Main.getConfig();
 
 	/**
@@ -128,37 +125,44 @@ public class IfmapController {
 	private int mIfmapMaxResultSize;
 
 	private boolean mPublishNotify;
-	
+
 	/**
 	 * @param ifmapToFeatureMapper
-	 * 
+	 *
 	 */
 	public IfmapController() {
 		mAlertInstanceNumber = new HashMap<String, Integer>();
-		mIfmapMaxResultSize = mConfig.getInt(Configuration.KEY_IFMAP_MAXRESULTSIZE, Configuration.DEFAULT_VALUE_IFMAP_MAXRESULTSIZE);
+		mIfmapMaxResultSize =
+				mConfig.getInt(Configuration.KEY_IFMAP_MAXRESULTSIZE, Configuration.DEFAULT_VALUE_IFMAP_MAXRESULTSIZE);
 
-		String username = mConfig.getString(Configuration.KEY_IFMAP_BASIC_DEVICESUBSCRIBER_USERNAME, Configuration.DEFAULT_VALUE_IFMAP_BASIC_DEVICESUBSCRIBER_USERNAME);
-		String password = mConfig.getString(Configuration.KEY_IFMAP_BASIC_DEVICESUBSCRIBER_PASSWORD, Configuration.DEFAULT_VALUE_IFMAP_BASIC_DEVICESUBSCRIBER_PASSWORD);
-		
+		String username = mConfig.getString(Configuration.KEY_IFMAP_BASIC_DEVICESUBSCRIBER_USERNAME,
+				Configuration.DEFAULT_VALUE_IFMAP_BASIC_DEVICESUBSCRIBER_USERNAME);
+		String password = mConfig.getString(Configuration.KEY_IFMAP_BASIC_DEVICESUBSCRIBER_PASSWORD,
+				Configuration.DEFAULT_VALUE_IFMAP_BASIC_DEVICESUBSCRIBER_PASSWORD);
+
 		try {
 			mSsrc = IfmapUtil.initSsrc(username, password);
 		} catch (FileNotFoundException e) {
-			logger.error("Could not initialize truststore: " + e.getMessage());
+			logger.error("Could not initialize truststore: "
+					+ e.getMessage());
 			System.exit(Constants.RETURN_CODE_ERROR_TRUSTSTORE_LOADING_FAILED);
 		} catch (InitializationException e) {
-			logger.error("Could not initialize ifmapj: " + e.getMessage() + ", " + e.getCause());
+			logger.error("Could not initialize ifmapj: "
+					+ e.getMessage() + ", " + e.getCause());
 			System.exit(Constants.RETURN_CODE_ERROR_IFMAPJ_INITIALIZATION_FAILED);
 		}
-		
+
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		try {
 			this.documentBuilder = factory.newDocumentBuilder();
 		} catch (ParserConfigurationException e) {
-			logger.error("Could not configure XML parser: " + e.getMessage() + ", " + e.getCause());
+			logger.error("Could not configure XML parser: "
+					+ e.getMessage() + ", " + e.getCause());
 			System.exit(Constants.RETURN_CODE_ERROR_PARSER_CONFIGURATION_FAILED);
 		}
-		
-		logger.info(IfmapController.class.getSimpleName() + " has started.");
+
+		logger.info(IfmapController.class.getSimpleName()
+				+ " has started.");
 
 		initSession();
 
@@ -178,14 +182,18 @@ public class IfmapController {
 		try {
 			mSsrc.newSession(mIfmapMaxResultSize);
 		} catch (IfmapErrorResult e) {
-			logger.error("Got IfmapErrorResult: " + e.getMessage() + ", " + e.getCause());
+			logger.error("Got IfmapErrorResult: "
+					+ e.getMessage() + ", " + e.getCause());
 		} catch (IfmapException e) {
-			logger.error("Got IfmapException: " + e.getMessage() + ", " + e.getCause());
+			logger.error("Got IfmapException: "
+					+ e.getMessage() + ", " + e.getCause());
 			System.exit(Constants.RETURN_CODE_ERROR_IFMAPJ_EXCEPTION);
 		}
-		
-		logger.debug("Session initialized: Session ID: " + mSsrc.getSessionId()
-				+ " - Publisher ID : " + mSsrc.getPublisherId() + " (with MAX_RESULT_SIZE = " + mIfmapMaxResultSize + ")");
+
+		logger.debug("Session initialized: Session ID: "
+				+ mSsrc.getSessionId()
+				+ " - Publisher ID : " + mSsrc.getPublisherId() + " (with MAX_RESULT_SIZE = " + mIfmapMaxResultSize
+				+ ")");
 		mPublisherId = mSsrc.getPublisherId();
 	}
 
@@ -201,15 +209,16 @@ public class IfmapController {
 		try {
 			poller.setArc(mSsrc.getArc());
 		} catch (InitializationException e) {
-			logger.error("Could not initialize ifmapj: " + e.getMessage() + ", " + e.getCause());
+			logger.error("Could not initialize ifmapj: "
+					+ e.getMessage() + ", " + e.getCause());
 			System.exit(Constants.RETURN_CODE_ERROR_IFMAPJ_INITIALIZATION_FAILED);
 		}
 
 		Thread pollerThread = new Thread(poller, EndpointPoller.class.getSimpleName());
-		
+
 		this.mNewEventPoller = new NewEventPoller(this);
 		Thread eventPollerThread = new Thread(this.mNewEventPoller, NewEventPoller.class.getSimpleName());
-		
+
 		this.mNewDevicePoller = new NewDevicePoller(this);
 		Thread devicePollerThread = new Thread(this.mNewDevicePoller, NewDevicePoller.class.getSimpleName());
 
@@ -223,15 +232,17 @@ public class IfmapController {
 	 * @throws IfmapErrorResult
 	 * @throws IfmapException
 	 */
-	void subscribeForSmartphone(Device device) throws IfmapErrorResult,
-			IfmapException {
-		logger.debug("Subscribe for new smartphone device " + device + " ...");
+			void subscribeForSmartphone(Device device) throws IfmapErrorResult,
+					IfmapException {
+		logger.debug("Subscribe for new smartphone device "
+				+ device + " ...");
 
 		SubscribeUpdate subscribeUpdate = Requests.createSubscribeUpdate();
 
 		try {
 			subscribeUpdate.setName(createSHA1(device.getName()).substring(0,
-                                device.getName().length() > 20 ? 19 : device.getName().length()-1));	// TODO FIXME hackhackhack
+					device.getName().length() > 20 ? 19 : device.getName().length()
+							- 1)); // TODO FIXME hackhackhack
 		} catch (NoSuchAlgorithmException e) {
 			logger.error("SHA1ing failed.");
 		}
@@ -265,34 +276,37 @@ public class IfmapController {
 	/**
 	 * @param event
 	 */
-	void publishEvent(Triple<String, List<Document>, Boolean> event) {
+			void publishEvent(Triple<String, List<Document>, Boolean> event) {
 		logger.info("Trying to publish new action metadata");
 
 		List<PublishElement> elements = new ArrayList<PublishElement>();
-		
+
 		String device = event.getFirstElement();
 		List<Document> metadataList = event.getSecondElement();
 		boolean ifmapEvent = event.getThirdElement();
-		
+
 		Identifier target = null;
 		int tmpInstanceNumber = 0;
-		
+
 		if (mAlertInstanceNumber.containsKey(device)) {
 			tmpInstanceNumber = mAlertInstanceNumber.get(device);
 		}
-		
+
 		if (ifmapEvent) {
 			target = searchAccessRequestDeviceIdentifier(device);
 		} else {
 			target = Identifiers.createIdentity(IdentityType.other,
-					Constants.ALERT_IDENTIFIER_NAME + ":" + tmpInstanceNumber, device, Constants.OTHER_TYPE_DEFINITION);
+					Constants.ALERT_IDENTIFIER_NAME
+							+ ":" + tmpInstanceNumber,
+					device, Constants.OTHER_TYPE_DEFINITION);
 			tmpInstanceNumber++;
 			mAlertInstanceNumber.put(device, tmpInstanceNumber);
-			
-			logger.trace("Device name for new event: " + device);
+
+			logger.trace("Device name for new event: "
+					+ device);
 			elements.add(createLinksForDevice(device, target));
 		}
-		
+
 		if (mPublishNotify) {
 			for (Document metadata : metadataList) {
 				elements.add(Requests.createPublishNotify(target, metadata));
@@ -312,9 +326,11 @@ public class IfmapController {
 				}
 				logger.info("New action metadata was published.");
 			} catch (IfmapErrorResult e) {
-				logger.error("Got IfmapErrorResult: "+  e.getMessage() + ", " + e.getCause());
+				logger.error("Got IfmapErrorResult: "
+						+ e.getMessage() + ", " + e.getCause());
 			} catch (IfmapException e) {
-				logger.error("Got IfmapException: "+  e.getMessage() + ", " + e.getCause());
+				logger.error("Got IfmapException: "
+						+ e.getMessage() + ", " + e.getCause());
 			}
 		} else {
 			logger.error("PublishElement was null.");
@@ -327,20 +343,22 @@ public class IfmapController {
 	public String getPublisherId() {
 		return this.mPublisherId;
 	}
-	
+
 	/**
 	 * @param device
 	 * @return
 	 */
 	private PublishElement createLinksForDevice(String device, Identifier alertFeature) {
 		Document deviceCategory = this.documentBuilder.newDocument();
-		Element e = deviceCategory.createElementNS(Constants.ESUKOM_NAMESPACE_URI, Constants.ESUKOM_NAMESPACE_PREFIX + ":" + "device-category");
+		Element e = deviceCategory.createElementNS(Constants.ESUKOM_NAMESPACE_URI, Constants.ESUKOM_NAMESPACE_PREFIX
+				+ ":" + "device-category");
 		e.setAttributeNS(null, "ifmap-cardinality", "singleValue");
-		
+
 		deviceCategory.appendChild(e);
-		
-		logger.trace("Adding link to new alert-instance = " + mAlertInstanceNumber.get(device));
-		
+
+		logger.trace("Adding link to new alert-instance = "
+				+ mAlertInstanceNumber.get(device));
+
 		if (mPublishNotify) {
 			PublishNotify result = Requests.createPublishNotify();
 			result.setIdentifier1(Identifiers.createDev(device));
@@ -356,15 +374,16 @@ public class IfmapController {
 			return result;
 		}
 	}
-	
+
 	/**
 	 * @param device
 	 * @return
 	 */
 	private Identifier searchAccessRequestDeviceIdentifier(String device) {
 		Identifier startIdentifier = Identifiers.createDev(device);
-		
-		SearchRequest searchRequest = Requests.createSearchReq(Constants.MATCH_LINKS_ACCESS_REQUEST, 1, null, mIfmapMaxResultSize, null, startIdentifier);
+
+		SearchRequest searchRequest = Requests.createSearchReq(Constants.MATCH_LINKS_ACCESS_REQUEST, 1, null,
+				mIfmapMaxResultSize, null, startIdentifier);
 		searchRequest.addNamespaceDeclaration(IfmapStrings.BASE_PREFIX, IfmapStrings.BASE_NS_URI);
 		searchRequest.addNamespaceDeclaration(IfmapStrings.STD_METADATA_PREFIX, IfmapStrings.STD_METADATA_NS_URI);
 		try {
@@ -382,29 +401,45 @@ public class IfmapController {
 				}
 			}
 		} catch (IfmapErrorResult e) {
-			logger.error("Got IfmapErrorResult: "+  e.getMessage() + ", " + e.getCause());
+			logger.error("Got IfmapErrorResult: "
+					+ e.getMessage() + ", " + e.getCause());
 		} catch (IfmapException e) {
-			logger.error("Got IfmapExecption: "+  e.getMessage() + ", " + e.getCause());
+			logger.error("Got IfmapExecption: "
+					+ e.getMessage() + ", " + e.getCause());
 		}
-		
+
 		return null;
 	}
-	
+
 	/**
 	 * From: http://www.sha1-online.com/sha1-java/
-	 * 
+	 *
 	 * @param input
 	 * @return
 	 * @throws NoSuchAlgorithmException
 	 */
 	private String createSHA1(String input) throws NoSuchAlgorithmException {
-        MessageDigest mDigest = MessageDigest.getInstance("SHA1");
-        byte[] result = mDigest.digest(input.getBytes());
-        StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < result.length; i++) {
-            sb.append(Integer.toString((result[i] & 0xff) + 0x100, 16).substring(1));
-        }
-         
-        return sb.toString();
-    }
+		MessageDigest mDigest = MessageDigest.getInstance("SHA1");
+		byte[] result = mDigest.digest(input.getBytes());
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < result.length; i++) {
+			sb.append(Integer.toString((result[i]
+					& 0xff)
+					+ 0x100, 16).substring(1));
+		}
+
+		return sb.toString();
+	}
+
+	public void selfPublish() throws IfmapErrorResult, IfmapException {
+		try {
+			String deviceName = mConfig.getString(Configuration.KEY_SELF_PUBLISH_DEVICE,
+					Configuration.DEFAULT_VALUE_SELF_PUBLISH_DEVICE);
+			String ipValue = InetAddress.getLocalHost().getHostAddress();
+			PublishRequest selfPublishRequest = SelfPublisher.createSelfPublishRequest(ipValue, deviceName);
+			mSsrc.publish(selfPublishRequest);
+		} catch (UnknownHostException e) {
+			logger.error("Could not detect local IP address, not publishing self-information");
+		}
+	}
 }

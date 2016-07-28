@@ -7,18 +7,18 @@
  *    | | | |  | |_| \__ \ |_| | (_| |  _  |\__ \|  _  |
  *    |_| |_|   \__,_|___/\__|\ \__,_|_| |_||___/|_| |_|
  *                             \____/
- * 
+ *
  * =====================================================
- * 
+ *
  * Hochschule Hannover
  * (University of Applied Sciences and Arts, Hannover)
  * Faculty IV, Dept. of Computer Science
  * Ricklinger Stadtweg 118, 30459 Hannover, Germany
- * 
+ *
  * Email: trust@f4-i.fh-hannover.de
  * Website: http://trust.f4.hs-hannover.de/
- * 
- * This file is part of irondetect, version 0.0.9, 
+ *
+ * This file is part of irondetect, version 0.0.9,
  * implemented by the Trust@HsH research group at the Hochschule Hannover.
  * %%
  * Copyright (C) 2010 - 2016 Trust@HsH
@@ -26,9 +26,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -85,7 +85,8 @@ public class Main {
 	private static Properties CONFIG;
 
 	public static void main(String[] args) {
-		logger.info("irondetect " + VERSION + " is running ...");
+		logger.info("irondetect "
+				+ VERSION + " is running ...");
 
 		// initialize modules
 		initModules();
@@ -96,12 +97,11 @@ public class Main {
 		// Create processor and thread
 		Thread processingThread = new Thread(processor, "processor-thread");
 		processingThread.start();
-		
+
 		try {
 			PolicyPublisher policyUpdater = new PolicyPublisher(processor.getPolicy());
 			processor.setPolicyPublisher(policyUpdater);
-			
-			
+
 			boolean automaticPolicyReload = CONFIG.getBoolean(Configuration.KEY_POLICY_RELOAD_FROM_GRAPH,
 					Configuration.DEFAULT_VALUE_POLICY_RELOAD_FROM_GRAPH);
 			if (automaticPolicyReload) {
@@ -111,10 +111,12 @@ public class Main {
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
 			logger.error("Error while init PolicyPublisher", e);
 		} catch (IfmapErrorResult e) {
-			logger.error(e.getClass().getSimpleName() + " when send policy-Graph (" + e.toString() + ")");
+			logger.error(e.getClass().getSimpleName()
+					+ " when send policy-Graph (" + e.toString() + ")");
 		} catch (IfmapException e) {
-			logger.error(e.getClass().getSimpleName() + " when send policy-Graph (Message= " + e.getMessage()
-			+ " |Description= " + e.getDescription() + ")");
+			logger.error(e.getClass().getSimpleName()
+					+ " when send policy-Graph (Message= " + e.getMessage()
+					+ " |Description= " + e.getDescription() + ")");
 		}
 
 		// Add EventReceivers to FeatureBase
@@ -140,11 +142,13 @@ public class Main {
 
 		resultLoggerThread.start();
 
-		boolean trainingEnabled = CONFIG.getBoolean(Configuration.KEY_TRAINING_ENABLED, Configuration.DEFAULT_VALUE_TRAINING_ENABLED);
+		boolean trainingEnabled =
+				CONFIG.getBoolean(Configuration.KEY_TRAINING_ENABLED, Configuration.DEFAULT_VALUE_TRAINING_ENABLED);
 		if (trainingEnabled) {
 			Importer importer = new YamlImporter();
 			List<Pair<String, Pair<Feature, Boolean>>> importedTrainingData = importer
-					.loadTrainingDatabases(CONFIG.getString(Configuration.KEY_TRAINING_DIRECTORY, Configuration.DEFAULT_VALUE_TRAINING_DIRECTORY));
+					.loadTrainingDatabases(CONFIG.getString(Configuration.KEY_TRAINING_DIRECTORY,
+							Configuration.DEFAULT_VALUE_TRAINING_DIRECTORY));
 			if (importedTrainingData != null) {
 				logger.info("Imported training data was NOT null -> will train now.");
 				fb.addNewFeatures(importedTrainingData, true);
@@ -154,7 +158,7 @@ public class Main {
 		} else {
 			logger.info("Training was disabled.");
 		}
-		
+
 		logger.info("Will begin testing now.");
 		processor.setToTesting();
 
@@ -168,6 +172,16 @@ public class Main {
 
 		// Start ifmap subscriber for configured pdp device identifiers
 		IfmapController ifmapController = new IfmapController();
+
+		if (CONFIG.getBoolean(Configuration.KEY_SELF_PUBLISH_ENABLED,
+				Configuration.DEFAULT_VALUE_SELF_PUBLISH_ENABLED)) {
+			try {
+				ifmapController.selfPublish();
+			} catch (IfmapErrorResult | IfmapException e) {
+				logger.error("Could not publish self-information: "
+						+ e.getMessage());
+			}
+		}
 
 		// Create a new Action-To-IF-MAP Mapper and register the IF-MAP
 		// controller.
@@ -196,14 +210,15 @@ public class Main {
 		if (CONFIG == null) {
 			URL config = Main.class.getClassLoader().getResource("irondetect.yml");
 			String path = config.getPath();
-			logger.info("Path: " + path);
+			logger.info("Path: "
+					+ path);
 			CONFIG = new Properties(path);
 			if (CONFIG == null) {
 				throw new RuntimeException("Application property has not been initialized. This is not good!");
 			}
 		}
-		
+
 		return CONFIG;
 	}
-	
+
 }

@@ -7,18 +7,18 @@
  *    | | | |  | |_| \__ \ |_| | (_| |  _  |\__ \|  _  |
  *    |_| |_|   \__,_|___/\__|\ \__,_|_| |_||___/|_| |_|
  *                             \____/
- * 
+ *
  * =====================================================
- * 
+ *
  * Hochschule Hannover
  * (University of Applied Sciences and Arts, Hannover)
  * Faculty IV, Dept. of Computer Science
  * Ricklinger Stadtweg 118, 30459 Hannover, Germany
- * 
+ *
  * Email: trust@f4-i.fh-hannover.de
  * Website: http://trust.f4.hs-hannover.de/
- * 
- * This file is part of irondetect, version 0.0.9, 
+ *
+ * This file is part of irondetect, version 0.0.9,
  * implemented by the Trust@HsH research group at the Hochschule Hannover.
  * %%
  * Copyright (C) 2010 - 2016 Trust@HsH
@@ -26,9 +26,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -131,22 +131,35 @@ public class PolicyPublisher {
 	}
 
 	public PolicyPublisher(Policy policy) throws IfmapErrorResult, IfmapException, ClassNotFoundException,
-	InstantiationException, IllegalAccessException {
+			InstantiationException, IllegalAccessException {
 		mPolicy = policy;
-		policyPublisherIdentifier = mConfig.getString(Configuration.KEY_PUBLISHER_POLICY_DEVICENAME, Configuration.DEFAULT_VALUE_PUBLISHER_POLICY_DEVICENAME);
 
-		ifmapMaxResultSize = mConfig.getInt(Configuration.KEY_IFMAP_MAXRESULTSIZE, Configuration.DEFAULT_VALUE_IFMAP_MAXRESULTSIZE);
+		if (mConfig.getBoolean(Configuration.KEY_SELF_PUBLISH_ENABLED,
+				Configuration.DEFAULT_VALUE_SELF_PUBLISH_ENABLED)) {
+			policyPublisherIdentifier = mConfig.getString(Configuration.KEY_SELF_PUBLISH_DEVICE,
+					Configuration.DEFAULT_VALUE_SELF_PUBLISH_DEVICE);
+		} else {
+			policyPublisherIdentifier = mConfig.getString(Configuration.KEY_PUBLISHER_POLICY_DEVICENAME,
+					Configuration.DEFAULT_VALUE_PUBLISHER_POLICY_DEVICENAME);
+		}
 
-		String username = mConfig.getString(Configuration.KEY_IFMAP_BASIC_POLICYPUBLISHER_USERNAME, Configuration.DEFAULT_VALUE_IFMAP_BASIC_POLICYPUBLISHER_USERNAME);
-		String password = mConfig.getString(Configuration.KEY_IFMAP_BASIC_POLICYPUBLISHER_PASSWORD, Configuration.DEFAULT_VALUE_IFMAP_BASIC_POLICYPUBLISHER_PASSWORD);
+		ifmapMaxResultSize =
+				mConfig.getInt(Configuration.KEY_IFMAP_MAXRESULTSIZE, Configuration.DEFAULT_VALUE_IFMAP_MAXRESULTSIZE);
+
+		String username = mConfig.getString(Configuration.KEY_IFMAP_BASIC_POLICYPUBLISHER_USERNAME,
+				Configuration.DEFAULT_VALUE_IFMAP_BASIC_POLICYPUBLISHER_USERNAME);
+		String password = mConfig.getString(Configuration.KEY_IFMAP_BASIC_POLICYPUBLISHER_PASSWORD,
+				Configuration.DEFAULT_VALUE_IFMAP_BASIC_POLICYPUBLISHER_PASSWORD);
 
 		try {
 			mSsrc = IfmapUtil.initSsrc(username, password);
 		} catch (FileNotFoundException e) {
-			LOGGER.error("Could not initialize truststore: " + e.getMessage());
+			LOGGER.error("Could not initialize truststore: "
+					+ e.getMessage());
 			System.exit(Constants.RETURN_CODE_ERROR_TRUSTSTORE_LOADING_FAILED);
 		} catch (InitializationException e) {
-			LOGGER.error("Could not initialize ifmapj: " + e.getMessage() + ", " + e.getCause());
+			LOGGER.error("Could not initialize ifmapj: "
+					+ e.getMessage() + ", " + e.getCause());
 			System.exit(Constants.RETURN_CODE_ERROR_IFMAPJ_INITIALIZATION_FAILED);
 		}
 
@@ -164,8 +177,10 @@ public class PolicyPublisher {
 		EndpointPoller.getInstance().addPollResultReceiver(mPolicyFeatureUpdater);
 		EndpointPoller.getInstance().addPollResultReceiver(mPolicyActionUpdater);
 
-		Thread featureThread = new Thread(mPolicyFeatureUpdater, PolicyFeatureUpdater.class.getSimpleName() + "-Thread");
-		Thread actionThread = new Thread(mPolicyActionUpdater, PolicyActionUpdater.class.getSimpleName() + "-Thread");
+		Thread featureThread = new Thread(mPolicyFeatureUpdater, PolicyFeatureUpdater.class.getSimpleName()
+				+ "-Thread");
+		Thread actionThread = new Thread(mPolicyActionUpdater, PolicyActionUpdater.class.getSimpleName()
+				+ "-Thread");
 		Thread liveCheckeractionThread =
 				new Thread(mLiveCheckerPolicyEvaluationUpdater, LiveCheckerPolicyEvaluationUpdater.class.getSimpleName()
 						+ "-Thread");
@@ -283,9 +298,11 @@ public class PolicyPublisher {
 			return search;
 
 		} catch (IfmapErrorResult e) {
-			LOGGER.error("Got IfmapErrorResult: "+ e.getMessage() + ", " + e.getCause());
+			LOGGER.error("Got IfmapErrorResult: "
+					+ e.getMessage() + ", " + e.getCause());
 		} catch (IfmapException e) {
-			LOGGER.error("Got IfmapExecption: "	+ e.getMessage() + ", " + e.getCause());
+			LOGGER.error("Got IfmapExecption: "
+					+ e.getMessage() + ", " + e.getCause());
 		}
 
 		return null;
