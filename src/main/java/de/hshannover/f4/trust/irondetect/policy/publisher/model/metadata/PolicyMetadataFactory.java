@@ -7,18 +7,18 @@
  *    | | | |  | |_| \__ \ |_| | (_| |  _  |\__ \|  _  |
  *    |_| |_|   \__,_|___/\__|\ \__,_|_| |_||___/|_| |_|
  *                             \____/
- * 
+ *
  * =====================================================
- * 
+ *
  * Hochschule Hannover
  * (University of Applied Sciences and Arts, Hannover)
  * Faculty IV, Dept. of Computer Science
  * Ricklinger Stadtweg 118, 30459 Hannover, Germany
- * 
+ *
  * Email: trust@f4-i.fh-hannover.de
  * Website: http://trust.f4.hs-hannover.de/
- * 
- * This file is part of irondetect, version 0.0.9, 
+ *
+ * This file is part of irondetect, version 0.0.9,
  * implemented by the Trust@HsH research group at the Hochschule Hannover.
  * %%
  * Copyright (C) 2010 - 2016 Trust@HsH
@@ -26,9 +26,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -69,7 +69,7 @@ public class PolicyMetadataFactory {
 
 	private DocumentBuilder mDocumentBuilder;
 
-	public PolicyMetadataFactory(){
+	public PolicyMetadataFactory() {
 		mMetadataFactory = IfmapJ.createStandardMetadataFactory();
 
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -77,16 +77,10 @@ public class PolicyMetadataFactory {
 		try {
 			mDocumentBuilder = dbf.newDocumentBuilder();
 		} catch (ParserConfigurationException e) {
-			IfmapJLog.error("Could not get DocumentBuilder instance [" + e.getMessage() + "]");
+			IfmapJLog.error("Could not get DocumentBuilder instance ["
+					+ e.getMessage() + "]");
 			throw new RuntimeException(e);
 		}
-	}
-
-	public Document createHasElement() {
-		Document doc = mMetadataFactory.create("has-element", PolicyStrings.POLICY_QUALIFIED_NAME,
-				PolicyStrings.POLICY_METADATA_NS_URI, Cardinality.singleValue);
-
-		return doc;
 	}
 
 	public Document createRevMetadata(String elementName, Document revMetadata, Identifier firstIdentifier)
@@ -99,7 +93,8 @@ public class PolicyMetadataFactory {
 			Identifier secondIdentifier, Map<String, String> attributes) throws DOMException, MarshalException {
 		Document doc = mDocumentBuilder.newDocument();
 		Element metadataElement = doc.createElementNS(PolicyStrings.POLICY_METADATA_NS_URI,
-				PolicyStrings.POLICY_QUALIFIED_NAME + ":" + elementName);
+				PolicyStrings.POLICY_QUALIFIED_NAME
+						+ ":" + elementName);
 		metadataElement.setAttributeNS(null, PolicyStrings.IFMAP_CARDINALITY, Cardinality.multiValue.toString());
 
 		for (Map.Entry<String, String> attr : attributes.entrySet()) {
@@ -146,7 +141,8 @@ public class PolicyMetadataFactory {
 		Document doc = mDocumentBuilder.newDocument();
 		Element metadataElement =
 				doc.createElementNS(PolicyStrings.POLICY_METADATA_NS_URI,
-						PolicyStrings.POLICY_QUALIFIED_NAME + ":"
+						PolicyStrings.POLICY_QUALIFIED_NAME
+								+ ":"
 								+ PolicyStrings.POLICY_PARTIAL_EL_NAME);
 		metadataElement.setAttributeNS(null, PolicyStrings.IFMAP_CARDINALITY,
 				Cardinality.multiValue.toString());
@@ -192,7 +188,8 @@ public class PolicyMetadataFactory {
 
 		Document doc = mDocumentBuilder.newDocument();
 		Element metadataElement = doc.createElementNS(PolicyStrings.POLICY_METADATA_NS_URI,
-				PolicyStrings.POLICY_QUALIFIED_NAME + ":" + PolicyStrings.POLICY_ACTION_EL_NAME);
+				PolicyStrings.POLICY_QUALIFIED_NAME
+						+ ":" + PolicyStrings.POLICY_ACTION_EL_NAME);
 		metadataElement.setAttributeNS(null, PolicyStrings.IFMAP_CARDINALITY, Cardinality.multiValue.toString());
 
 		addRuleResults(metadataElement, ruleResult, doc);
@@ -232,7 +229,8 @@ public class PolicyMetadataFactory {
 
 		Document doc = mDocumentBuilder.newDocument();
 		Element metadataElement = doc.createElementNS(PolicyStrings.POLICY_METADATA_NS_URI,
-				PolicyStrings.POLICY_QUALIFIED_NAME + ":" + PolicyStrings.POLICY_EVALUATION_EL_NAME);
+				PolicyStrings.POLICY_QUALIFIED_NAME
+						+ ":" + PolicyStrings.POLICY_EVALUATION_EL_NAME);
 		metadataElement.setAttributeNS(null, PolicyStrings.IFMAP_CARDINALITY, Cardinality.multiValue.toString());
 
 		addRuleResults(metadataElement, ruleResult, doc);
@@ -286,8 +284,8 @@ public class PolicyMetadataFactory {
 		metadataElement.appendChild(ruleElement);
 	}
 
-	private void addAnomalyResults(Element metadataElement, Map<ResultObject, Map<ResultObject,
-			List<String>>> anomalyMap, Document doc) {
+	private void addAnomalyResults(Element metadataElement,
+			Map<ResultObject, Map<ResultObject, List<String>>> anomalyMap, Document doc) {
 
 		for (Entry<ResultObject, Map<ResultObject, List<String>>> anomaly : anomalyMap.entrySet()) {
 			ResultObject anomalyResultObject = anomaly.getKey();
@@ -347,4 +345,38 @@ public class PolicyMetadataFactory {
 		}
 	}
 
+	public Document createDeviceToPolicyLink() {
+		return mMetadataFactory.create("device-has-policy", PolicyStrings.POLICY_QUALIFIED_NAME,
+				PolicyStrings.POLICY_METADATA_NS_URI, Cardinality.singleValue);
+	}
+
+	public Document createPolicyToRuleLink() {
+		return mMetadataFactory.create("policy-has-rule", PolicyStrings.POLICY_QUALIFIED_NAME,
+				PolicyStrings.POLICY_METADATA_NS_URI, Cardinality.singleValue);
+	}
+
+	public Document createRuleToConditionLink() {
+		return mMetadataFactory.create("ruke-has-condition", PolicyStrings.POLICY_QUALIFIED_NAME,
+				PolicyStrings.POLICY_METADATA_NS_URI, Cardinality.singleValue);
+	}
+
+	public Document createRuleToActionLink() {
+		return mMetadataFactory.create("rule-has-action", PolicyStrings.POLICY_QUALIFIED_NAME,
+				PolicyStrings.POLICY_METADATA_NS_URI, Cardinality.singleValue);
+	}
+
+	public Document createConditionToAnomalyLink() {
+		return mMetadataFactory.create("condition-has-anomaly", PolicyStrings.POLICY_QUALIFIED_NAME,
+				PolicyStrings.POLICY_METADATA_NS_URI, Cardinality.singleValue);
+	}
+
+	public Document createConditionToSignatureLink() {
+		return mMetadataFactory.create("condition-has-signature", PolicyStrings.POLICY_QUALIFIED_NAME,
+				PolicyStrings.POLICY_METADATA_NS_URI, Cardinality.singleValue);
+	}
+
+	public Document createAnomalyToHintLink() {
+		return mMetadataFactory.create("anomaly-has-hint", PolicyStrings.POLICY_QUALIFIED_NAME,
+				PolicyStrings.POLICY_METADATA_NS_URI, Cardinality.singleValue);
+	}
 }

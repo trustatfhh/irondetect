@@ -71,6 +71,7 @@ import de.hshannover.f4.trust.irondetect.model.Hint;
 import de.hshannover.f4.trust.irondetect.model.HintExpression;
 import de.hshannover.f4.trust.irondetect.model.Policy;
 import de.hshannover.f4.trust.irondetect.model.Rule;
+import de.hshannover.f4.trust.irondetect.model.Signature;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.handler.PolicyDataManager;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.ExtendedIdentifier;
 import de.hshannover.f4.trust.irondetect.policy.publisher.model.identifier.handler.ActionHandler;
@@ -216,35 +217,45 @@ public class PolicyPublisher {
 		mMetadataFactory = new PolicyMetadataFactory();
 
 		ExtendedIdentifier policyIdentifier = PolicyDataManager.transformPolicyData(mPolicy);
-		Document hasElementMetadata = mMetadataFactory.createHasElement();
 
-		Identifier policies = Identifiers.createDev(policyPublisherIdentifier);
-		addPublishUpdate(policies, hasElementMetadata, policyIdentifier);
+		Identifier deviceIdentifier = Identifiers.createDev(policyPublisherIdentifier);
+
+		Document deviceToPolicyLink = mMetadataFactory.createDeviceToPolicyLink();
+		Document policyToRuleLink = mMetadataFactory.createPolicyToRuleLink();
+		Document ruleToConditionLink = mMetadataFactory.createRuleToConditionLink();
+		Document ruleToActionLink = mMetadataFactory.createRuleToActionLink();
+		Document conditionToAnomalyLink = mMetadataFactory.createConditionToAnomalyLink();
+		Document conditionToSignatureLink = mMetadataFactory.createConditionToSignatureLink();
+		Document anomalyToHintLink = mMetadataFactory.createAnomalyToHintLink();
+
+		addPublishUpdate(deviceIdentifier, deviceToPolicyLink, policyIdentifier);
 
 		for (Rule r : mPolicy.getRuleSet()) {
-			ExtendedIdentifier identfierRule = PolicyDataManager.transformPolicyData(r);
-			addPublishUpdate(policyIdentifier, hasElementMetadata, identfierRule);
+			ExtendedIdentifier ruleIdentifier = PolicyDataManager.transformPolicyData(r);
+			addPublishUpdate(policyIdentifier, policyToRuleLink, ruleIdentifier);
 
-			ExtendedIdentifier identfierCondition = PolicyDataManager.transformPolicyData(r.getCondition());
-			addPublishUpdate(identfierRule, hasElementMetadata, identfierCondition);
+			ExtendedIdentifier conditionIdentifier = PolicyDataManager.transformPolicyData(r.getCondition());
+			addPublishUpdate(ruleIdentifier, ruleToConditionLink, conditionIdentifier);
 
 			for (Action a : r.getActions()) {
-				ExtendedIdentifier identfierAction = PolicyDataManager.transformPolicyData(a);
-				addPublishUpdate(identfierRule, hasElementMetadata, identfierAction);
+				ExtendedIdentifier actionIdentifier = PolicyDataManager.transformPolicyData(a);
+				addPublishUpdate(ruleIdentifier, ruleToActionLink, actionIdentifier);
 			}
 
 			for (Pair<ConditionElement, BooleanOperator> p : r.getCondition().getConditionSet()) {
 				ConditionElement conditionElement = p.getFirstElement();
-				ExtendedIdentifier identfierConditionElement = PolicyDataManager.transformPolicyData(conditionElement);
-				addPublishUpdate(identfierCondition, hasElementMetadata, identfierConditionElement);
+				ExtendedIdentifier conditionElementIdentifier = PolicyDataManager.transformPolicyData(conditionElement);
 
 				if (conditionElement instanceof Anomaly) {
+					addPublishUpdate(conditionIdentifier, conditionToAnomalyLink, conditionElementIdentifier);
 					Anomaly anomaly = (Anomaly) conditionElement;
 					for (Pair<HintExpression, BooleanOperator> ex : anomaly.getHintSet()) {
 						Hint hint = ex.getFirstElement().getHintValuePair().getFirstElement();
-						ExtendedIdentifier identfierHint = PolicyDataManager.transformPolicyData(hint);
-						addPublishUpdate(identfierConditionElement, hasElementMetadata, identfierHint);
+						ExtendedIdentifier hintIdentifier = PolicyDataManager.transformPolicyData(hint);
+						addPublishUpdate(conditionElementIdentifier, anomalyToHintLink, hintIdentifier);
 					}
+				} else if (conditionElement instanceof Signature) {
+					addPublishUpdate(conditionIdentifier, conditionToSignatureLink, conditionElementIdentifier);
 				}
 			}
 		}
