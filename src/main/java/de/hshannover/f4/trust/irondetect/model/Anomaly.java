@@ -21,7 +21,7 @@
  * This file is part of irondetect, version 0.0.10, 
  * implemented by the Trust@HsH research group at the Hochschule Hannover.
  * %%
- * Copyright (C) 2010 - 2016 Trust@HsH
+ * Copyright (C) 2010 - 2018 Trust@HsH
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ public class Anomaly extends ConditionElement {
 
     private Logger logger = Logger.getLogger(this.getClass());
     private ResultLogger rlogger = ResultLoggerImpl.getInstance();
-    private List<Pair<HintExpression, BooleanOperator>> hintSet;
+    protected List<Pair<HintExpression, BooleanOperator>> hintSet;
 
     /**
      * @return the hintSet
@@ -147,7 +147,7 @@ public class Anomaly extends ConditionElement {
 
     }
 
-    private boolean evaluateHintSet(String device) {
+    protected boolean evaluateHintSet(String device) {
         boolean result = false;
         HintExpression h;
 

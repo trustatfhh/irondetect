@@ -21,7 +21,7 @@
  * This file is part of irondetect, version 0.0.10, 
  * implemented by the Trust@HsH research group at the Hochschule Hannover.
  * %%
- * Copyright (C) 2010 - 2016 Trust@HsH
+ * Copyright (C) 2010 - 2018 Trust@HsH
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ public class HintExpression extends Evaluable {
 	/**
 	 * 
 	 */
-	private Pair<Hint, Pair<ComparisonOperator, String>> hintValPair;
+	protected Pair<Hint, Pair<ComparisonOperator, String>> hintValPair;
 	
 	private Anomaly currentAnomaly;
 	

@@ -21,7 +21,7 @@
  * This file is part of irondetect, version 0.0.10, 
  * implemented by the Trust@HsH research group at the Hochschule Hannover.
  * %%
- * Copyright (C) 2010 - 2016 Trust@HsH
+ * Copyright (C) 2010 - 2018 Trust@HsH
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class Signature extends ConditionElement {
 
     private Logger logger = Logger.getLogger(this.getClass());
     private ResultLogger rlogger = ResultLoggerImpl.getInstance();
-    private List<Pair<FeatureExpression, BooleanOperator>> featureSet;
+    protected List<Pair<FeatureExpression, BooleanOperator>> featureSet;
 
     /**
      * @return the featureSet
@@ -366,7 +366,7 @@ public class Signature extends ConditionElement {
     }
 
 
-    private String applyScopeFilter(int scope, String root) {
+    protected String applyScopeFilter(int scope, String root) {
         int idx;
         for (int s = 0; s < scope; s++) {
             idx = root.lastIndexOf(Policy.SUBCAT_KEY);

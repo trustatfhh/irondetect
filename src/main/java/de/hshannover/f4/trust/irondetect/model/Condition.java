@@ -21,7 +21,7 @@
  * This file is part of irondetect, version 0.0.10, 
  * implemented by the Trust@HsH research group at the Hochschule Hannover.
  * %%
- * Copyright (C) 2010 - 2016 Trust@HsH
+ * Copyright (C) 2010 - 2018 Trust@HsH
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,9 +62,9 @@ public class Condition extends Evaluable implements PolicyData {
 	private static Logger logger = Logger.getLogger(Condition.class);
         private ResultLogger rlogger = ResultLoggerImpl.getInstance();
 
-	private List<Pair<ConditionElement, BooleanOperator>> conditionSet;
+	protected List<Pair<ConditionElement, BooleanOperator>> conditionSet;
 	
-	private Rule parent;
+	protected Rule parent;
 
 	
 	
@@ -110,7 +110,7 @@ public class Condition extends Evaluable implements PolicyData {
 
 	}
 	
-	private boolean evaluateConditionSet(String device) {
+	protected boolean evaluateConditionSet(String device) {
 		boolean result = false;
 		if(getConditionSet().size() < 2) {
 			return getConditionSet().get(0).getFirstElement().evaluate(device);
