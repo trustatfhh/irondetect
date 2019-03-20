@@ -356,7 +356,7 @@ public class PolicyMetadataFactory {
 	}
 
 	public Document createRuleToConditionLink() {
-		return mMetadataFactory.create("ruke-has-condition", PolicyStrings.POLICY_QUALIFIED_NAME,
+		return mMetadataFactory.create("rule-has-condition", PolicyStrings.POLICY_QUALIFIED_NAME,
 				PolicyStrings.POLICY_METADATA_NS_URI, Cardinality.singleValue);
 	}
 
