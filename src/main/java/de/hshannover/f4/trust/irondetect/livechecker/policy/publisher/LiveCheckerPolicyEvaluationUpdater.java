@@ -342,9 +342,11 @@ public class LiveCheckerPolicyEvaluationUpdater implements Runnable, EventReceiv
 
 				Document policyEvaluation = null;
 
+				ResultObject fixedResult = new ResultObject(result.getDevice(), result.getType(), result.getId(), false);	// FIXME quick hack ... :-(
+				
 				try {
 					policyEvaluation =
-							mMetadataFactory.createPolicyEvaluationMetadata(result, signatureFeatureMap, anomalyMap,
+							mMetadataFactory.createPolicyEvaluationMetadata(fixedResult, signatureFeatureMap, anomalyMap,
 									featureDocuments);
 				} catch (DOMException | MarshalException e) {
 					LOGGER.error(e.getClass().getSimpleName() + " when create Policy-Evaluation-Metadata");

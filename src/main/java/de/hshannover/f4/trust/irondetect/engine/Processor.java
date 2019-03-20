@@ -750,6 +750,8 @@ public class Processor implements EventReceiver, Runnable, PollResultReceiver {
 			throws IfmapErrorResult, IfmapException, ClassNotFoundException, InstantiationException,
 			IllegalAccessException {
 
+		System.out.println("DEBUG-MESSAGE: starting to evaluate a live graph");
+		
 		// init
 		Policy policyForLiveCheck = setLiveCheckPolicy(getGraphPolicy());
 
